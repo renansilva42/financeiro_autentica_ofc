@@ -1,4 +1,4 @@
 Flask
 python-dotenv
 requests
-pydentic-settings
+pydantic-settings

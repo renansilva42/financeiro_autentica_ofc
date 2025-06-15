@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+
+{% block title %}Clientes - Financeira Autêntica{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-people"></i>
+                Clientes
+                {% if search %}
+                    <small class="text-muted">- Resultados para "{{ search }}"</small>
+                {% endif %}
+            </h1>
+            
+            <div class="d-flex gap-2">
+                {% if search %}
+                    <a href="{{ url_for('clients') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i>
+                        Limpar Busca
+                    </a>
+                {% endif %}
+                
+                <button class="btn btn-success" onclick="exportData()">
+                    <i class="bi bi-download"></i>
+                    Exportar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('clients') }}" class="row g-3">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" class="form-control" name="search" 
+                                   placeholder="Buscar por nome, razão social ou CNPJ/CPF..." 
+                                   value="{{ search }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-fill">
+                                <i class="bi bi-search"></i>
+                                Buscar
+                            </button>
+                            {% if search %}
+                                <a href="{{ url_for('clients') }}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Info -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <p class="text-muted mb-0">
+                Mostrando {{ clients|length }} de {{ pagination.total }} clientes
+                {% if search %}
+                    para "{{ search }}"
+                {% endif %}
+            </p>
+            
+            <div class="btn-group" role="group">
+                <input type="radio" class="btn-check" name="view" id="table-view" checked>
+                <label class="btn btn-outline-primary" for="table-view">
+                    <i class="bi bi-table"></i>
+                </label>
+                
+                <input type="radio" class="btn-check" name="view" id="card-view">
+                <label class="btn btn-outline-primary" for="card-view">
+                    <i class="bi bi-grid"></i>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Clients Table -->
+<div id="table-view-content">
+    <div class="card shadow">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome/Razão Social</th>
+                            <th>CNPJ/CPF</th>
+                            <th>Tipo</th>
+                            <th>Estado</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for client in clients %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-secondary">
+                                    {{ client.codigo_cliente_omie }}
+                                </span>
+                            </td>
+                            <td>
+                                <div>
+                                    <strong>{{ client.razao_social or 'N/A' }}</strong>
+                                    {% if client.nome_fantasia and client.nome_fantasia != client.razao_social %}
+                                        <br>
+                                        <small class="text-muted">{{ client.nome_fantasia }}</small>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <code>{{ client.cnpj_cpf | format_cpf_cnpj if client.cnpj_cpf else 'N/A' }}</code>
+                            </td>
+                            <td>
+                                {% if client.pessoa_fisica == 'S' %}
+                                    <span class="badge bg-info">
+                                        <i class="bi bi-person"></i> PF
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-warning">
+                                        <i class="bi bi-building"></i> PJ
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if client.estado %}
+                                    <span class="badge bg-light text-dark">{{ client.estado }}</span>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if client.inativo == 'N' %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle"></i> Ativo
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-x-circle"></i> Inativo
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('client_detail', client_id=client.codigo_cliente_omie) }}" 
+                                       class="btn btn-outline-primary" title="Ver Detalhes">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <button class="btn btn-outline-info" 
+                                            onclick="showClientInfo({{ client.codigo_cliente_omie }})" 
+                                            title="Informações Rápidas">
+                                        <i class="bi bi-info-circle"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="bi bi-inbox display-1"></i>
+                                    <p class="mt-3">
+                                        {% if search %}
+                                            Nenhum cliente encontrado para "{{ search }}"
+                                        {% else %}
+                                            Nenhum cliente encontrado
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Clients Cards (Hidden by default) -->
+<div id="card-view-content" style="display: none;">
+    <div class="row">
+        {% for client in clients %}
+        <div class="col-xl-4 col-lg-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="badge bg-secondary">ID: {{ client.codigo_cliente_omie }}</span>
+                    {% if client.inativo == 'N' %}
+                        <span class="badge bg-success">Ativo</span>
+                    {% else %}
+                        <span class="badge bg-danger">Inativo</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <h6 class="card-title">{{ client.razao_social or 'N/A' }}</h6>
+                    {% if client.nome_fantasia and client.nome_fantasia != client.razao_social %}
+                        <p class="card-text text-muted small">{{ client.nome_fantasia }}</p>
+                    {% endif %}
+                    
+                    <div class="row text-sm">
+                        <div class="col-12 mb-2">
+                            <strong>CNPJ/CPF:</strong> 
+                            <code>{{ client.cnpj_cpf | format_cpf_cnpj if client.cnpj_cpf else 'N/A' }}</code>
+                        </div>
+                        <div class="col-6">
+                            <strong>Tipo:</strong>
+                            {% if client.pessoa_fisica == 'S' %}
+                                <span class="badge bg-info">PF</span>
+                            {% else %}
+                                <span class="badge bg-warning">PJ</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-6">
+                            <strong>Estado:</strong>
+                            {% if client.estado %}
+                                <span class="badge bg-light text-dark">{{ client.estado }}</span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('client_detail', client_id=client.codigo_cliente_omie) }}" 
+                           class="btn btn-primary btn-sm">
+                            <i class="bi bi-eye"></i> Ver Detalhes
+                        </a>
+                        <button class="btn btn-outline-info btn-sm" 
+                                onclick="showClientInfo({{ client.codigo_cliente_omie }})">
+                            <i class="bi bi-info-circle"></i> Info
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if pagination.total_pages > 1 %}
+<nav aria-label="Navegação de páginas">
+    <ul class="pagination justify-content-center">
+        {% if pagination.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('clients', page=pagination.prev_num, search=search) }}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+        {% endif %}
+        
+        {% for page_num in range(1, pagination.total_pages + 1) %}
+            {% if page_num == pagination.page %}
+                <li class="page-item active">
+                    <span class="page-link">{{ page_num }}</span>
+                </li>
+            {% elif page_num <= 3 or page_num > pagination.total_pages - 3 or (page_num >= pagination.page - 1 and page_num <= pagination.page + 1) %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('clients', page=page_num, search=search) }}">
+                        {{ page_num }}
+                    </a>
+                </li>
+            {% elif page_num == 4 or page_num == pagination.total_pages - 3 %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if pagination.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('clients', page=pagination.next_num, search=search) }}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<!-- Modal for Quick Client Info -->
+<div class="modal fade" id="clientInfoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Informações do Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="clientInfoContent">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Toggle between table and card view
+document.getElementById('table-view').addEventListener('change', function() {
+    if (this.checked) {
+        document.getElementById('table-view-content').style.display = 'block';
+        document.getElementById('card-view-content').style.display = 'none';
+    }
+});
+
+document.getElementById('card-view').addEventListener('change', function() {
+    if (this.checked) {
+        document.getElementById('table-view-content').style.display = 'none';
+        document.getElementById('card-view-content').style.display = 'block';
+    }
+});
+
+// Show client info in modal
+function showClientInfo(clientId) {
+    const modal = new bootstrap.Modal(document.getElementById('clientInfoModal'));
+    const content = document.getElementById('clientInfoContent');
+    
+    // Show loading
+    content.innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+        </div>
+    `;
+    
+    modal.show();
+    
+    // Fetch client data
+    fetch(`/api/client/${clientId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                content.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                return;
+            }
+            
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Informações Básicas</h6>
+                        <p><strong>Razão Social:</strong> ${data.razao_social || 'N/A'}</p>
+                        <p><strong>Nome Fantasia:</strong> ${data.nome_fantasia || 'N/A'}</p>
+                        <p><strong>CNPJ/CPF:</strong> ${data.cnpj_cpf || 'N/A'}</p>
+                        <p><strong>Tipo:</strong> ${data.pessoa_fisica === 'S' ? 'Pessoa Física' : 'Pessoa Jurídica'}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Contato</h6>
+                        <p><strong>Email:</strong> ${data.email || 'N/A'}</p>
+                        <p><strong>Telefone:</strong> ${data.telefone1_ddd && data.telefone1_numero ? `(${data.telefone1_ddd}) ${data.telefone1_numero}` : 'N/A'}</p>
+                        <p><strong>Estado:</strong> ${data.estado || 'N/A'}</p>
+                        <p><strong>Cidade:</strong> ${data.cidade || 'N/A'}</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="/client/${data.codigo_cliente_omie}" class="btn btn-primary">
+                        Ver Detalhes Completos
+                    </a>
+                </div>
+            `;
+        })
+        .catch(error => {
+            content.innerHTML = `<div class="alert alert-danger">Erro ao carregar dados: ${error.message}</div>`;
+        });
+}
+
+// Export data function
+function exportData() {
+    // Simple CSV export
+    const searchParam = new URLSearchParams(window.location.search).get('search') || '';
+    const url = `/api/clients?search=${encodeURIComponent(searchParam)}&per_page=1000`;
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Erro ao exportar dados: ' + data.error);
+                return;
+            }
+            
+            // Create CSV content
+            const headers = ['ID', 'Razão Social', 'Nome Fantasia', 'CNPJ/CPF', 'Tipo', 'Email', 'Estado', 'Cidade', 'Status'];
+            const csvContent = [
+                headers.join(','),
+                ...data.clients.map(client => [
+                    client.codigo_cliente_omie,
+                    `"${client.razao_social || ''}"`,
+                    `"${client.nome_fantasia || ''}"`,
+                    `"${client.cnpj_cpf || ''}"`,
+                    client.pessoa_fisica === 'S' ? 'PF' : 'PJ',
+                    `"${client.email || ''}"`,
+                    `"${client.estado || ''}"`,
+                    `"${client.cidade || ''}"`,
+                    client.inativo === 'N' ? 'Ativo' : 'Inativo'
+                ].join(','))
+            ].join('\n');
+            
+            // Download CSV
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'clientes.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        })
+        .catch(error => {
+            alert('Erro ao exportar dados: ' + error.message);
+        });
+}
+</script>
+{% endblock %}

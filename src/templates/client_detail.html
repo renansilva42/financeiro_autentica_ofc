@@ -1,0 +1,492 @@
+{% extends "base.html" %}
+
+{% block title %}{{ client.razao_social }} - Financeira Autêntica{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('clients') }}">Clientes</a></li>
+                <li class="breadcrumb-item active">{{ client.razao_social or 'Cliente' }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Client Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-lg me-3">
+                                {% if client.pessoa_fisica == 'S' %}
+                                    <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                        <i class="bi bi-person fs-2"></i>
+                                    </div>
+                                {% else %}
+                                    <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                        <i class="bi bi-building fs-2"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h2 class="mb-1">{{ client.razao_social or 'N/A' }}</h2>
+                                {% if client.nome_fantasia and client.nome_fantasia != client.razao_social %}
+                                    <p class="text-muted mb-1">{{ client.nome_fantasia }}</p>
+                                {% endif %}
+                                <div class="d-flex gap-2">
+                                    <span class="badge bg-secondary">ID: {{ client.codigo_cliente_omie }}</span>
+                                    {% if client.pessoa_fisica == 'S' %}
+                                        <span class="badge bg-info">Pessoa Física</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pessoa Jurídica</span>
+                                    {% endif %}
+                                    {% if client.inativo == 'N' %}
+                                        <span class="badge bg-success">Ativo</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inativo</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="btn-group">
+                            <button class="btn btn-outline-primary" onclick="window.print()">
+                                <i class="bi bi-printer"></i> Imprimir
+                            </button>
+                            <button class="btn btn-outline-success" onclick="exportClientData()">
+                                <i class="bi bi-download"></i> Exportar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Client Details -->
+<div class="row">
+    <!-- Basic Information -->
+    <div class="col-xl-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-info-circle"></i>
+                    Informações Básicas
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Razão Social</label>
+                        <p class="form-control-plaintext">{{ client.razao_social or 'N/A' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Nome Fantasia</label>
+                        <p class="form-control-plaintext">{{ client.nome_fantasia or 'N/A' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">CNPJ/CPF</label>
+                        <p class="form-control-plaintext">
+                            <code>{{ client.cnpj_cpf | format_cpf_cnpj if client.cnpj_cpf else 'N/A' }}</code>
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Tipo de Pessoa</label>
+                        <p class="form-control-plaintext">
+                            {% if client.pessoa_fisica == 'S' %}
+                                <span class="badge bg-info">Pessoa Física</span>
+                            {% else %}
+                                <span class="badge bg-warning">Pessoa Jurídica</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% if client.inscricao_estadual %}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Inscrição Estadual</label>
+                        <p class="form-control-plaintext">{{ client.inscricao_estadual }}</p>
+                    </div>
+                    {% endif %}
+                    {% if client.inscricao_municipal %}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Inscrição Municipal</label>
+                        <p class="form-control-plaintext">{{ client.inscricao_municipal }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-telephone"></i>
+                    Informações de Contato
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Email</label>
+                        <p class="form-control-plaintext">
+                            {% if client.email %}
+                                <a href="mailto:{{ client.email }}">{{ client.email }}</a>
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Telefone Principal</label>
+                        <p class="form-control-plaintext">
+                            {% if client.telefone1_ddd and client.telefone1_numero %}
+                                <a href="tel:+55{{ client.telefone1_ddd }}{{ client.telefone1_numero }}">
+                                    {{ client.telefone1_ddd | format_phone(client.telefone1_numero) }}
+                                </a>
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% if client.telefone2_ddd and client.telefone2_numero %}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Telefone Secundário</label>
+                        <p class="form-control-plaintext">
+                            <a href="tel:+55{{ client.telefone2_ddd }}{{ client.telefone2_numero }}">
+                                {{ client.telefone2_ddd | format_phone(client.telefone2_numero) }}
+                            </a>
+                        </p>
+                    </div>
+                    {% endif %}
+                    {% if client.fax_ddd and client.fax_numero %}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Fax</label>
+                        <p class="form-control-plaintext">
+                            {{ client.fax_ddd | format_phone(client.fax_numero) }}
+                        </p>
+                    </div>
+                    {% endif %}
+                    {% if client.contato %}
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label fw-bold">Pessoa de Contato</label>
+                        <p class="form-control-plaintext">{{ client.contato }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Address Information -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-geo-alt"></i>
+                    Endereço
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label fw-bold">Logradouro</label>
+                        <p class="form-control-plaintext">{{ client.endereco or 'N/A' }}</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Número</label>
+                        <p class="form-control-plaintext">{{ client.endereco_numero or 'N/A' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Bairro</label>
+                        <p class="form-control-plaintext">{{ client.bairro or 'N/A' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Complemento</label>
+                        <p class="form-control-plaintext">{{ client.complemento or 'N/A' }}</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">CEP</label>
+                        <p class="form-control-plaintext">{{ client.cep or 'N/A' }}</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Cidade</label>
+                        <p class="form-control-plaintext">{{ client.cidade or 'N/A' }}</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Estado</label>
+                        <p class="form-control-plaintext">
+                            {% if client.estado %}
+                                <span class="badge bg-light text-dark">{{ client.estado }}</span>
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banking Information -->
+        {% if client.dadosBancarios %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-bank"></i>
+                    Dados Bancários
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if client.dadosBancarios.codigo_banco %}
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Banco</label>
+                        <p class="form-control-plaintext">{{ client.dadosBancarios.codigo_banco }}</p>
+                    </div>
+                    {% endif %}
+                    {% if client.dadosBancarios.agencia %}
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Agência</label>
+                        <p class="form-control-plaintext">{{ client.dadosBancarios.agencia }}</p>
+                    </div>
+                    {% endif %}
+                    {% if client.dadosBancarios.conta_corrente %}
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Conta Corrente</label>
+                        <p class="form-control-plaintext">{{ client.dadosBancarios.conta_corrente }}</p>
+                    </div>
+                    {% endif %}
+                    {% if client.dadosBancarios.cChavePix %}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Chave PIX</label>
+                        <p class="form-control-plaintext">
+                            <code>{{ client.dadosBancarios.cChavePix }}</code>
+                        </p>
+                    </div>
+                    {% endif %}
+                    {% if client.dadosBancarios.nome_titular %}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Titular</label>
+                        <p class="form-control-plaintext">{{ client.dadosBancarios.nome_titular }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-xl-4">
+        <!-- Status Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-activity"></i>
+                    Status
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Status Atual</label>
+                    <p>
+                        {% if client.inativo == 'N' %}
+                            <span class="badge bg-success fs-6">
+                                <i class="bi bi-check-circle"></i> Ativo
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger fs-6">
+                                <i class="bi bi-x-circle"></i> Inativo
+                            </span>
+                        {% endif %}
+                    </p>
+                </div>
+                
+                {% if client.bloquear_faturamento == 'S' %}
+                <div class="mb-3">
+                    <span class="badge bg-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Faturamento Bloqueado
+                    </span>
+                </div>
+                {% endif %}
+                
+                {% if client.exterior == 'S' %}
+                <div class="mb-3">
+                    <span class="badge bg-info">
+                        <i class="bi bi-globe"></i> Cliente Exterior
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Tags -->
+        {% if client.tags %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-tags"></i>
+                    Tags
+                </h6>
+            </div>
+            <div class="card-body">
+                {% for tag in client.tags %}
+                    <span class="badge bg-secondary me-1 mb-1">{{ tag.tag }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- System Information -->
+        {% if client.info %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-gear"></i>
+                    Informações do Sistema
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="small">
+                    {% if client.info.dInc %}
+                    <p><strong>Data de Inclusão:</strong> {{ client.info.dInc | format_date }}</p>
+                    {% endif %}
+                    {% if client.info.dAlt %}
+                    <p><strong>Última Alteração:</strong> {{ client.info.dAlt | format_date }}</p>
+                    {% endif %}
+                    {% if client.info.uInc %}
+                    <p><strong>Incluído por:</strong> {{ client.info.uInc }}</p>
+                    {% endif %}
+                    {% if client.info.uAlt %}
+                    <p><strong>Alterado por:</strong> {{ client.info.uAlt }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Actions -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-lightning"></i>
+                    Ações Rápidas
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if client.email %}
+                    <a href="mailto:{{ client.email }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-envelope"></i> Enviar Email
+                    </a>
+                    {% endif %}
+                    
+                    {% if client.telefone1_ddd and client.telefone1_numero %}
+                    <a href="tel:+55{{ client.telefone1_ddd }}{{ client.telefone1_numero }}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-telephone"></i> Ligar
+                    </a>
+                    {% endif %}
+                    
+                    <button class="btn btn-outline-info btn-sm" onclick="copyClientInfo()">
+                        <i class="bi bi-clipboard"></i> Copiar Informações
+                    </button>
+                    
+                    <a href="{{ url_for('clients') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> Voltar à Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Export client data
+function exportClientData() {
+    const clientData = {{ client | tojson }};
+    
+    // Create CSV content for single client
+    const headers = ['Campo', 'Valor'];
+    const data = [
+        ['ID', clientData.codigo_cliente_omie],
+        ['Razão Social', clientData.razao_social || ''],
+        ['Nome Fantasia', clientData.nome_fantasia || ''],
+        ['CNPJ/CPF', clientData.cnpj_cpf || ''],
+        ['Tipo', clientData.pessoa_fisica === 'S' ? 'Pessoa Física' : 'Pessoa Jurídica'],
+        ['Email', clientData.email || ''],
+        ['Telefone', clientData.telefone1_ddd && clientData.telefone1_numero ? `(${clientData.telefone1_ddd}) ${clientData.telefone1_numero}` : ''],
+        ['Endereço', clientData.endereco || ''],
+        ['Número', clientData.endereco_numero || ''],
+        ['Bairro', clientData.bairro || ''],
+        ['CEP', clientData.cep || ''],
+        ['Cidade', clientData.cidade || ''],
+        ['Estado', clientData.estado || ''],
+        ['Status', clientData.inativo === 'N' ? 'Ativo' : 'Inativo']
+    ];
+    
+    const csvContent = [
+        headers.join(','),
+        ...data.map(row => `"${row[0]}","${row[1]}"`)
+    ].join('\n');
+    
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `cliente_${clientData.codigo_cliente_omie}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Copy client info to clipboard
+function copyClientInfo() {
+    const clientData = {{ client | tojson }};
+    
+    const info = `
+Cliente: ${clientData.razao_social || 'N/A'}
+${clientData.nome_fantasia && clientData.nome_fantasia !== clientData.razao_social ? 'Nome Fantasia: ' + clientData.nome_fantasia : ''}
+CNPJ/CPF: ${clientData.cnpj_cpf || 'N/A'}
+Email: ${clientData.email || 'N/A'}
+Telefone: ${clientData.telefone1_ddd && clientData.telefone1_numero ? `(${clientData.telefone1_ddd}) ${clientData.telefone1_numero}` : 'N/A'}
+Endereço: ${clientData.endereco || 'N/A'}, ${clientData.endereco_numero || ''} - ${clientData.bairro || ''} - ${clientData.cidade || ''} - ${clientData.estado || ''}
+CEP: ${clientData.cep || 'N/A'}
+Status: ${clientData.inativo === 'N' ? 'Ativo' : 'Inativo'}
+    `.trim();
+    
+    navigator.clipboard.writeText(info).then(() => {
+        // Show success message
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3';
+        toast.style.zIndex = '9999';
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    Informações copiadas para a área de transferência!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        
+        document.body.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        toast.addEventListener('hidden.bs.toast', () => {
+            document.body.removeChild(toast);
+        });
+    }).catch(err => {
+        alert('Erro ao copiar informações: ' + err.message);
+    });
+}
+</script>
+{% endblock %}
