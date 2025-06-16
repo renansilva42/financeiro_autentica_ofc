@@ -77,56 +77,6 @@ def client_detail(client_id):
     except Exception as e:
         return render_template('error.html', error=str(e))
 
-@app.route('/api/clients')
-def api_clients():
-    """API endpoint para buscar clientes"""
-    try:
-        search = request.args.get('search', '', type=str)
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 20, type=int)
-        
-        if search:
-            clients = omie_service.search_clients(search)
-        else:
-            clients = omie_service.get_all_clients()
-        
-        # Paginação
-        total = len(clients)
-        start = (page - 1) * per_page
-        end = start + per_page
-        clients_page = clients[start:end]
-        
-        return jsonify({
-            'clients': clients_page,
-            'total': total,
-            'page': page,
-            'per_page': per_page,
-            'total_pages': (total + per_page - 1) // per_page
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/client/<int:client_id>')
-def api_client_detail(client_id):
-    """API endpoint para buscar um cliente específico"""
-    try:
-        client = omie_service.get_client_by_id(client_id)
-        if not client:
-            return jsonify({'error': 'Cliente não encontrado'}), 404
-        
-        return jsonify(client)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/stats')
-def api_stats():
-    """API endpoint para estatísticas"""
-    try:
-        stats = omie_service.get_clients_stats()
-        return jsonify(stats)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 @app.route('/purchase-orders')
 def purchase_orders():
     """Dashboard de Compras Faturadas"""
@@ -173,44 +123,6 @@ def purchase_orders():
                              end_date=end_date)
     except Exception as e:
         return render_template('error.html', error=str(e))
-
-@app.route('/api/purchase-orders')
-def api_purchase_orders():
-    """API endpoint para pedidos de compra faturados"""
-    try:
-        start_date = request.args.get('start_date', '01/01/2021')
-        end_date = request.args.get('end_date', '31/12/2021')
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 20, type=int)
-        
-        orders = omie_service.get_invoiced_purchase_orders(start_date, end_date)
-        
-        # Paginação
-        total = len(orders)
-        start = (page - 1) * per_page
-        end = start + per_page
-        orders_page = orders[start:end]
-        
-        return jsonify({
-            'orders': orders_page,
-            'total': total,
-            'page': page,
-            'per_page': per_page,
-            'total_pages': (total + per_page - 1) // per_page
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/purchase-orders/stats')
-def api_purchase_orders_stats():
-    """API endpoint para estatísticas de pedidos de compra"""
-    try:
-        start_date = request.args.get('start_date', '01/01/2021')
-        end_date = request.args.get('end_date', '31/12/2021')
-        stats = omie_service.get_purchase_orders_stats(start_date, end_date)
-        return jsonify(stats)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 @app.route('/sales')
 def sales():
@@ -265,51 +177,6 @@ def sales():
                              search=search)
     except Exception as e:
         return render_template('error.html', error=str(e))
-
-@app.route('/api/sales')
-def api_sales():
-    """API endpoint para pedidos de venda"""
-    try:
-        search = request.args.get('search', '', type=str)
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 20, type=int)
-        
-        orders = omie_service.get_all_sales_orders()
-        
-        # Filtrar por busca se necessário
-        if search:
-            search_lower = search.lower()
-            orders = [
-                order for order in orders
-                if (search_lower in order.get('nome_cliente', '').lower() or
-                    search_lower in order.get('numero_pedido', '').lower() or
-                    search_lower in str(order.get('codigo_pedido', '')))
-            ]
-        
-        # Paginação
-        total = len(orders)
-        start = (page - 1) * per_page
-        end = start + per_page
-        orders_page = orders[start:end]
-        
-        return jsonify({
-            'orders': orders_page,
-            'total': total,
-            'page': page,
-            'per_page': per_page,
-            'total_pages': (total + per_page - 1) // per_page
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/sales/stats')
-def api_sales_stats():
-    """API endpoint para estatísticas de vendas"""
-    try:
-        stats = omie_service.get_sales_orders_stats()
-        return jsonify(stats)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 @app.route('/services')
 def services():
@@ -371,6 +238,139 @@ def services():
                              search=search)
     except Exception as e:
         return render_template('error.html', error=str(e))
+
+@app.route('/api/clients')
+def api_clients():
+    """API endpoint para buscar clientes"""
+    try:
+        search = request.args.get('search', '', type=str)
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        
+        if search:
+            clients = omie_service.search_clients(search)
+        else:
+            clients = omie_service.get_all_clients()
+        
+        # Paginação
+        total = len(clients)
+        start = (page - 1) * per_page
+        end = start + per_page
+        clients_page = clients[start:end]
+        
+        return jsonify({
+            'clients': clients_page,
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'total_pages': (total + per_page - 1) // per_page
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/client/<int:client_id>')
+def api_client_detail(client_id):
+    """API endpoint para buscar um cliente específico"""
+    try:
+        client = omie_service.get_client_by_id(client_id)
+        if not client:
+            return jsonify({'error': 'Cliente não encontrado'}), 404
+        
+        return jsonify(client)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/stats')
+def api_stats():
+    """API endpoint para estatísticas"""
+    try:
+        stats = omie_service.get_clients_stats()
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/purchase-orders')
+def api_purchase_orders():
+    """API endpoint para pedidos de compra faturados"""
+    try:
+        start_date = request.args.get('start_date', '01/01/2021')
+        end_date = request.args.get('end_date', '31/12/2021')
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        
+        orders = omie_service.get_invoiced_purchase_orders(start_date, end_date)
+        
+        # Paginação
+        total = len(orders)
+        start = (page - 1) * per_page
+        end = start + per_page
+        orders_page = orders[start:end]
+        
+        return jsonify({
+            'orders': orders_page,
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'total_pages': (total + per_page - 1) // per_page
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/purchase-orders/stats')
+def api_purchase_orders_stats():
+    """API endpoint para estatísticas de pedidos de compra"""
+    try:
+        start_date = request.args.get('start_date', '01/01/2021')
+        end_date = request.args.get('end_date', '31/12/2021')
+        stats = omie_service.get_purchase_orders_stats(start_date, end_date)
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/sales')
+def api_sales():
+    """API endpoint para pedidos de venda"""
+    try:
+        search = request.args.get('search', '', type=str)
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        
+        orders = omie_service.get_all_sales_orders()
+        
+        # Filtrar por busca se necessário
+        if search:
+            search_lower = search.lower()
+            orders = [
+                order for order in orders
+                if (search_lower in order.get('nome_cliente', '').lower() or
+                    search_lower in order.get('numero_pedido', '').lower() or
+                    search_lower in str(order.get('codigo_pedido', '')))
+            ]
+        
+        # Paginação
+        total = len(orders)
+        start = (page - 1) * per_page
+        end = start + per_page
+        orders_page = orders[start:end]
+        
+        return jsonify({
+            'orders': orders_page,
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'total_pages': (total + per_page - 1) // per_page
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/sales/stats')
+def api_sales_stats():
+    """API endpoint para estatísticas de vendas"""
+    try:
+        stats = omie_service.get_sales_orders_stats()
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/services')
 def api_services():
@@ -497,4 +497,4 @@ def internal_error(error):
     return render_template('error.html', error='Erro interno do servidor'), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8001)
+    app.run(debug=True, host='0.0.0.0', port=8002)
