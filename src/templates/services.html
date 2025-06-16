@@ -1,0 +1,476 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard de Serviços - Financeira Autêntica{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-tools text-info me-2"></i>
+                Dashboard de Serviços
+            </h1>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary" onclick="refreshData()">
+                    <i class="fas fa-sync-alt me-1"></i>Atualizar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estatísticas Gerais -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total de OS
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ stats.total_orders | default(0) }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Valor Total
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ stats.total_value | format_currency }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Ticket Médio
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ stats.average_value | format_currency }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-chart-bar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Clientes Únicos
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ stats.by_client.keys() | list | length }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos -->
+<div class="row mb-4">
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Ordens de Serviço por Mês</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Status das OS</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie pt-4 pb-2">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estatísticas Detalhadas -->
+<div class="row mb-4">
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Top 5 Clientes</h6>
+            </div>
+            <div class="card-body">
+                {% if stats.top_clients %}
+                    {% for client, count in stats.top_clients %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-truncate">{{ client }}</span>
+                        <span class="badge bg-primary">{{ count }} OS</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Nenhum dado disponível</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Top 5 Serviços</h6>
+            </div>
+            <div class="card-body">
+                {% if stats.top_services %}
+                    {% for service, count in stats.top_services %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-truncate">{{ service }}</span>
+                        <span class="badge bg-success">{{ count }}x</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Nenhum dado disponível</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Técnicos Responsáveis</h6>
+            </div>
+            <div class="card-body">
+                {% if stats.by_technician %}
+                    {% for tech, count in stats.by_technician.items() %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-truncate">{{ tech }}</span>
+                        <span class="badge bg-info">{{ count }} OS</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Nenhum dado disponível</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros e Busca -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Filtros e Busca</h6>
+            </div>
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-8">
+                        <label for="search" class="form-label">Buscar por Cliente, Número da OS, Código ou Técnico</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ search }}" placeholder="Digite sua busca...">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search me-1"></i>Buscar
+                        </button>
+                        <a href="{{ url_for('services') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>Limpar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Ordens de Serviço -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    Ordens de Serviço
+                    {% if search %}
+                        <small class="text-muted">(filtrado por: "{{ search }}")</small>
+                    {% endif %}
+                </h6>
+                <span class="badge bg-info">{{ pagination.total }} ordens</span>
+            </div>
+            <div class="card-body">
+                {% if orders %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Código</th>
+                                <th>Número OS</th>
+                                <th>Cliente</th>
+                                <th>Data Previsão</th>
+                                <th>Status</th>
+                                <th>Valor Total</th>
+                                <th>Técnico</th>
+                                <th>Observações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            {% set cabecalho = order.Cabecalho %}
+                            {% set observacoes = order.Observacoes %}
+                            <tr>
+                                <td>{{ cabecalho.nCodOS }}</td>
+                                <td>{{ cabecalho.cNumOS }}</td>
+                                <td class="text-truncate" style="max-width: 200px;">
+                                    Cliente {{ cabecalho.nCodCli }}
+                                </td>
+                                <td>{{ cabecalho.dDtPrevisao | format_date }}</td>
+                                <td>
+                                    {% set status_map = {
+                                        "10": "Pendente",
+                                        "20": "Em Andamento", 
+                                        "30": "Aguardando Aprovação",
+                                        "40": "Aprovada",
+                                        "50": "Em Execução",
+                                        "60": "Faturada",
+                                        "70": "Cancelada"
+                                    } %}
+                                    {% set status_name = status_map.get(cabecalho.cEtapa, "Etapa " + cabecalho.cEtapa) %}
+                                    <span class="badge bg-secondary">{{ status_name }}</span>
+                                </td>
+                                <td class="text-end">{{ cabecalho.nValorTotal | format_currency }}</td>
+                                <td>
+                                    {% if cabecalho.nCodVend %}
+                                        Vendedor {{ cabecalho.nCodVend }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-truncate" style="max-width: 150px;">
+                                    {% if observacoes.cObsOS %}
+                                        {{ observacoes.cObsOS }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginação -->
+                {% if pagination.total_pages > 1 %}
+                <nav aria-label="Navegação de páginas">
+                    <ul class="pagination justify-content-center">
+                        {% if pagination.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('services', page=pagination.prev_num, search=search) }}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for page_num in range(1, pagination.total_pages + 1) %}
+                            {% if page_num == pagination.page %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                            {% elif page_num <= 3 or page_num > pagination.total_pages - 3 or (page_num >= pagination.page - 1 and page_num <= pagination.page + 1) %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('services', page=page_num, search=search) }}">{{ page_num }}</a>
+                                </li>
+                            {% elif page_num == 4 or page_num == pagination.total_pages - 3 %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if pagination.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('services', page=pagination.next_num, search=search) }}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-tools fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Nenhuma ordem de serviço encontrada</h5>
+                    {% if search %}
+                        <p class="text-muted">Tente ajustar os filtros de busca.</p>
+                        <a href="{{ url_for('services') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-times me-1"></i>Limpar Filtros
+                        </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Dados para os gráficos
+const monthlyData = {{ stats.monthly_stats | tojson }};
+const monthlyValues = {{ stats.monthly_values | tojson }};
+const statusData = {{ stats.by_status | tojson }};
+
+// Gráfico de ordens mensais
+const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+const monthlyChart = new Chart(monthlyCtx, {
+    type: 'line',
+    data: {
+        labels: Object.keys(monthlyData),
+        datasets: [{
+            label: 'Quantidade de OS',
+            data: Object.values(monthlyData),
+            borderColor: 'rgb(54, 185, 204)',
+            backgroundColor: 'rgba(54, 185, 204, 0.2)',
+            tension: 0.1,
+            yAxisID: 'y'
+        }, {
+            label: 'Valor Total (R$)',
+            data: Object.values(monthlyValues),
+            borderColor: 'rgb(28, 200, 138)',
+            backgroundColor: 'rgba(28, 200, 138, 0.2)',
+            tension: 0.1,
+            yAxisID: 'y1'
+        }]
+    },
+    options: {
+        responsive: true,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        scales: {
+            x: {
+                display: true,
+                title: {
+                    display: true,
+                    text: 'Mês/Ano'
+                }
+            },
+            y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                title: {
+                    display: true,
+                    text: 'Quantidade de OS'
+                }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                title: {
+                    display: true,
+                    text: 'Valor Total (R$)'
+                },
+                grid: {
+                    drawOnChartArea: false,
+                },
+            }
+        }
+    }
+});
+
+// Gráfico de status das OS
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+const statusChart = new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: Object.keys(statusData),
+        datasets: [{
+            data: Object.values(statusData),
+            backgroundColor: [
+                '#36b9cc',
+                '#1cc88a',
+                '#4e73df',
+                '#f6c23e',
+                '#e74a3b',
+                '#858796'
+            ],
+            hoverBackgroundColor: [
+                '#2c9faf',
+                '#17a673',
+                '#2e59d9',
+                '#f4b619',
+                '#e02d1b',
+                '#6c757d'
+            ],
+            hoverBorderColor: "rgba(234, 236, 244, 1)",
+        }],
+    },
+    options: {
+        maintainAspectRatio: false,
+        tooltips: {
+            backgroundColor: "rgb(255,255,255)",
+            bodyFontColor: "#858796",
+            borderColor: '#dddfeb',
+            borderWidth: 1,
+            xPadding: 15,
+            yPadding: 15,
+            displayColors: false,
+            caretPadding: 10,
+        },
+        legend: {
+            display: true,
+            position: 'bottom'
+        },
+        cutoutPercentage: 80,
+    },
+});
+
+// Função para atualizar dados
+function refreshData() {
+    location.reload();
+}
+</script>
+{% endblock %}

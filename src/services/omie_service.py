@@ -150,3 +150,409 @@ class OmieService:
                 "pessoa_juridica": 0,
                 "by_state": {}
             }
+    
+    def get_purchase_orders_page(self, page: int = 1, records_per_page: int = 100, 
+                                show_pending: str = "T", show_invoiced: str = "F",
+                                show_received: str = "F", show_cancelled: str = "F",
+                                show_closed: str = "F", show_partial_received: str = "F",
+                                show_partial_invoiced: str = "F", start_date: str = "01/01/2021",
+                                end_date: str = "31/12/2021") -> dict:
+        """Busca uma página de pedidos de compra"""
+        resource = "produtos/pedidocompra/"
+        action = "PesquisarPedCompra"
+        
+        params = {
+            "nPagina": page,
+            "nRegsPorPagina": records_per_page,
+            "lApenasImportadoApi": "F",
+            "lExibirPedidosPendentes": show_pending,
+            "lExibirPedidosFaturados": show_invoiced,
+            "lExibirPedidosRecebidos": show_received,
+            "lExibirPedidosCancelados": show_cancelled,
+            "lExibirPedidosEncerrados": show_closed,
+            "lExibirPedidosRecParciais": show_partial_received,
+            "lExibirPedidosFatParciais": show_partial_invoiced,
+            "dDataInicial": start_date,
+            "dDataFinal": end_date,
+            "lApenasAlterados": "F"
+        }
+        
+        body = {
+            "call": action,
+            "app_key": self.app_key,
+            "app_secret": self.app_secret,
+            "param": [params]
+        }
+        
+        return self._make_request(resource, body)
+    
+    def get_invoiced_purchase_orders(self, start_date: str = "01/01/2021", 
+                                   end_date: str = "31/12/2021") -> List[dict]:
+        """Busca todos os pedidos de compra faturados"""
+        all_orders = []
+        page = 1
+        
+        try:
+            # Primeira requisição para saber o total de páginas
+            first_response = self.get_purchase_orders_page(
+                page=page, 
+                show_pending="F", 
+                show_invoiced="T",
+                start_date=start_date,
+                end_date=end_date
+            )
+            
+            total_pages = first_response.get("nTotPaginas", 1)
+            
+            # Adiciona os pedidos da primeira página
+            orders = first_response.get("pedido_compra_produto", [])
+            all_orders.extend(orders)
+            
+            # Busca as páginas restantes
+            for page in range(2, total_pages + 1):
+                response = self.get_purchase_orders_page(
+                    page=page, 
+                    show_pending="F", 
+                    show_invoiced="T",
+                    start_date=start_date,
+                    end_date=end_date
+                )
+                orders = response.get("pedido_compra_produto", [])
+                all_orders.extend(orders)
+            
+            return all_orders
+            
+        except Exception as e:
+            print(f"Erro ao buscar pedidos de compra faturados: {str(e)}")
+            return []
+    
+    def get_purchase_orders_stats(self, start_date: str = "01/01/2021", 
+                                end_date: str = "31/12/2021") -> dict:
+        """Retorna estatísticas dos pedidos de compra faturados"""
+        try:
+            orders = self.get_invoiced_purchase_orders(start_date, end_date)
+            
+            total_orders = len(orders)
+            total_value = sum(float(order.get("nValorTotal", 0)) for order in orders)
+            
+            # Contagem por fornecedor
+            suppliers = {}
+            for order in orders:
+                supplier = order.get("cNomeFor", "Não informado")
+                if supplier == "":
+                    supplier = "Não informado"
+                suppliers[supplier] = suppliers.get(supplier, 0) + 1
+            
+            # Contagem por mês
+            monthly_stats = {}
+            for order in orders:
+                date_str = order.get("dDtEmissao", "")
+                if date_str:
+                    try:
+                        # Assumindo formato dd/mm/yyyy
+                        month_year = "/".join(date_str.split("/")[1:])  # mm/yyyy
+                        monthly_stats[month_year] = monthly_stats.get(month_year, 0) + 1
+                    except:
+                        pass
+            
+            # Top 5 fornecedores
+            top_suppliers = sorted(suppliers.items(), key=lambda x: x[1], reverse=True)[:5]
+            
+            return {
+                "total_orders": total_orders,
+                "total_value": total_value,
+                "average_value": total_value / total_orders if total_orders > 0 else 0,
+                "by_supplier": suppliers,
+                "top_suppliers": top_suppliers,
+                "monthly_stats": monthly_stats
+            }
+            
+        except Exception as e:
+            print(f"Erro ao calcular estatísticas de pedidos: {str(e)}")
+            return {
+                "total_orders": 0,
+                "total_value": 0,
+                "average_value": 0,
+                "by_supplier": {},
+                "top_suppliers": [],
+                "monthly_stats": {}
+            }
+    
+    def get_sales_orders_page(self, page: int = 1, records_per_page: int = 100) -> dict:
+        """Busca uma página de pedidos de venda"""
+        resource = "produtos/pedido/"
+        action = "ListarPedidos"
+        
+        params = {
+            "pagina": page,
+            "registros_por_pagina": records_per_page,
+            "apenas_importado_api": "N"
+        }
+        
+        body = {
+            "call": action,
+            "app_key": self.app_key,
+            "app_secret": self.app_secret,
+            "param": [params]
+        }
+        
+        return self._make_request(resource, body)
+    
+    def get_all_sales_orders(self) -> List[dict]:
+        """Busca todos os pedidos de venda de todas as páginas"""
+        all_orders = []
+        page = 1
+        
+        try:
+            # Primeira requisição para saber o total de páginas
+            first_response = self.get_sales_orders_page(page)
+            total_pages = first_response.get("total_de_paginas", 1)
+            
+            # Adiciona os pedidos da primeira página
+            orders = first_response.get("pedido_venda_produto", [])
+            all_orders.extend(orders)
+            
+            # Busca as páginas restantes
+            for page in range(2, total_pages + 1):
+                response = self.get_sales_orders_page(page)
+                orders = response.get("pedido_venda_produto", [])
+                all_orders.extend(orders)
+            
+            return all_orders
+            
+        except Exception as e:
+            print(f"Erro ao buscar pedidos de venda: {str(e)}")
+            return []
+    
+    def get_sales_orders_stats(self) -> dict:
+        """Retorna estatísticas dos pedidos de venda"""
+        try:
+            orders = self.get_all_sales_orders()
+            
+            total_orders = len(orders)
+            total_value = sum(float(order.get("valor_total_pedido", 0)) for order in orders)
+            
+            # Contagem por cliente
+            clients = {}
+            for order in orders:
+                client = order.get("nome_cliente", "Não informado")
+                if client == "":
+                    client = "Não informado"
+                clients[client] = clients.get(client, 0) + 1
+            
+            # Contagem por status
+            status_count = {}
+            for order in orders:
+                status = order.get("etapa", "Não informado")
+                if status == "":
+                    status = "Não informado"
+                status_count[status] = status_count.get(status, 0) + 1
+            
+            # Contagem por mês
+            monthly_stats = {}
+            monthly_values = {}
+            for order in orders:
+                date_str = order.get("data_previsao", "")
+                if date_str:
+                    try:
+                        # Assumindo formato dd/mm/yyyy
+                        month_year = "/".join(date_str.split("/")[1:])  # mm/yyyy
+                        monthly_stats[month_year] = monthly_stats.get(month_year, 0) + 1
+                        monthly_values[month_year] = monthly_values.get(month_year, 0) + float(order.get("valor_total_pedido", 0))
+                    except:
+                        pass
+            
+            # Top 5 clientes
+            top_clients = sorted(clients.items(), key=lambda x: x[1], reverse=True)[:5]
+            
+            # Pedidos por vendedor
+            sellers = {}
+            for order in orders:
+                seller = order.get("codigo_vendedor", "")
+                if seller:
+                    seller_name = f"Vendedor {seller}"
+                    sellers[seller_name] = sellers.get(seller_name, 0) + 1
+            
+            return {
+                "total_orders": total_orders,
+                "total_value": total_value,
+                "average_value": total_value / total_orders if total_orders > 0 else 0,
+                "by_client": clients,
+                "top_clients": top_clients,
+                "by_status": status_count,
+                "by_seller": sellers,
+                "monthly_stats": monthly_stats,
+                "monthly_values": monthly_values
+            }
+            
+        except Exception as e:
+            print(f"Erro ao calcular estatísticas de vendas: {str(e)}")
+            return {
+                "total_orders": 0,
+                "total_value": 0,
+                "average_value": 0,
+                "by_client": {},
+                "top_clients": [],
+                "by_status": {},
+                "by_seller": {},
+                "monthly_stats": {},
+                "monthly_values": {}
+            }
+    
+    def get_service_orders_page(self, page: int = 1, records_per_page: int = 50) -> dict:
+        """Busca uma página de ordens de serviço"""
+        resource = "servicos/os/"
+        action = "ListarOS"
+        
+        params = {
+            "pagina": page,
+            "registros_por_pagina": records_per_page,
+            "apenas_importado_api": "N"
+        }
+        
+        body = {
+            "call": action,
+            "app_key": self.app_key,
+            "app_secret": self.app_secret,
+            "param": [params]
+        }
+        
+        return self._make_request(resource, body)
+    
+    def get_all_service_orders(self) -> List[dict]:
+        """Busca todas as ordens de serviço de todas as páginas"""
+        all_orders = []
+        page = 1
+        
+        try:
+            # Primeira requisição para saber o total de páginas
+            first_response = self.get_service_orders_page(page)
+            total_pages = first_response.get("total_de_paginas", 1)
+            
+            # Adiciona as ordens da primeira página - corrigindo o nome do campo
+            orders = first_response.get("osCadastro", [])
+            all_orders.extend(orders)
+            
+            # Busca as páginas restantes
+            for page in range(2, total_pages + 1):
+                response = self.get_service_orders_page(page)
+                orders = response.get("osCadastro", [])
+                all_orders.extend(orders)
+            
+            return all_orders
+            
+        except Exception as e:
+            print(f"Erro ao buscar ordens de serviço: {str(e)}")
+            return []
+    
+    def get_service_orders_stats(self) -> dict:
+        """Retorna estatísticas das ordens de serviço"""
+        try:
+            orders = self.get_all_service_orders()
+            
+            total_orders = len(orders)
+            
+            # Calcular valor total - a estrutura é diferente
+            total_value = 0
+            for order in orders:
+                cabecalho = order.get("Cabecalho", {})
+                total_value += float(cabecalho.get("nValorTotal", 0))
+            
+            # Contagem por cliente - precisamos buscar o nome do cliente via código
+            clients = {}
+            for order in orders:
+                cabecalho = order.get("Cabecalho", {})
+                client_code = cabecalho.get("nCodCli", "")
+                # Por enquanto, usar o código do cliente como identificador
+                client_name = f"Cliente {client_code}" if client_code else "Não informado"
+                clients[client_name] = clients.get(client_name, 0) + 1
+            
+            # Contagem por status/etapa
+            status_count = {}
+            for order in orders:
+                cabecalho = order.get("Cabecalho", {})
+                status = cabecalho.get("cEtapa", "Não informado")
+                if status == "":
+                    status = "Não informado"
+                # Mapear códigos de etapa para nomes mais amigáveis
+                status_map = {
+                    "10": "Pendente",
+                    "20": "Em Andamento", 
+                    "30": "Aguardando Aprovação",
+                    "40": "Aprovada",
+                    "50": "Em Execução",
+                    "60": "Faturada",
+                    "70": "Cancelada"
+                }
+                status_name = status_map.get(status, f"Etapa {status}")
+                status_count[status_name] = status_count.get(status_name, 0) + 1
+            
+            # Contagem por tipo de serviço
+            service_types = {}
+            for order in orders:
+                servicos = order.get("ServicosPrestados", [])
+                for servico in servicos:
+                    service_type = servico.get("cDescServ", "Não informado")
+                    if service_type == "":
+                        service_type = "Não informado"
+                    service_types[service_type] = service_types.get(service_type, 0) + 1
+            
+            # Contagem por mês
+            monthly_stats = {}
+            monthly_values = {}
+            for order in orders:
+                cabecalho = order.get("Cabecalho", {})
+                date_str = cabecalho.get("dDtPrevisao", "")
+                if date_str:
+                    try:
+                        # Assumindo formato dd/mm/yyyy
+                        month_year = "/".join(date_str.split("/")[1:])  # mm/yyyy
+                        monthly_stats[month_year] = monthly_stats.get(month_year, 0) + 1
+                        monthly_values[month_year] = monthly_values.get(month_year, 0) + float(cabecalho.get("nValorTotal", 0))
+                    except:
+                        pass
+            
+            # Top 5 clientes
+            top_clients = sorted(clients.items(), key=lambda x: x[1], reverse=True)[:5]
+            
+            # Top 5 tipos de serviço
+            top_services = sorted(service_types.items(), key=lambda x: x[1], reverse=True)[:5]
+            
+            # Ordens por vendedor (usando nCodVend)
+            sellers = {}
+            for order in orders:
+                cabecalho = order.get("Cabecalho", {})
+                seller_code = cabecalho.get("nCodVend", "")
+                if seller_code:
+                    seller_name = f"Vendedor {seller_code}"
+                    sellers[seller_name] = sellers.get(seller_name, 0) + 1
+            
+            return {
+                "total_orders": total_orders,
+                "total_value": total_value,
+                "average_value": total_value / total_orders if total_orders > 0 else 0,
+                "by_client": clients,
+                "top_clients": top_clients,
+                "by_status": status_count,
+                "by_service_type": service_types,
+                "top_services": top_services,
+                "by_technician": sellers,  # Usando vendedores como "técnicos"
+                "monthly_stats": monthly_stats,
+                "monthly_values": monthly_values
+            }
+            
+        except Exception as e:
+            print(f"Erro ao calcular estatísticas de ordens de serviço: {str(e)}")
+            return {
+                "total_orders": 0,
+                "total_value": 0,
+                "average_value": 0,
+                "by_client": {},
+                "top_clients": [],
+                "by_status": {},
+                "by_service_type": {},
+                "top_services": [],
+                "by_technician": {},
+                "monthly_stats": {},
+                "monthly_values": {}
+            }

@@ -5,29 +5,36 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1 class="mb-4">
-            <i class="bi bi-speedometer2"></i>
-            Dashboard Clientes
-        </h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-tachometer-alt text-primary me-2"></i>
+                Dashboard Principal
+            </h1>
+        </div>
     </div>
 </div>
 
-<!-- Statistics Cards -->
-<div class="row mb-4">
+<!-- Cards de Navegação -->
+<div class="row">
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-left-primary shadow h-100 py-2">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Total de Clientes
+                            Clientes
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
-                            {{ stats.total_clients }}
+                            {{ stats.total_clients | default(0) }}
+                        </div>
+                        <div class="mt-2">
+                            <a href="{{ url_for('clients') }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-users me-1"></i>Ver Clientes
+                            </a>
                         </div>
                     </div>
                     <div class="col-auto">
-                        <i class="bi bi-people fa-2x text-gray-300"></i>
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
@@ -40,14 +47,19 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Clientes Ativos
+                            Vendas
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
-                            {{ stats.active_clients }}
+                            Dashboard
+                        </div>
+                        <div class="mt-2">
+                            <a href="{{ url_for('sales') }}" class="btn btn-success btn-sm">
+                                <i class="fas fa-shopping-cart me-1"></i>Ver Vendas
+                            </a>
                         </div>
                     </div>
                     <div class="col-auto">
-                        <i class="bi bi-check-circle fa-2x text-gray-300"></i>
+                        <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
@@ -60,14 +72,19 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            Pessoa Física
+                            Serviços
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
-                            {{ stats.pessoa_fisica }}
+                            Dashboard
+                        </div>
+                        <div class="mt-2">
+                            <a href="{{ url_for('services') }}" class="btn btn-info btn-sm">
+                                <i class="fas fa-tools me-1"></i>Ver Serviços
+                            </a>
                         </div>
                     </div>
                     <div class="col-auto">
-                        <i class="bi bi-person fa-2x text-gray-300"></i>
+                        <i class="fas fa-tools fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
@@ -80,14 +97,19 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            Pessoa Jurídica
+                            Compras
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
-                            {{ stats.pessoa_juridica }}
+                            Dashboard
+                        </div>
+                        <div class="mt-2">
+                            <a href="{{ url_for('purchase_orders') }}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-shopping-bag me-1"></i>Ver Compras
+                            </a>
                         </div>
                     </div>
                     <div class="col-auto">
-                        <i class="bi bi-building fa-2x text-gray-300"></i>
+                        <i class="fas fa-shopping-bag fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
@@ -95,184 +117,106 @@
     </div>
 </div>
 
-<!-- Charts Row -->
+<!-- Estatísticas dos Clientes -->
+{% if stats %}
 <div class="row">
-    <!-- Pie Chart - Tipo de Pessoa -->
-    <div class="col-xl-6 col-lg-6">
+    <div class="col-lg-8">
         <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Distribuição por Tipo de Pessoa</h6>
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Resumo de Clientes</h6>
             </div>
             <div class="card-body">
-                <div class="chart-pie pt-4 pb-2">
-                    <canvas id="personTypeChart"></canvas>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Clientes Ativos</h6>
+                        <h4 class="text-success">{{ stats.active_clients | default(0) }}</h4>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Clientes Inativos</h6>
+                        <h4 class="text-warning">{{ stats.inactive_clients | default(0) }}</h4>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Pessoa Física</h6>
+                        <h4 class="text-info">{{ stats.pessoa_fisica | default(0) }}</h4>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Pessoa Jurídica</h6>
+                        <h4 class="text-primary">{{ stats.pessoa_juridica | default(0) }}</h4>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bar Chart - Estados -->
-    <div class="col-xl-6 col-lg-6">
+    <div class="col-lg-4">
         <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Clientes por Estado (Top 10)</h6>
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Clientes por Estado</h6>
             </div>
             <div class="card-body">
-                <div class="chart-bar">
-                    <canvas id="stateChart"></canvas>
-                </div>
+                {% if stats.by_state %}
+                    {% for state, count in stats.by_state.items()[:5] %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ state }}</span>
+                        <span class="badge bg-primary">{{ count }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Nenhum dado disponível</p>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+{% endif %}
 
-<!-- Quick Actions -->
+<!-- Ações Rápidas -->
 <div class="row">
     <div class="col-12">
-        <div class="card shadow mb-4">
+        <div class="card shadow">
             <div class="card-header py-3">
                 <h6 class="m-0 font-weight-bold text-primary">Ações Rápidas</h6>
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <a href="{{ url_for('clients') }}" class="btn btn-primary btn-lg w-100">
-                            <i class="bi bi-people"></i>
-                            Ver Todos os Clientes
-                        </a>
+                    <div class="col-md-3 mb-3">
+                        <div class="d-grid">
+                            <a href="{{ url_for('clients') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-users me-2"></i>
+                                Gerenciar Clientes
+                            </a>
+                        </div>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <a href="{{ url_for('clients', search='') }}" class="btn btn-info btn-lg w-100">
-                            <i class="bi bi-search"></i>
-                            Buscar Clientes
-                        </a>
+                    <div class="col-md-3 mb-3">
+                        <div class="d-grid">
+                            <a href="{{ url_for('sales') }}" class="btn btn-outline-success">
+                                <i class="fas fa-shopping-cart me-2"></i>
+                                Dashboard de Vendas
+                            </a>
+                        </div>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <button class="btn btn-success btn-lg w-100" onclick="refreshData()">
-                            <i class="bi bi-arrow-clockwise"></i>
-                            Atualizar Dados
-                        </button>
+                    <div class="col-md-3 mb-3">
+                        <div class="d-grid">
+                            <a href="{{ url_for('services') }}" class="btn btn-outline-info">
+                                <i class="fas fa-tools me-2"></i>
+                                Dashboard de Serviços
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="d-grid">
+                            <a href="{{ url_for('purchase_orders') }}" class="btn btn-outline-warning">
+                                <i class="fas fa-shopping-bag me-2"></i>
+                                Dashboard de Compras
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_scripts %}
-<script>
-// Dados para os gráficos
-const dashboardStats = {{ stats | tojson }};
-
-// Gráfico de Pizza - Tipo de Pessoa
-const personTypeCtx = document.getElementById('personTypeChart').getContext('2d');
-const personTypeChart = new Chart(personTypeCtx, {
-    type: 'pie',
-    data: {
-        labels: ['Pessoa Física', 'Pessoa Jurídica'],
-        datasets: [{
-            data: [dashboardStats.pessoa_fisica, dashboardStats.pessoa_juridica],
-            backgroundColor: ['#36b9cc', '#f6c23e'],
-            hoverBackgroundColor: ['#2c9faf', '#dda20a'],
-            hoverBorderColor: "rgba(234, 236, 244, 1)",
-        }],
-    },
-    options: {
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: true,
-                position: 'bottom'
-            }
-        }
-    },
-});
-
-// Gráfico de Barras - Estados (Top 10)
-const stateData = Object.entries(dashboardStats.by_state)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10);
-
-const stateCtx = document.getElementById('stateChart').getContext('2d');
-const stateChart = new Chart(stateCtx, {
-    type: 'bar',
-    data: {
-        labels: stateData.map(item => item[0]),
-        datasets: [{
-            label: 'Número de Clientes',
-            data: stateData.map(item => item[1]),
-            backgroundColor: '#4e73df',
-            hoverBackgroundColor: '#2e59d9',
-            borderColor: '#4e73df',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1
-                }
-            }
-        },
-        plugins: {
-            legend: {
-                display: false
-            }
-        }
-    }
-});
-
-// Função para atualizar dados
-function refreshData() {
-    const btn = event.target;
-    const originalText = btn.innerHTML;
-    
-    btn.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i> Atualizando...';
-    btn.disabled = true;
-    
-    // Simula atualização (recarrega a página)
-    setTimeout(() => {
-        window.location.reload();
-    }, 1000);
-}
-</script>
-
-<style>
-.spin {
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-.border-left-primary {
-    border-left: 0.25rem solid #4e73df !important;
-}
-
-.border-left-success {
-    border-left: 0.25rem solid #1cc88a !important;
-}
-
-.border-left-info {
-    border-left: 0.25rem solid #36b9cc !important;
-}
-
-.border-left-warning {
-    border-left: 0.25rem solid #f6c23e !important;
-}
-
-.text-gray-800 {
-    color: #5a5c69 !important;
-}
-
-.text-gray-300 {
-    color: #dddfeb !important;
-}
-</style>
 {% endblock %}
