@@ -1,0 +1,53 @@
+{
+  "name": "Financeira Autêntica",
+  "description": "Sistema de gestão financeira com integração Omie e autenticação Supabase",
+  "repository": "https://github.com/seu-usuario/financeira-autentica",
+  "logo": "https://via.placeholder.com/200x200.png?text=FA",
+  "keywords": ["flask", "python", "omie", "supabase", "financeiro", "dashboard"],
+  "stack": "heroku-20",
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "env": {
+    "FLASK_ENV": {
+      "description": "Ambiente Flask (production ou development)",
+      "value": "production"
+    },
+    "SECRET_KEY": {
+      "description": "Chave secreta para sessões Flask",
+      "generator": "secret"
+    },
+    "OMIE_APP_KEY": {
+      "description": "Chave da aplicação Omie",
+      "required": true
+    },
+    "OMIE_APP_SECRET": {
+      "description": "Chave secreta da aplicação Omie",
+      "required": true
+    },
+    "BASE_URL": {
+      "description": "URL base da API Omie",
+      "value": "https://app.omie.com.br/api/v1/"
+    },
+    "SUPABASE_URL": {
+      "description": "URL do projeto Supabase",
+      "required": true
+    },
+    "SUPABASE_KEY": {
+      "description": "Chave anon/public do Supabase",
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [],
+  "scripts": {
+    "postdeploy": "echo 'Deploy concluído! Configure as variáveis de ambiente.'"
+  }
+}

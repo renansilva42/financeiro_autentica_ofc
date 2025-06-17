@@ -1,20 +1,109 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
+from flask_session import Session
 from services.omie_service import OmieService
+from services.auth_service import AuthService
+from utils.auth_decorators import login_required, logout_required
 import json
+import os
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Carregar variáveis de ambiente
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'  # Em produção, use uma chave mais segura
+app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key-here')  # Em produção, use uma chave mais segura
 
-# Inicializar o serviço do Omie
+# Configurar sessões
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = False
+Session(app)
+
+# Inicializar serviços
 omie_service = OmieService()
+
+# Inicializar serviço de autenticação com tratamento de erro
+auth_service = None
+try:
+    auth_service = AuthService()
+    print("✅ Serviço de autenticação inicializado com sucesso")
+except Exception as e:
+    print(f"⚠️  Aviso: Não foi possível inicializar o serviço de autenticação: {e}")
+    print("   Verifique se as variáveis SUPABASE_URL e SUPABASE_KEY estão configuradas corretamente no arquivo .env")
+    print("   A aplicação continuará funcionando, mas sem autenticação.")
 
 @app.context_processor
 def inject_current_year():
     """Injeta o ano atual em todos os templates"""
     return {'current_year': datetime.now().year}
 
+@app.context_processor
+def inject_user():
+    """Injeta dados do usuário logado em todos os templates"""
+    user_data = None
+    if auth_service and 'user_id' in session:
+        try:
+            user_data = auth_service.get_user_by_id(session['user_id'])
+        except Exception as e:
+            print(f"Erro ao buscar dados do usuário: {e}")
+    return {'current_user': user_data}
+
+@app.route('/login', methods=['GET', 'POST'])
+@logout_required
+def login():
+    """Página de login"""
+    # Verificar se o serviço de autenticação está disponível
+    if not auth_service:
+        flash('Serviço de autenticação não disponível. Verifique a configuração do Supabase.', 'error')
+        return render_template('login.html')
+    
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        
+        if not email or not password:
+            flash('Email e senha são obrigatórios.', 'error')
+            return render_template('login.html')
+        
+        try:
+            # Validar formato do email
+            if not auth_service.validate_email(email):
+                flash('Formato de email inválido.', 'error')
+                return render_template('login.html')
+            
+            # Tentar autenticar o usuário
+            user = auth_service.authenticate_user(email, password)
+            
+            if user:
+                # Login bem-sucedido
+                session['user_id'] = user['id']
+                session['user_email'] = user['email']
+                session['user_name'] = user.get('name', email)
+                
+                flash(f'Bem-vindo, {user.get("name", email)}!', 'success')
+                
+                # Redirecionar para a página que o usuário tentou acessar ou para o dashboard
+                next_url = session.pop('next_url', None)
+                return redirect(next_url or url_for('index'))
+            else:
+                flash('Email ou senha incorretos.', 'error')
+        except Exception as e:
+            flash(f'Erro na autenticação: {str(e)}', 'error')
+            print(f"Erro na autenticação: {e}")
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    """Logout do usuário"""
+    user_name = session.get('user_name', 'Usuário')
+    session.clear()
+    flash(f'Até logo, {user_name}!', 'success')
+    return redirect(url_for('login'))
+
 @app.route('/')
+@login_required
 def index():
     """Página inicial com dashboard"""
     try:
@@ -24,6 +113,7 @@ def index():
         return render_template('error.html', error=str(e))
 
 @app.route('/clients')
+@login_required
 def clients():
     """Lista todos os clientes com paginação"""
     try:
@@ -66,6 +156,7 @@ def clients():
         return render_template('error.html', error=str(e))
 
 @app.route('/client/<int:client_id>')
+@login_required
 def client_detail(client_id):
     """Detalhes de um cliente específico"""
     try:
@@ -78,6 +169,7 @@ def client_detail(client_id):
         return render_template('error.html', error=str(e))
 
 @app.route('/purchase-orders')
+@login_required
 def purchase_orders():
     """Dashboard de Compras Faturadas"""
     try:
@@ -125,6 +217,7 @@ def purchase_orders():
         return render_template('error.html', error=str(e))
 
 @app.route('/sales')
+@login_required
 def sales():
     """Dashboard de Vendas"""
     try:
@@ -179,6 +272,7 @@ def sales():
         return render_template('error.html', error=str(e))
 
 @app.route('/services')
+@login_required
 def services():
     """Dashboard de Serviços"""
     try:
@@ -240,6 +334,7 @@ def services():
         return render_template('error.html', error=str(e))
 
 @app.route('/api/clients')
+@login_required
 def api_clients():
     """API endpoint para buscar clientes"""
     try:
@@ -269,6 +364,7 @@ def api_clients():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/client/<int:client_id>')
+@login_required
 def api_client_detail(client_id):
     """API endpoint para buscar um cliente específico"""
     try:
@@ -281,6 +377,7 @@ def api_client_detail(client_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/stats')
+@login_required
 def api_stats():
     """API endpoint para estatísticas"""
     try:
@@ -290,6 +387,7 @@ def api_stats():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/purchase-orders')
+@login_required
 def api_purchase_orders():
     """API endpoint para pedidos de compra faturados"""
     try:
@@ -317,6 +415,7 @@ def api_purchase_orders():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/purchase-orders/stats')
+@login_required
 def api_purchase_orders_stats():
     """API endpoint para estatísticas de pedidos de compra"""
     try:
@@ -328,6 +427,7 @@ def api_purchase_orders_stats():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/sales')
+@login_required
 def api_sales():
     """API endpoint para pedidos de venda"""
     try:
@@ -364,6 +464,7 @@ def api_sales():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/sales/stats')
+@login_required
 def api_sales_stats():
     """API endpoint para estatísticas de vendas"""
     try:
@@ -373,6 +474,7 @@ def api_sales_stats():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/services')
+@login_required
 def api_services():
     """API endpoint para ordens de serviço"""
     try:
@@ -416,6 +518,7 @@ def api_services():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/services/stats')
+@login_required
 def api_services_stats():
     """API endpoint para estatísticas de serviços"""
     try:
@@ -497,4 +600,7 @@ def internal_error(error):
     return render_template('error.html', error='Erro interno do servidor'), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8002)
+    # Configuração para desenvolvimento
+    port = int(os.getenv('PORT', 8002))
+    debug = os.getenv('FLASK_ENV') == 'development'
+    app.run(debug=debug, host='0.0.0.0', port=port)

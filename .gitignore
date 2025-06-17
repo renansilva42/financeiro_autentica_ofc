@@ -8,14 +8,50 @@ Thumbs.db
 *.sublime-project
 *.sublime-workspace
 
-# Arquivos de dependências
-/node_modules/
-/vendor/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
 
 # Arquivos de ambiente
 .env
 .env.local
 .env.*.local
+.env.backup.*
+
+# Flask
+instance/
+.webassets-cache
+flask_session/
+
+# Arquivos de dependências
+/node_modules/
+/vendor/
 
 # Arquivos de log
 *.log
@@ -30,6 +66,7 @@ yarn-error.log*
 
 # Arquivos de cache
 .cache/
+.pytest_cache/
 
 # Arquivos temporários
 *.tmp
@@ -40,6 +77,23 @@ yarn-error.log*
 *.bak
 *.backup
 
+# Docker
+.dockerignore
+
+# Deployment
+.vercel
+.railway
+
+# Database
+*.db
+*.sqlite3
+
 # Outros
 *.pyc
-__pycache__/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.pytest_cache/
+cover/

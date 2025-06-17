@@ -2,3 +2,6 @@ Flask
 python-dotenv
 requests
 pydantic-settings
+supabase
+Flask-Session
+gunicorn

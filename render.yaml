@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: financeira-autentica
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd src && gunicorn --bind 0.0.0.0:$PORT app:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.10.12
+    healthCheckPath: /
+    disk:
+      name: financeira-data
+      mountPath: /opt/render/project/src/flask_session
+      sizeGB: 1
