@@ -3,6 +3,7 @@ import json
 from typing import Dict, List, Optional
 import sys
 import os
+import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import Settings
 
@@ -13,6 +14,44 @@ class OmieService:
         self.app_key = self.settings.OMIE_APP_KEY
         self.app_secret = self.settings.OMIE_APP_SECRET
         self.headers = {"Content-Type": "application/json"}
+        
+        # Cache simples com expiração configurável
+        self._cache = {}
+        self._cache_expiry = 300  # 5 minutos em segundos (padrão)
+        self._service_cache_expiry = 900  # 15 minutos para ordens de serviço
+    
+    def _get_cache_key(self, method_name: str, **kwargs) -> str:
+        """Gera uma chave de cache baseada no método e parâmetros"""
+        key_parts = [method_name]
+        for k, v in sorted(kwargs.items()):
+            key_parts.append(f"{k}={v}")
+        return "|".join(key_parts)
+    
+    def _get_from_cache(self, cache_key: str, use_service_expiry: bool = False):
+        """Recupera dados do cache se ainda válidos"""
+        if cache_key in self._cache:
+            data, timestamp = self._cache[cache_key]
+            expiry_time = self._service_cache_expiry if use_service_expiry else self._cache_expiry
+            if time.time() - timestamp < expiry_time:
+                return data
+            else:
+                # Remove entrada expirada
+                del self._cache[cache_key]
+        return None
+    
+    def _set_cache(self, cache_key: str, data):
+        """Armazena dados no cache com timestamp"""
+        self._cache[cache_key] = (data, time.time())
+    
+    def clear_cache(self):
+        """Limpa todo o cache"""
+        self._cache.clear()
+    
+    def clear_cache_by_pattern(self, pattern: str):
+        """Limpa entradas do cache que contenham o padrão especificado"""
+        keys_to_remove = [key for key in self._cache.keys() if pattern in key]
+        for key in keys_to_remove:
+            del self._cache[key]
     
     def _make_request(self, resource: str, body: dict) -> dict:
         """Faz uma requisição para a API do Omie"""
@@ -21,7 +60,7 @@ class OmieService:
                 url=f"{self.base_url}{resource}",
                 headers=self.headers,
                 json=body,
-                timeout=30
+                timeout=15  # Reduzido para 15 segundos para falhar mais rápido
             )
             
             if response.status_code == 200:
@@ -445,8 +484,15 @@ class OmieService:
         
         return self._make_request(resource, body)
     
-    def get_all_service_orders(self) -> List[dict]:
-        """Busca todas as ordens de serviço de todas as páginas"""
+    def get_all_service_orders(self, max_pages: int = None, use_background_loading: bool = True) -> List[dict]:
+        """Busca todas as ordens de serviço com estratégia de carregamento otimizada"""
+        # Verificar cache primeiro (com tempo de vida estendido)
+        cache_key = self._get_cache_key("get_all_service_orders", max_pages=max_pages)
+        cached_data = self._get_from_cache(cache_key, use_service_expiry=True)
+        if cached_data is not None:
+            print(f"Dados de ordens de serviço carregados do cache: {len(cached_data)} registros")
+            return cached_data
+        
         all_orders = []
         page = 1
         
@@ -454,26 +500,88 @@ class OmieService:
             # Primeira requisição para saber o total de páginas
             first_response = self.get_service_orders_page(page)
             total_pages = first_response.get("total_de_paginas", 1)
+            total_records = first_response.get("total_de_registros", 0)
             
-            # Adiciona as ordens da primeira página - corrigindo o nome do campo
+            print(f"Total de páginas de OS: {total_pages}, Total de registros: {total_records}")
+            
+            # Se há muitas páginas e use_background_loading está ativo, usar estratégia otimizada
+            if total_pages > 10 and use_background_loading:
+                return self._get_service_orders_optimized(first_response, total_pages)
+            
+            # Limitar o número de páginas se especificado
+            if max_pages:
+                total_pages = min(total_pages, max_pages)
+            
+            # Adiciona as ordens da primeira página
             orders = first_response.get("osCadastro", [])
             all_orders.extend(orders)
             
-            # Busca as páginas restantes
+            # Busca as páginas restantes com timeout por página
             for page in range(2, total_pages + 1):
-                response = self.get_service_orders_page(page)
-                orders = response.get("osCadastro", [])
-                all_orders.extend(orders)
+                try:
+                    response = self.get_service_orders_page(page)
+                    orders = response.get("osCadastro", [])
+                    all_orders.extend(orders)
+                    
+                    # Log de progresso a cada 5 páginas
+                    if page % 5 == 0:
+                        print(f"Progresso: {page}/{total_pages} páginas carregadas")
+                        
+                except Exception as page_error:
+                    print(f"Erro ao buscar página {page}: {str(page_error)}")
+                    # Continue com as próximas páginas mesmo se uma falhar
+                    continue
             
+            # Armazenar no cache
+            self._set_cache(cache_key, all_orders)
             return all_orders
             
         except Exception as e:
             print(f"Erro ao buscar ordens de serviço: {str(e)}")
             return []
     
+    def _get_service_orders_optimized(self, first_response: dict, total_pages: int) -> List[dict]:
+        """Estratégia otimizada para muitas páginas - carrega em lotes menores"""
+        all_orders = []
+        
+        # Adiciona as ordens da primeira página
+        orders = first_response.get("osCadastro", [])
+        all_orders.extend(orders)
+        
+        # Carrega em lotes de 5 páginas por vez
+        batch_size = 5
+        current_page = 2
+        
+        while current_page <= total_pages:
+            batch_end = min(current_page + batch_size - 1, total_pages)
+            print(f"Carregando lote: páginas {current_page} a {batch_end}")
+            
+            # Carrega o lote atual
+            for page in range(current_page, batch_end + 1):
+                try:
+                    response = self.get_service_orders_page(page)
+                    orders = response.get("osCadastro", [])
+                    all_orders.extend(orders)
+                except Exception as page_error:
+                    print(f"Erro ao buscar página {page}: {str(page_error)}")
+                    continue
+            
+            current_page = batch_end + 1
+            
+            # Pequena pausa entre lotes para não sobrecarregar a API
+            import time
+            time.sleep(0.1)
+        
+        # Cache com tempo de vida maior para dados completos
+        cache_key = self._get_cache_key("get_all_service_orders", max_pages=None)
+        self._set_cache(cache_key, all_orders)
+        
+        return all_orders
+    
     def get_service_orders_stats(self) -> dict:
         """Retorna estatísticas das ordens de serviço"""
         try:
+            # Buscar todas as ordens com carregamento otimizado
             orders = self.get_all_service_orders()
             
             total_orders = len(orders)
@@ -598,6 +706,7 @@ class OmieService:
     def get_available_months_for_services(self) -> List[dict]:
         """Retorna lista de meses disponíveis para filtro de ordens de serviço"""
         try:
+            # Buscar todas as ordens para ter lista completa de meses
             orders = self.get_all_service_orders()
             months_set = set()
             
@@ -655,6 +764,7 @@ class OmieService:
     def get_monthly_service_stats(self, month_filter: str) -> dict:
         """Retorna estatísticas das ordens de serviço para um mês específico"""
         try:
+            # Buscar todas as ordens para estatísticas precisas
             all_orders = self.get_all_service_orders()
             
             # Filtrar ordens pelo mês especificado

@@ -281,8 +281,21 @@ def services():
         month_filter = request.args.get('month', '', type=str)
         per_page = 20
         
-        # Buscar todas as ordens de serviço
-        all_orders = omie_service.get_all_service_orders()
+        # Verificar se há dados em cache primeiro
+        print(f"Buscando ordens de serviço - página {page}, busca: '{search}', mês: '{month_filter}'")
+        
+        # Tentar buscar do cache primeiro (com tempo de vida estendido para serviços)
+        cache_key = omie_service._get_cache_key("get_all_service_orders", max_pages=None)
+        cached_orders = omie_service._get_from_cache(cache_key, use_service_expiry=True)
+        
+        if cached_orders is not None:
+            print(f"Dados carregados do cache: {len(cached_orders)} ordens")
+            all_orders = cached_orders
+        else:
+            print("Cache vazio, carregando dados da API...")
+            # Se não há cache, carregar com estratégia otimizada
+            all_orders = omie_service.get_all_service_orders()
+            print(f"Total de ordens carregadas da API: {len(all_orders)}")
         
         # Filtrar por mês se especificado
         if month_filter:
@@ -340,14 +353,17 @@ def services():
         }
         
         # Buscar estatísticas (sem filtro para manter visão geral)
+        print("Buscando estatísticas de ordens de serviço...")
         stats = omie_service.get_service_orders_stats()
         
         # Se há filtro de mês, calcular estatísticas específicas do mês
         monthly_stats = None
         if month_filter:
+            print(f"Buscando estatísticas mensais para {month_filter}...")
             monthly_stats = omie_service.get_monthly_service_stats(month_filter)
         
         # Buscar lista de meses disponíveis para o filtro
+        print("Buscando meses disponíveis...")
         available_months = omie_service.get_available_months_for_services()
         
         return render_template('services.html', 
@@ -511,6 +527,7 @@ def api_services():
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
         
+        # Limitar a 10 páginas para evitar timeout na API
         orders = omie_service.get_all_service_orders()
         
         # Filtrar por mês se especificado
