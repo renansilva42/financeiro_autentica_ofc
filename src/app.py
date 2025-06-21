@@ -278,10 +278,27 @@ def services():
     try:
         page = request.args.get('page', 1, type=int)
         search = request.args.get('search', '', type=str)
+        month_filter = request.args.get('month', '', type=str)
         per_page = 20
         
         # Buscar todas as ordens de serviço
         all_orders = omie_service.get_all_service_orders()
+        
+        # Filtrar por mês se especificado
+        if month_filter:
+            filtered_orders = []
+            for order in all_orders:
+                cabecalho = order.get('Cabecalho', {})
+                date_str = cabecalho.get('dDtPrevisao', '')
+                if date_str:
+                    try:
+                        # Extrair mês/ano da data (formato dd/mm/yyyy)
+                        month_year = "/".join(date_str.split("/")[1:])  # mm/yyyy
+                        if month_year == month_filter:
+                            filtered_orders.append(order)
+                    except:
+                        pass
+            all_orders = filtered_orders
         
         # Filtrar por busca se necessário
         if search:
@@ -322,14 +339,19 @@ def services():
             'next_num': page + 1 if has_next else None
         }
         
-        # Buscar estatísticas
+        # Buscar estatísticas (sem filtro para manter visão geral)
         stats = omie_service.get_service_orders_stats()
+        
+        # Buscar lista de meses disponíveis para o filtro
+        available_months = omie_service.get_available_months_for_services()
         
         return render_template('services.html', 
                              orders=orders_page, 
                              pagination=pagination,
                              stats=stats,
-                             search=search)
+                             search=search,
+                             month_filter=month_filter,
+                             available_months=available_months)
     except Exception as e:
         return render_template('error.html', error=str(e))
 
@@ -479,10 +501,27 @@ def api_services():
     """API endpoint para ordens de serviço"""
     try:
         search = request.args.get('search', '', type=str)
+        month_filter = request.args.get('month', '', type=str)
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
         
         orders = omie_service.get_all_service_orders()
+        
+        # Filtrar por mês se especificado
+        if month_filter:
+            filtered_orders = []
+            for order in orders:
+                cabecalho = order.get('Cabecalho', {})
+                date_str = cabecalho.get('dDtPrevisao', '')
+                if date_str:
+                    try:
+                        # Extrair mês/ano da data (formato dd/mm/yyyy)
+                        month_year = "/".join(date_str.split("/")[1:])  # mm/yyyy
+                        if month_year == month_filter:
+                            filtered_orders.append(order)
+                    except:
+                        pass
+            orders = filtered_orders
         
         # Filtrar por busca se necessário
         if search:

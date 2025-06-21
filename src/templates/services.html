@@ -234,14 +234,25 @@
                 </div>
                 <div class="card-body">
                     <form method="GET" class="row g-3">
-                        <div class="col-md-8">
+                        <div class="col-md-6">
                             <label for="search" class="form-label">Buscar por Cliente, Número da OS, Código ou Técnico</label>
                             <input type="text" class="form-control" id="search" name="search" 
                                    value="{{ search }}" placeholder="Digite sua busca...">
                         </div>
-                        <div class="col-md-4 d-flex align-items-end">
+                        <div class="col-md-4">
+                            <label for="month" class="form-label">Filtrar por Mês</label>
+                            <select class="form-select" id="month" name="month">
+                                <option value="">Todos os meses</option>
+                                {% for month in available_months %}
+                                <option value="{{ month.value }}" {% if month_filter == month.value %}selected{% endif %}>
+                                    {{ month.label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
                             <button type="submit" class="btn btn-primary me-2">
-                                <i class="bi bi-search me-1"></i>Buscar
+                                <i class="bi bi-search me-1"></i>Filtrar
                             </button>
                             <a href="{{ url_for('services') }}" class="btn btn-outline-secondary">
                                 <i class="bi bi-x me-1"></i>Limpar
@@ -261,8 +272,18 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">
                             <i class="bi bi-table"></i> Ordens de Serviço
-                            {% if search %}
-                                <small class="text-muted">(filtrado por: "{{ search }}")</small>
+                            {% if search or month_filter %}
+                                <small class="text-muted">
+                                    (filtrado por: 
+                                    {% if search %}"{{ search }}"{% endif %}
+                                    {% if search and month_filter %} e {% endif %}
+                                    {% if month_filter %}
+                                        {% for month in available_months %}
+                                            {% if month.value == month_filter %}{{ month.label }}{% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                    )
+                                </small>
                             {% endif %}
                         </h5>
                         <span class="badge bg-primary">{{ pagination.total }} ordens</span>
@@ -343,7 +364,7 @@
                             <ul class="pagination justify-content-center mb-0">
                                 {% if pagination.has_prev %}
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('services', page=pagination.prev_num, search=search) }}">
+                                    <a class="page-link" href="{{ url_for('services', page=pagination.prev_num, search=search, month=month_filter) }}">
                                         <i class="bi bi-chevron-left"></i> Anterior
                                     </a>
                                 </li>
@@ -356,7 +377,7 @@
                                     </li>
                                     {% elif page_num <= 3 or page_num > pagination.total_pages - 3 or (page_num >= pagination.page - 1 and page_num <= pagination.page + 1) %}
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ url_for('services', page=page_num, search=search) }}">{{ page_num }}</a>
+                                        <a class="page-link" href="{{ url_for('services', page=page_num, search=search, month=month_filter) }}">{{ page_num }}</a>
                                     </li>
                                     {% elif page_num == 4 or page_num == pagination.total_pages - 3 %}
                                     <li class="page-item disabled">
@@ -367,7 +388,7 @@
 
                                 {% if pagination.has_next %}
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('services', page=pagination.next_num, search=search) }}">
+                                    <a class="page-link" href="{{ url_for('services', page=pagination.next_num, search=search, month=month_filter) }}">
                                         Próxima <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>
@@ -382,7 +403,7 @@
                         <div class="text-muted">
                             <i class="bi bi-tools fs-1"></i>
                             <h5 class="mt-2">Nenhuma ordem de serviço encontrada</h5>
-                            {% if search %}
+                            {% if search or month_filter %}
                                 <p class="text-muted">Tente ajustar os filtros de busca.</p>
                                 <a href="{{ url_for('services') }}" class="btn btn-outline-primary">
                                     <i class="bi bi-x me-1"></i>Limpar Filtros

@@ -594,3 +594,60 @@ class OmieService:
                 "monthly_stats": {},
                 "monthly_values": {}
             }
+    
+    def get_available_months_for_services(self) -> List[dict]:
+        """Retorna lista de meses disponíveis para filtro de ordens de serviço"""
+        try:
+            orders = self.get_all_service_orders()
+            months_set = set()
+            
+            for order in orders:
+                cabecalho = order.get("Cabecalho", {})
+                date_str = cabecalho.get("dDtPrevisao", "")
+                if date_str:
+                    try:
+                        # Extrair mês/ano da data (formato dd/mm/yyyy)
+                        parts = date_str.split("/")
+                        if len(parts) >= 3:
+                            month_year = f"{parts[1]}/{parts[2]}"  # mm/yyyy
+                            months_set.add(month_year)
+                    except:
+                        pass
+            
+            # Converter para lista e ordenar cronologicamente
+            def sort_month_year(month_year):
+                try:
+                    month, year = month_year.split('/')
+                    return (int(year), int(month))
+                except:
+                    return (0, 0)
+            
+            sorted_months = sorted(list(months_set), key=sort_month_year, reverse=True)
+            
+            # Converter para formato mais amigável
+            month_names = {
+                '01': 'Janeiro', '02': 'Fevereiro', '03': 'Março', '04': 'Abril',
+                '05': 'Maio', '06': 'Junho', '07': 'Julho', '08': 'Agosto',
+                '09': 'Setembro', '10': 'Outubro', '11': 'Novembro', '12': 'Dezembro'
+            }
+            
+            result = []
+            for month_year in sorted_months:
+                try:
+                    month, year = month_year.split('/')
+                    month_name = month_names.get(month, month)
+                    result.append({
+                        'value': month_year,
+                        'label': f"{month_name} {year}"
+                    })
+                except:
+                    result.append({
+                        'value': month_year,
+                        'label': month_year
+                    })
+            
+            return result
+            
+        except Exception as e:
+            print(f"Erro ao buscar meses disponíveis: {str(e)}")
+            return []
