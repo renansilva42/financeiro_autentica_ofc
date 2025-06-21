@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste de Ordenação do Gráfico</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Teste de Ordenação Cronológica</h1>
+    
+    <h2>Dados de Teste</h2>
+    <div id="test-data"></div>
+    
+    <h2>Gráfico com Ordenação Corrigida</h2>
+    <canvas id="testChart" width="400" height="200"></canvas>
+
+    <script>
+        // Simular dados como vêm do backend
+        const monthlyData = {
+            "03/2025": 5,
+            "04/2024": 3,
+            "01/2024": 2,
+            "12/2024": 4,
+            "02/2025": 1,
+            "05/2024": 6,
+            "01/2025": 7
+        };
+
+        // Função para ordenar cronologicamente as chaves mês/ano
+        function sortMonthYearKeys(obj) {
+            const keys = Object.keys(obj);
+            return keys.sort((a, b) => {
+                const [monthA, yearA] = a.split('/').map(Number);
+                const [monthB, yearB] = b.split('/').map(Number);
+                
+                if (yearA !== yearB) {
+                    return yearA - yearB;
+                }
+                return monthA - monthB;
+            });
+        }
+
+        // Mostrar dados de teste
+        const originalKeys = Object.keys(monthlyData);
+        const sortedKeys = sortMonthYearKeys(monthlyData);
+        
+        document.getElementById('test-data').innerHTML = `
+            <p><strong>Ordem original:</strong> ${originalKeys.join(', ')}</p>
+            <p><strong>Ordem corrigida:</strong> ${sortedKeys.join(', ')}</p>
+        `;
+
+        // Ordenar os dados cronologicamente
+        const sortedMonthKeys = sortMonthYearKeys(monthlyData);
+        const sortedMonthlyData = sortedMonthKeys.map(key => monthlyData[key]);
+
+        // Criar gráfico
+        const ctx = document.getElementById('testChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: sortedMonthKeys,
+                datasets: [{
+                    label: 'Quantidade de OS',
+                    data: sortedMonthlyData,
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Mês/Ano'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Quantidade de OS'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,6 +1,9 @@
 import requests
 import json
 from typing import Dict, List, Optional
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import Settings
 
 class OmieService:
@@ -255,6 +258,17 @@ class OmieService:
                     except:
                         pass
             
+            # Ordenar os dados mensais cronologicamente
+            def sort_month_year(month_year):
+                try:
+                    month, year = month_year.split('/')
+                    return (int(year), int(month))
+                except:
+                    return (0, 0)
+            
+            sorted_months = sorted(monthly_stats.keys(), key=sort_month_year)
+            monthly_stats = {month: monthly_stats[month] for month in sorted_months}
+            
             # Top 5 fornecedores
             top_suppliers = sorted(suppliers.items(), key=lambda x: x[1], reverse=True)[:5]
             
@@ -361,6 +375,18 @@ class OmieService:
                         monthly_values[month_year] = monthly_values.get(month_year, 0) + float(order.get("valor_total_pedido", 0))
                     except:
                         pass
+            
+            # Ordenar os dados mensais cronologicamente
+            def sort_month_year(month_year):
+                try:
+                    month, year = month_year.split('/')
+                    return (int(year), int(month))
+                except:
+                    return (0, 0)
+            
+            sorted_months = sorted(monthly_stats.keys(), key=sort_month_year)
+            monthly_stats = {month: monthly_stats[month] for month in sorted_months}
+            monthly_values = {month: monthly_values[month] for month in sorted_months}
             
             # Top 5 clientes
             top_clients = sorted(clients.items(), key=lambda x: x[1], reverse=True)[:5]
@@ -511,6 +537,18 @@ class OmieService:
                         monthly_values[month_year] = monthly_values.get(month_year, 0) + float(cabecalho.get("nValorTotal", 0))
                     except:
                         pass
+            
+            # Ordenar os dados mensais cronologicamente
+            def sort_month_year(month_year):
+                try:
+                    month, year = month_year.split('/')
+                    return (int(year), int(month))
+                except:
+                    return (0, 0)
+            
+            sorted_months = sorted(monthly_stats.keys(), key=sort_month_year)
+            monthly_stats = {month: monthly_stats[month] for month in sorted_months}
+            monthly_values = {month: monthly_values[month] for month in sorted_months}
             
             # Top 5 clientes
             top_clients = sorted(clients.items(), key=lambda x: x[1], reverse=True)[:5]

@@ -405,44 +405,22 @@ const monthlyData = {{ stats.monthly_stats | tojson }};
 const monthlyValues = {{ stats.monthly_values | tojson }};
 const statusData = {{ stats.by_status | tojson }};
 
-// Função para ordenar cronologicamente as chaves mês/ano
-function sortMonthYearKeys(obj) {
-    const keys = Object.keys(obj);
-    return keys.sort((a, b) => {
-        const [monthA, yearA] = a.split('/').map(Number);
-        const [monthB, yearB] = b.split('/').map(Number);
-        
-        if (yearA !== yearB) {
-            return yearA - yearB;
-        }
-        return monthA - monthB;
-    });
-}
-
-// Ordenar os dados cronologicamente
-const sortedMonthKeys = sortMonthYearKeys(monthlyData);
-const sortedMonthlyData = sortedMonthKeys.map(key => monthlyData[key]);
-const sortedMonthlyValues = sortedMonthKeys.map(key => monthlyValues[key]);
-
-console.log('Dados originais:', Object.keys(monthlyData));
-console.log('Dados ordenados:', sortedMonthKeys);
-
 // Gráfico de ordens mensais
 const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
 const monthlyChart = new Chart(monthlyCtx, {
     type: 'line',
     data: {
-        labels: sortedMonthKeys,
+        labels: Object.keys(monthlyData),
         datasets: [{
             label: 'Quantidade de OS',
-            data: sortedMonthlyData,
+            data: Object.values(monthlyData),
             borderColor: 'rgba(13, 110, 253, 1)',
             backgroundColor: 'rgba(13, 110, 253, 0.2)',
             tension: 0.1,
             yAxisID: 'y'
         }, {
             label: 'Valor Total (R$)',
-            data: sortedMonthlyValues,
+            data: Object.values(monthlyValues),
             borderColor: 'rgba(25, 135, 84, 1)',
             backgroundColor: 'rgba(25, 135, 84, 0.2)',
             tension: 0.1,
