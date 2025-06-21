@@ -264,6 +264,96 @@
         </div>
     </div>
 
+    <!-- Monthly Statistics (shown when month filter is applied) -->
+    {% if monthly_stats %}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-calendar-month"></i> Estatísticas de {{ monthly_stats.formatted_month }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="card stats-card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-primary bg-gradient rounded-circle p-2">
+                                                <i class="bi bi-clipboard-check text-white fs-5"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted mb-1">Total de OS</h6>
+                                            <h4 class="mb-0 text-primary">{{ monthly_stats.total_orders }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="card stats-card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-success bg-gradient rounded-circle p-2">
+                                                <i class="bi bi-currency-dollar text-white fs-5"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted mb-1">Valor Total</h6>
+                                            <h4 class="mb-0 text-success">{{ monthly_stats.total_value | format_currency }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="card stats-card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-info bg-gradient rounded-circle p-2">
+                                                <i class="bi bi-calculator text-white fs-5"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted mb-1">Ticket Médio</h6>
+                                            <h4 class="mb-0 text-info">{{ monthly_stats.average_value | format_currency }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="card stats-card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-warning bg-gradient rounded-circle p-2">
+                                                <i class="bi bi-people text-white fs-5"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted mb-1">Clientes Únicos</h6>
+                                            <h4 class="mb-0 text-warning">{{ monthly_stats.unique_clients }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Service Orders Table -->
     <div class="row">
         <div class="col-12">

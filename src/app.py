@@ -342,6 +342,11 @@ def services():
         # Buscar estatísticas (sem filtro para manter visão geral)
         stats = omie_service.get_service_orders_stats()
         
+        # Se há filtro de mês, calcular estatísticas específicas do mês
+        monthly_stats = None
+        if month_filter:
+            monthly_stats = omie_service.get_monthly_service_stats(month_filter)
+        
         # Buscar lista de meses disponíveis para o filtro
         available_months = omie_service.get_available_months_for_services()
         
@@ -349,6 +354,7 @@ def services():
                              orders=orders_page, 
                              pagination=pagination,
                              stats=stats,
+                             monthly_stats=monthly_stats,
                              search=search,
                              month_filter=month_filter,
                              available_months=available_months)

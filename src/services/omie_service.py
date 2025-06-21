@@ -651,3 +651,77 @@ class OmieService:
         except Exception as e:
             print(f"Erro ao buscar meses disponíveis: {str(e)}")
             return []
+    
+    def get_monthly_service_stats(self, month_filter: str) -> dict:
+        """Retorna estatísticas das ordens de serviço para um mês específico"""
+        try:
+            all_orders = self.get_all_service_orders()
+            
+            # Filtrar ordens pelo mês especificado
+            filtered_orders = []
+            for order in all_orders:
+                cabecalho = order.get("Cabecalho", {})
+                date_str = cabecalho.get("dDtPrevisao", "")
+                if date_str:
+                    try:
+                        # Extrair mês/ano da data (formato dd/mm/yyyy)
+                        month_year = "/".join(date_str.split("/")[1:])  # mm/yyyy
+                        if month_year == month_filter:
+                            filtered_orders.append(order)
+                    except:
+                        pass
+            
+            total_orders = len(filtered_orders)
+            
+            # Calcular valor total
+            total_value = 0
+            for order in filtered_orders:
+                cabecalho = order.get("Cabecalho", {})
+                total_value += float(cabecalho.get("nValorTotal", 0))
+            
+            # Calcular ticket médio
+            average_value = total_value / total_orders if total_orders > 0 else 0
+            
+            # Contar clientes únicos
+            unique_clients = set()
+            for order in filtered_orders:
+                cabecalho = order.get("Cabecalho", {})
+                client_code = cabecalho.get("nCodCli", "")
+                if client_code:
+                    unique_clients.add(client_code)
+            
+            unique_clients_count = len(unique_clients)
+            
+            # Formatar o nome do mês para exibição
+            month_names = {
+                '01': 'Janeiro', '02': 'Fevereiro', '03': 'Março', '04': 'Abril',
+                '05': 'Maio', '06': 'Junho', '07': 'Julho', '08': 'Agosto',
+                '09': 'Setembro', '10': 'Outubro', '11': 'Novembro', '12': 'Dezembro'
+            }
+            
+            try:
+                month, year = month_filter.split('/')
+                month_name = month_names.get(month, month)
+                formatted_month = f"{month_name} {year}"
+            except:
+                formatted_month = month_filter
+            
+            return {
+                "month_filter": month_filter,
+                "formatted_month": formatted_month,
+                "total_orders": total_orders,
+                "total_value": total_value,
+                "average_value": average_value,
+                "unique_clients": unique_clients_count
+            }
+            
+        except Exception as e:
+            print(f"Erro ao calcular estatísticas mensais: {str(e)}")
+            return {
+                "month_filter": month_filter,
+                "formatted_month": month_filter,
+                "total_orders": 0,
+                "total_value": 0,
+                "average_value": 0,
+                "unique_clients": 0
+            }
