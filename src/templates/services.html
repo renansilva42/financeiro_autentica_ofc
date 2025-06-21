@@ -17,6 +17,13 @@
     .table-responsive {
         border-radius: 0.5rem;
         box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .table {
+        width: 100%;
+        table-layout: auto;
     }
     .badge-status {
         font-size: 0.75em;
@@ -45,8 +52,10 @@
         height: 3rem;
     }
     .obs-cell {
-        max-width: 200px;
+        max-width: 180px;
+        min-width: 120px;
         position: relative;
+        width: 15%;
     }
     .obs-text {
         display: -webkit-box;
@@ -55,35 +64,73 @@
         overflow: hidden;
         text-overflow: ellipsis;
         cursor: pointer;
+        position: relative;
+        padding-right: 20px;
     }
     .obs-text:hover {
         background-color: #f8f9fa;
+        border-radius: 4px;
+        padding: 4px;
+        margin: -4px;
+    }
+    .obs-text.truncated::after {
+        content: '📖';
+        position: absolute;
+        right: 2px;
+        bottom: 0;
+        background: linear-gradient(to right, transparent, #fff 50%);
+        padding-left: 8px;
+        font-size: 0.75em;
+        color: #6c757d;
+        opacity: 0.8;
+    }
+    .obs-text.truncated:hover::after {
+        background: linear-gradient(to right, transparent, #f8f9fa 50%);
+        opacity: 1;
+        color: #495057;
+    }
+    .obs-text.truncated {
+        padding-right: 25px;
     }
     .obs-tooltip {
         position: absolute;
         background: #333;
         color: white;
         padding: 8px 12px;
-        border-radius: 4px;
+        border-radius: 6px;
         font-size: 0.875rem;
-        max-width: 300px;
-        z-index: 1000;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        max-width: 350px;
+        min-width: 200px;
+        z-index: 1050;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         white-space: pre-wrap;
         word-wrap: break-word;
         display: none;
+        line-height: 1.4;
+        pointer-events: none;
+        top: 0;
+        left: 0;
     }
     .obs-tooltip::before {
         content: '';
         position: absolute;
-        top: -5px;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+    }
+    .obs-tooltip[data-arrow="bottom"]::before {
+        top: -6px;
         left: 20px;
-        border-left: 5px solid transparent;
-        border-right: 5px solid transparent;
-        border-bottom: 5px solid #333;
+        border-bottom: 6px solid #333;
+    }
+    .obs-tooltip[data-arrow="top"]::before {
+        bottom: -6px;
+        left: 20px;
+        border-top: 6px solid #333;
     }
     .service-cell {
-        max-width: 180px;
+        max-width: 160px;
+        min-width: 100px;
+        width: 14%;
     }
     .service-text {
         display: -webkit-box;
@@ -92,6 +139,20 @@
         overflow: hidden;
         text-overflow: ellipsis;
         font-size: 0.875rem;
+    }
+    
+    /* Larguras responsivas para colunas da tabela */
+    /* Colunas com larguras mais flexíveis */
+    .table th, .table td {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 0.5rem 0.25rem;
+    }
+    
+    .table th:nth-child(9), .table td:nth-child(9) {
+        white-space: normal;
+        max-width: 200px;
     }
 </style>
 {% endblock %}
@@ -776,6 +837,310 @@ document.addEventListener('DOMContentLoaded', function() {
         clearTimeout(loadingTimeout);
         hideLoading();
     });
+    
+    // Implementar tooltips para observações com delay
+    console.log('Inicializando tooltips...');
+    setTimeout(() => {
+        initObservationTooltips();
+        console.log('Tooltips inicializados');
+    }, 500);
+    
+    // Backup: tentar novamente após 2 segundos se não funcionou
+    setTimeout(() => {
+        const tooltipsExistentes = document.querySelectorAll('.custom-tooltip');
+        const tooltipsSimples = document.querySelectorAll('.obs-cell .obs-text[title]');
+        
+        if (tooltipsExistentes.length === 0 && tooltipsSimples.length === 0) {
+            console.log('Nenhum tooltip encontrado, tentando todas as abordagens...');
+            createSimpleTooltips();
+            createDynamicTooltips();
+        } else {
+            console.log('Tooltips encontrados:', {
+                customizados: tooltipsExistentes.length,
+                simples: tooltipsSimples.length
+            });
+        }
+    }, 2000);
 });
+
+// Função auxiliar para posicionar tooltip
+function positionTooltip(obsText, tooltip) {
+    try {
+        const rect = obsText.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+        
+        // Posição inicial (abaixo do elemento) - considerando scroll
+        let top = rect.bottom + scrollTop + 10;
+        let left = rect.left + scrollLeft;
+        let arrowPosition = 'bottom';
+        
+        // Aguardar um frame para obter dimensões corretas do tooltip
+        setTimeout(() => {
+            const tooltipRect = tooltip.getBoundingClientRect();
+            
+            // Verificar se o tooltip sai da tela pela direita
+            if (rect.left + tooltipRect.width > window.innerWidth - 10) {
+                left = window.innerWidth + scrollLeft - tooltipRect.width - 10;
+            }
+            
+            // Verificar se o tooltip sai da tela pela esquerda
+            if (left < scrollLeft + 10) {
+                left = scrollLeft + 10;
+            }
+            
+            // Verificar se o tooltip sai da tela por baixo
+            if (rect.bottom + tooltipRect.height > window.innerHeight - 10) {
+                top = rect.top + scrollTop - tooltipRect.height - 10;
+                arrowPosition = 'top';
+            }
+            
+            // Verificar se ainda sai da tela por cima
+            if (top < scrollTop + 10) {
+                top = rect.bottom + scrollTop + 10;
+                arrowPosition = 'bottom';
+            }
+            
+            tooltip.style.top = top + 'px';
+            tooltip.style.left = left + 'px';
+            tooltip.setAttribute('data-arrow', arrowPosition);
+        }, 10);
+        
+    } catch (error) {
+        console.error('Erro ao posicionar tooltip:', error);
+    }
+}
+
+// Função alternativa para criar tooltips dinamicamente
+function createDynamicTooltips() {
+    console.log('Criando tooltips dinamicamente...');
+    
+    // Procurar por todas as células de observações
+    const obsCells = document.querySelectorAll('.obs-cell');
+    console.log('Células de observações encontradas:', obsCells.length);
+    
+    obsCells.forEach((cell, index) => {
+        const obsText = cell.querySelector('.obs-text');
+        if (!obsText) {
+            console.log(`Célula ${index} não tem .obs-text`);
+            return;
+        }
+        
+        const fullText = obsText.getAttribute('data-obs');
+        if (!fullText) {
+            console.log(`Célula ${index} não tem data-obs`);
+            return;
+        }
+        
+        console.log(`Célula ${index} - texto:`, fullText.substring(0, 50) + '...');
+        
+        // Adicionar title attribute como fallback
+        obsText.setAttribute('title', fullText);
+        
+        // Criar tooltip customizado
+        let tooltip = document.getElementById(`tooltip-${index}`);
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.id = `tooltip-${index}`;
+            tooltip.className = 'custom-tooltip';
+            tooltip.style.cssText = `
+                position: fixed;
+                background: #333;
+                color: white;
+                padding: 8px 12px;
+                border-radius: 6px;
+                font-size: 0.875rem;
+                max-width: 300px;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                display: none;
+                line-height: 1.4;
+                pointer-events: none;
+            `;
+            document.body.appendChild(tooltip);
+        }
+        
+        // Remover eventos anteriores se existirem
+        obsText.removeEventListener('mouseenter', obsText._tooltipEnter);
+        obsText.removeEventListener('mouseleave', obsText._tooltipLeave);
+        
+        // Criar funções de evento
+        obsText._tooltipEnter = function(e) {
+            console.log(`Mouseenter na célula ${index}`);
+            tooltip.textContent = fullText;
+            tooltip.style.display = 'block';
+            
+            const rect = obsText.getBoundingClientRect();
+            tooltip.style.top = (rect.bottom + 10) + 'px';
+            tooltip.style.left = rect.left + 'px';
+            
+            console.log(`Tooltip ${index} mostrado em:`, tooltip.style.top, tooltip.style.left);
+        };
+        
+        obsText._tooltipLeave = function() {
+            console.log(`Mouseleave na célula ${index}`);
+            tooltip.style.display = 'none';
+        };
+        
+        // Adicionar eventos
+        obsText.addEventListener('mouseenter', obsText._tooltipEnter);
+        obsText.addEventListener('mouseleave', obsText._tooltipLeave);
+        
+        // Estilizar elemento para indicar interatividade
+        obsText.style.cursor = 'help';
+        obsText.style.borderBottom = '1px dotted #666';
+        
+        console.log(`Tooltip configurado para célula ${index}`);
+    });
+}
+
+// Função simples usando apenas title attribute
+function createSimpleTooltips() {
+    console.log('Criando tooltips simples...');
+    
+    const obsCells = document.querySelectorAll('.obs-cell');
+    console.log('Células encontradas:', obsCells.length);
+    
+    obsCells.forEach((cell, index) => {
+        const obsText = cell.querySelector('.obs-text');
+        if (!obsText) return;
+        
+        const fullText = obsText.getAttribute('data-obs');
+        if (!fullText) return;
+        
+        // Usar title attribute nativo do browser
+        obsText.setAttribute('title', fullText);
+        obsText.style.cursor = 'help';
+        obsText.style.borderBottom = '1px dotted #666';
+        
+        console.log(`Tooltip simples adicionado à célula ${index}`);
+    });
+}
+
+// Função para inicializar tooltips das observações
+function initObservationTooltips() {
+    const obsTexts = document.querySelectorAll('.obs-text');
+    console.log('Encontrados', obsTexts.length, 'elementos .obs-text');
+    
+    if (obsTexts.length === 0) {
+        console.log('Nenhum elemento .obs-text encontrado. Tentando abordagens alternativas...');
+        
+        // Tentar tooltip simples primeiro
+        createSimpleTooltips();
+        
+        // Depois tentar tooltip customizado
+        setTimeout(() => {
+            createDynamicTooltips();
+        }, 100);
+        
+        return;
+    }
+    
+    obsTexts.forEach((obsText, index) => {
+        console.log(`Processando elemento ${index}:`, obsText);
+        
+        const tooltip = obsText.nextElementSibling;
+        console.log(`Tooltip ${index}:`, tooltip, 'tem classe obs-tooltip:', tooltip?.classList.contains('obs-tooltip'));
+        
+        if (!tooltip || !tooltip.classList.contains('obs-tooltip')) {
+            console.log(`Elemento ${index} não tem tooltip válido`);
+            return;
+        }
+        
+        const fullText = obsText.getAttribute('data-obs');
+        console.log(`Texto completo ${index}:`, fullText ? fullText.substring(0, 50) + '...' : 'VAZIO');
+        
+        if (!fullText) {
+            console.log(`Elemento ${index} não tem data-obs`);
+            return;
+        }
+        
+        // Verificar se o texto está sendo truncado
+        const isTextTruncated = obsText.scrollHeight > obsText.clientHeight || 
+                               obsText.scrollWidth > obsText.clientWidth;
+        
+        console.log(`Elemento ${index} truncado:`, isTextTruncated);
+        
+        if (isTextTruncated) {
+            obsText.classList.add('truncated');
+            obsText.setAttribute('title', 'Clique para ver o texto completo');
+        }
+        
+        // Mostrar tooltip no hover
+        obsText.addEventListener('mouseenter', function(e) {
+            console.log(`Mouseenter no elemento ${index}`);
+            tooltip.textContent = fullText;
+            tooltip.style.display = 'block';
+            tooltip.style.position = 'absolute';
+            tooltip.style.zIndex = '9999';
+            tooltip.style.backgroundColor = '#333';
+            tooltip.style.color = 'white';
+            tooltip.style.padding = '8px 12px';
+            tooltip.style.borderRadius = '6px';
+            tooltip.style.maxWidth = '300px';
+            
+            // Posicionamento simples
+            const rect = obsText.getBoundingClientRect();
+            tooltip.style.top = (rect.bottom + window.scrollY + 10) + 'px';
+            tooltip.style.left = (rect.left + window.scrollX) + 'px';
+            
+            console.log(`Tooltip ${index} posicionado em:`, tooltip.style.top, tooltip.style.left);
+        });
+        
+        // Esconder tooltip quando sair do hover
+        obsText.addEventListener('mouseleave', function() {
+            console.log(`Mouseleave no elemento ${index}`);
+            tooltip.style.display = 'none';
+        });
+        
+        // Suporte para dispositivos móveis (toque)
+        obsText.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (tooltip.style.display === 'block') {
+                tooltip.style.display = 'none';
+            } else {
+                // Esconder outros tooltips abertos
+                document.querySelectorAll('.obs-tooltip').forEach(t => {
+                    if (t !== tooltip) t.style.display = 'none';
+                });
+                
+                tooltip.textContent = fullText;
+                tooltip.style.display = 'block';
+                
+                requestAnimationFrame(() => {
+                    positionTooltip(obsText, tooltip);
+                });
+            }
+        });
+        
+        // Fechar tooltip ao clicar fora (para dispositivos móveis)
+        document.addEventListener('click', function(e) {
+            if (!obsText.contains(e.target) && !tooltip.contains(e.target)) {
+                tooltip.style.display = 'none';
+            }
+        });
+        
+        // Esconder tooltip durante o scroll para evitar posicionamento incorreto
+        let scrollTimeout;
+        window.addEventListener('scroll', function() {
+            tooltip.style.display = 'none';
+            
+            // Reposicionar tooltip após o scroll parar (se ainda estiver em hover)
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                if (obsText.matches(':hover')) {
+                    tooltip.textContent = fullText;
+                    tooltip.style.display = 'block';
+                    
+                    requestAnimationFrame(() => {
+                        positionTooltip(obsText, tooltip);
+                    });
+                }
+            }, 150);
+        });
+    });
+}
 </script>
 {% endblock %}
