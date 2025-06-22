@@ -202,6 +202,90 @@ class OmieService:
             print(f"Erro ao criar mapeamento de clientes: {str(e)}")
             return {}
     
+    def get_sellers_page(self, page: int = 1, records_per_page: int = 100) -> dict:
+        """Busca uma página de vendedores"""
+        resource = "geral/vendedores/"
+        action = "ListarVendedores"
+        
+        params = {
+            "pagina": page,
+            "registros_por_pagina": records_per_page,
+            "apenas_importado_api": "N"
+        }
+        
+        body = {
+            "call": action,
+            "app_key": self.app_key,
+            "app_secret": self.app_secret,
+            "param": [params]
+        }
+        
+        return self._make_request(resource, body)
+    
+    def get_all_sellers(self) -> List[dict]:
+        """Busca todos os vendedores de todas as páginas"""
+        # Verificar cache primeiro
+        cache_key = self._get_cache_key("get_all_sellers")
+        cached_data = self._get_from_cache(cache_key)
+        if cached_data is not None:
+            return cached_data
+        
+        all_sellers = []
+        page = 1
+        
+        try:
+            # Primeira requisição para saber o total de páginas
+            first_response = self.get_sellers_page(page)
+            total_pages = first_response.get("total_de_paginas", 1)
+            
+            # Adiciona os vendedores da primeira página
+            sellers = first_response.get("cadastro", [])
+            all_sellers.extend(sellers)
+            
+            # Busca as páginas restantes
+            for page in range(2, total_pages + 1):
+                response = self.get_sellers_page(page)
+                sellers = response.get("cadastro", [])
+                all_sellers.extend(sellers)
+            
+            # Armazenar no cache
+            self._set_cache(cache_key, all_sellers)
+            return all_sellers
+            
+        except Exception as e:
+            print(f"Erro ao buscar vendedores: {str(e)}")
+            return []
+    
+    def get_seller_name_mapping(self) -> Dict[int, str]:
+        """Retorna um dicionário mapeando código do vendedor para nome"""
+        # Verificar cache primeiro
+        cache_key = self._get_cache_key("get_seller_name_mapping")
+        cached_data = self._get_from_cache(cache_key)
+        if cached_data is not None:
+            return cached_data
+        
+        try:
+            sellers = self.get_all_sellers()
+            mapping = {}
+            
+            for seller in sellers:
+                seller_code = seller.get("codigo")
+                seller_name = seller.get("nome", "").strip()
+                
+                if not seller_name:
+                    seller_name = f"Vendedor {seller_code}"
+                
+                if seller_code:
+                    mapping[seller_code] = seller_name
+            
+            # Armazenar no cache
+            self._set_cache(cache_key, mapping)
+            return mapping
+            
+        except Exception as e:
+            print(f"Erro ao criar mapeamento de vendedores: {str(e)}")
+            return {}
+    
     def get_client_by_id(self, client_id: int) -> Optional[dict]:
         """Busca um cliente específico pelo ID"""
         try:
@@ -758,13 +842,17 @@ class OmieService:
             # Top 5 tipos de serviço
             top_services = sorted(service_types.items(), key=lambda x: x[1], reverse=True)[:5]
             
+            # Buscar mapeamento de vendedores para usar nomes reais
+            seller_name_mapping = self.get_seller_name_mapping()
+            
             # Ordens por vendedor (usando nCodVend)
             sellers = {}
             for order in orders:
                 cabecalho = order.get("Cabecalho", {})
                 seller_code = cabecalho.get("nCodVend", "")
                 if seller_code:
-                    seller_name = f"Vendedor {seller_code}"
+                    # Usar nome real do vendedor se disponível
+                    seller_name = seller_name_mapping.get(seller_code, f"Vendedor {seller_code}")
                     sellers[seller_name] = sellers.get(seller_name, 0) + 1
             
             return {

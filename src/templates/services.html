@@ -363,7 +363,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-white">
                     <h5 class="card-title mb-0">
-                        <i class="bi bi-person-gear"></i> Técnicos Responsáveis
+                        <i class="bi bi-person-gear"></i> Vendedores
                     </h5>
                 </div>
                 <div class="card-body">
@@ -394,9 +394,9 @@
                 <div class="card-body">
                     <form method="GET" class="row g-3">
                         <div class="col-md-6">
-                            <label for="search" class="form-label">Buscar por Nome do Cliente, Código, Número da OS ou Técnico</label>
+                            <label for="search" class="form-label">Buscar por Nome do Cliente, Código, Número da OS ou Vendedor</label>
                             <input type="text" class="form-control" id="search" name="search" 
-                                   value="{{ search }}" placeholder="Digite o nome do cliente, código ou número da OS...">
+                                   value="{{ search }}" placeholder="Digite o nome do cliente, vendedor, código ou número da OS...">
                         </div>
                         <div class="col-md-4">
                             <label for="month" class="form-label">Filtrar por Mês</label>
@@ -550,7 +550,7 @@
                                     <th>Data Previsão</th>
                                     <th>Status</th>
                                     <th>Valor Total</th>
-                                    <th>Técnico</th>
+                                    <th>Vendedor</th>
                                     <th>Observações</th>
                                 </tr>
                             </thead>
@@ -608,7 +608,15 @@
                                     </td>
                                     <td>
                                         {% if cabecalho.nCodVend %}
-                                            <span class="badge bg-light text-dark">Vendedor {{ cabecalho.nCodVend }}</span>
+                                            {% set seller_name = seller_name_mapping.get(cabecalho.nCodVend) %}
+                                            {% if seller_name %}
+                                                <div>
+                                                    <strong>{{ seller_name }}</strong>
+                                                    <br><small class="text-muted">Código: {{ cabecalho.nCodVend }}</small>
+                                                </div>
+                                            {% else %}
+                                                <span class="badge bg-light text-dark">Vendedor {{ cabecalho.nCodVend }}</span>
+                                            {% endif %}
                                         {% else %}
                                             <span class="text-muted">-</span>
                                         {% endif %}

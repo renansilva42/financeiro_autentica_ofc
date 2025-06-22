@@ -200,6 +200,11 @@ def services():
         client_name_mapping = omie_service.get_client_name_mapping()
         print(f"Mapeamento de clientes carregado: {len(client_name_mapping)} clientes")
         
+        # Buscar mapeamento de vendedores (código -> nome)
+        print("Buscando mapeamento de nomes de vendedores...")
+        seller_name_mapping = omie_service.get_seller_name_mapping()
+        print(f"Mapeamento de vendedores carregado: {len(seller_name_mapping)} vendedores")
+        
         # Filtrar por mês se especificado
         if month_filter:
             filtered_orders = []
@@ -228,12 +233,17 @@ def services():
                 client_code = cabecalho.get('nCodCli', '')
                 client_name = client_name_mapping.get(client_code, '').lower()
                 
-                # Buscar nos campos corretos da estrutura da API, incluindo nome do cliente
+                # Buscar nome do vendedor
+                seller_code = cabecalho.get('nCodVend', '')
+                seller_name = seller_name_mapping.get(seller_code, '').lower()
+                
+                # Buscar nos campos corretos da estrutura da API, incluindo nome do cliente e vendedor
                 if (search_lower in str(client_code).lower() or
                     search_lower in client_name or
                     search_lower in str(cabecalho.get('cNumOS', '')).lower() or
                     search_lower in str(cabecalho.get('nCodOS', '')).lower() or
                     search_lower in str(cabecalho.get('nCodVend', '')).lower() or
+                    search_lower in seller_name or
                     search_lower in observacoes.get('cObsOS', '').lower()):
                     filtered_orders.append(order)
             all_orders = filtered_orders
@@ -295,7 +305,8 @@ def services():
                              search=search,
                              month_filter=month_filter,
                              available_months=available_months,
-                             client_name_mapping=client_name_mapping)
+                             client_name_mapping=client_name_mapping,
+                             seller_name_mapping=seller_name_mapping)
     except Exception as e:
         return render_template('error.html', error=str(e))
 
@@ -369,6 +380,9 @@ def api_services():
         # Buscar mapeamento de clientes
         client_name_mapping = omie_service.get_client_name_mapping()
         
+        # Buscar mapeamento de vendedores
+        seller_name_mapping = omie_service.get_seller_name_mapping()
+        
         # Filtrar por mês se especificado
         if month_filter:
             filtered_orders = []
@@ -397,12 +411,17 @@ def api_services():
                 client_code = cabecalho.get('nCodCli', '')
                 client_name = client_name_mapping.get(client_code, '').lower()
                 
-                # Buscar nos campos corretos da estrutura da API, incluindo nome do cliente
+                # Buscar nome do vendedor
+                seller_code = cabecalho.get('nCodVend', '')
+                seller_name = seller_name_mapping.get(seller_code, '').lower()
+                
+                # Buscar nos campos corretos da estrutura da API, incluindo nome do cliente e vendedor
                 if (search_lower in str(client_code).lower() or
                     search_lower in client_name or
                     search_lower in str(cabecalho.get('cNumOS', '')).lower() or
                     search_lower in str(cabecalho.get('nCodOS', '')).lower() or
                     search_lower in str(cabecalho.get('nCodVend', '')).lower() or
+                    search_lower in seller_name or
                     search_lower in observacoes.get('cObsOS', '').lower()):
                     filtered_orders.append(order)
             orders = filtered_orders
@@ -432,7 +451,8 @@ def api_services():
             'page': page,
             'per_page': per_page,
             'total_pages': (total + per_page - 1) // per_page,
-            'client_name_mapping': client_name_mapping
+            'client_name_mapping': client_name_mapping,
+            'seller_name_mapping': seller_name_mapping
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
