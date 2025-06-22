@@ -90,6 +90,26 @@ class OmieService:
         
         return self._make_request(resource, body)
     
+    def get_clients_summary_page(self, page: int = 1, records_per_page: int = 50) -> dict:
+        """Busca uma página de clientes resumido (mais rápido para mapeamento)"""
+        resource = "geral/clientes/"
+        action = "ListarClientesResumido"
+        
+        params = {
+            "pagina": page,
+            "registros_por_pagina": records_per_page,
+            "apenas_importado_api": "N"
+        }
+        
+        body = {
+            "call": action,
+            "app_key": self.app_key,
+            "app_secret": self.app_secret,
+            "param": [params]
+        }
+        
+        return self._make_request(resource, body)
+    
     def get_all_clients(self) -> List[dict]:
         """Busca todos os clientes de todas as páginas"""
         all_clients = []
@@ -116,12 +136,80 @@ class OmieService:
             print(f"Erro ao buscar clientes: {str(e)}")
             return []
     
+    def get_all_clients_summary(self) -> List[dict]:
+        """Busca todos os clientes resumido (mais rápido para mapeamento de nomes)"""
+        # Verificar cache primeiro
+        cache_key = self._get_cache_key("get_all_clients_summary")
+        cached_data = self._get_from_cache(cache_key)
+        if cached_data is not None:
+            return cached_data
+        
+        all_clients = []
+        page = 1
+        
+        try:
+            # Primeira requisição para saber o total de páginas
+            first_response = self.get_clients_summary_page(page)
+            total_pages = first_response.get("total_de_paginas", 1)
+            
+            # Adiciona os clientes da primeira página
+            clients = first_response.get("clientes_cadastro_resumido", [])
+            all_clients.extend(clients)
+            
+            # Busca as páginas restantes
+            for page in range(2, total_pages + 1):
+                response = self.get_clients_summary_page(page)
+                clients = response.get("clientes_cadastro_resumido", [])
+                all_clients.extend(clients)
+            
+            # Armazenar no cache
+            self._set_cache(cache_key, all_clients)
+            return all_clients
+            
+        except Exception as e:
+            print(f"Erro ao buscar clientes resumido: {str(e)}")
+            return []
+    
+    def get_client_name_mapping(self) -> Dict[int, str]:
+        """Retorna um dicionário mapeando código do cliente para nome"""
+        # Verificar cache primeiro
+        cache_key = self._get_cache_key("get_client_name_mapping")
+        cached_data = self._get_from_cache(cache_key)
+        if cached_data is not None:
+            return cached_data
+        
+        try:
+            clients_summary = self.get_all_clients_summary()
+            mapping = {}
+            
+            for client in clients_summary:
+                client_code = client.get("codigo_cliente")
+                # Priorizar nome fantasia, depois razão social
+                client_name = client.get("nome_fantasia", "").strip()
+                if not client_name:
+                    client_name = client.get("razao_social", "").strip()
+                if not client_name:
+                    client_name = f"Cliente {client_code}"
+                
+                if client_code:
+                    mapping[client_code] = client_name
+            
+            # Armazenar no cache
+            self._set_cache(cache_key, mapping)
+            return mapping
+            
+        except Exception as e:
+            print(f"Erro ao criar mapeamento de clientes: {str(e)}")
+            return {}
+    
     def get_client_by_id(self, client_id: int) -> Optional[dict]:
         """Busca um cliente específico pelo ID"""
         try:
             all_clients = self.get_all_clients()
             for client in all_clients:
-                if client.get("codigo_cliente_omie") == client_id:
+                # Try both field names for compatibility
+                if (client.get("codigo_cliente_omie") == client_id or 
+                    client.get("codigo_cliente") == client_id):
                     return client
             return None
         except Exception as e:
@@ -592,13 +680,19 @@ class OmieService:
                 cabecalho = order.get("Cabecalho", {})
                 total_value += float(cabecalho.get("nValorTotal", 0))
             
-            # Contagem por cliente - precisamos buscar o nome do cliente via código
+            # Buscar mapeamento de nomes de clientes
+            client_name_mapping = self.get_client_name_mapping()
+            
+            # Contagem por cliente - usar nomes reais dos clientes
             clients = {}
             for order in orders:
                 cabecalho = order.get("Cabecalho", {})
                 client_code = cabecalho.get("nCodCli", "")
-                # Por enquanto, usar o código do cliente como identificador
-                client_name = f"Cliente {client_code}" if client_code else "Não informado"
+                if client_code:
+                    # Usar nome real do cliente se disponível
+                    client_name = client_name_mapping.get(client_code, f"Cliente {client_code}")
+                else:
+                    client_name = "Não informado"
                 clients[client_name] = clients.get(client_name, 0) + 1
             
             # Contagem por status/etapa

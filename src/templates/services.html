@@ -394,9 +394,9 @@
                 <div class="card-body">
                     <form method="GET" class="row g-3">
                         <div class="col-md-6">
-                            <label for="search" class="form-label">Buscar por Cliente, Número da OS, Código ou Técnico</label>
+                            <label for="search" class="form-label">Buscar por Nome do Cliente, Código, Número da OS ou Técnico</label>
                             <input type="text" class="form-control" id="search" name="search" 
-                                   value="{{ search }}" placeholder="Digite sua busca...">
+                                   value="{{ search }}" placeholder="Digite o nome do cliente, código ou número da OS...">
                         </div>
                         <div class="col-md-4">
                             <label for="month" class="form-label">Filtrar por Mês</label>
@@ -564,7 +564,13 @@
                                     <td>{{ cabecalho.cNumOS }}</td>
                                     <td>
                                         <div>
-                                            <strong>Cliente {{ cabecalho.nCodCli }}</strong>
+                                            {% set client_name = client_name_mapping.get(cabecalho.nCodCli) %}
+                                            {% if client_name %}
+                                                <strong>{{ client_name }}</strong>
+                                                <br><small class="text-muted">Código: {{ cabecalho.nCodCli }}</small>
+                                            {% else %}
+                                                <strong>Cliente {{ cabecalho.nCodCli }}</strong>
+                                            {% endif %}
                                         </div>
                                     </td>
                                     <td class="service-cell">

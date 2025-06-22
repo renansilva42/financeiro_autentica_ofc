@@ -195,6 +195,11 @@ def services():
             all_orders = omie_service.get_all_service_orders()
             print(f"Total de ordens carregadas da API: {len(all_orders)}")
         
+        # Buscar mapeamento de clientes (código -> nome)
+        print("Buscando mapeamento de nomes de clientes...")
+        client_name_mapping = omie_service.get_client_name_mapping()
+        print(f"Mapeamento de clientes carregado: {len(client_name_mapping)} clientes")
+        
         # Filtrar por mês se especificado
         if month_filter:
             filtered_orders = []
@@ -219,8 +224,13 @@ def services():
                 cabecalho = order.get('Cabecalho', {})
                 observacoes = order.get('Observacoes', {})
                 
-                # Buscar nos campos corretos da estrutura da API
-                if (search_lower in str(cabecalho.get('nCodCli', '')).lower() or
+                # Buscar nome do cliente
+                client_code = cabecalho.get('nCodCli', '')
+                client_name = client_name_mapping.get(client_code, '').lower()
+                
+                # Buscar nos campos corretos da estrutura da API, incluindo nome do cliente
+                if (search_lower in str(client_code).lower() or
+                    search_lower in client_name or
                     search_lower in str(cabecalho.get('cNumOS', '')).lower() or
                     search_lower in str(cabecalho.get('nCodOS', '')).lower() or
                     search_lower in str(cabecalho.get('nCodVend', '')).lower() or
@@ -284,7 +294,8 @@ def services():
                              monthly_stats=monthly_stats,
                              search=search,
                              month_filter=month_filter,
-                             available_months=available_months)
+                             available_months=available_months,
+                             client_name_mapping=client_name_mapping)
     except Exception as e:
         return render_template('error.html', error=str(e))
 
@@ -355,6 +366,9 @@ def api_services():
         # Limitar a 10 páginas para evitar timeout na API
         orders = omie_service.get_all_service_orders()
         
+        # Buscar mapeamento de clientes
+        client_name_mapping = omie_service.get_client_name_mapping()
+        
         # Filtrar por mês se especificado
         if month_filter:
             filtered_orders = []
@@ -379,8 +393,13 @@ def api_services():
                 cabecalho = order.get('Cabecalho', {})
                 observacoes = order.get('Observacoes', {})
                 
-                # Buscar nos campos corretos da estrutura da API
-                if (search_lower in str(cabecalho.get('nCodCli', '')).lower() or
+                # Buscar nome do cliente
+                client_code = cabecalho.get('nCodCli', '')
+                client_name = client_name_mapping.get(client_code, '').lower()
+                
+                # Buscar nos campos corretos da estrutura da API, incluindo nome do cliente
+                if (search_lower in str(client_code).lower() or
+                    search_lower in client_name or
                     search_lower in str(cabecalho.get('cNumOS', '')).lower() or
                     search_lower in str(cabecalho.get('nCodOS', '')).lower() or
                     search_lower in str(cabecalho.get('nCodVend', '')).lower() or
@@ -412,7 +431,8 @@ def api_services():
             'total': total,
             'page': page,
             'per_page': per_page,
-            'total_pages': (total + per_page - 1) // per_page
+            'total_pages': (total + per_page - 1) // per_page,
+            'client_name_mapping': client_name_mapping
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
