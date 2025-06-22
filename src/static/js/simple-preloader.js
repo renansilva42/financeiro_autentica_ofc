@@ -7,6 +7,8 @@
     let isLoading = false;
     let isNavigationPreloader = false;
     let navigationStartTime = 0;
+    let progressInterval = null;
+    let currentProgress = 0;
     
     function createPreloader() {
         if (document.getElementById('main-preloader')) return;
@@ -24,7 +26,10 @@
                         <div class="spinner-circle"></div>
                     </div>
                     <div class="preloader-progress">
-                        <div class="preloader-progress-bar"></div>
+                        <div class="preloader-progress-bar" style="width: 0%;"></div>
+                    </div>
+                    <div class="preloader-percentage">
+                        <span class="percentage-text">0%</span>
                     </div>
                     <div class="preloader-text">
                         <span class="loading-text">Carregando dados</span><span class="loading-dots"></span>
@@ -35,6 +40,59 @@
 
         document.body.insertAdjacentHTML('afterbegin', preloaderHTML);
         preloader = document.getElementById('main-preloader');
+    }
+    
+    function updateProgress(progress) {
+        if (!preloader) return;
+        
+        const progressBar = preloader.querySelector('.preloader-progress-bar');
+        const percentageText = preloader.querySelector('.percentage-text');
+        
+        if (progressBar) {
+            progressBar.style.width = progress + '%';
+        }
+        
+        if (percentageText) {
+            percentageText.textContent = Math.round(progress) + '%';
+        }
+        
+        currentProgress = progress;
+    }
+    
+    function startProgressAnimation(duration = 3000) {
+        if (progressInterval) {
+            clearInterval(progressInterval);
+        }
+        
+        currentProgress = 0;
+        updateProgress(0);
+        
+        const startTime = Date.now();
+        const increment = 100 / (duration / 50); // Atualiza a cada 50ms
+        
+        progressInterval = setInterval(() => {
+            const elapsedTime = Date.now() - startTime;
+            const targetProgress = Math.min((elapsedTime / duration) * 100, 100);
+            
+            // Animação suave do progresso
+            if (currentProgress < targetProgress) {
+                currentProgress = Math.min(currentProgress + increment, targetProgress);
+                updateProgress(currentProgress);
+            }
+            
+            if (currentProgress >= 100 || elapsedTime >= duration) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+                updateProgress(100);
+            }
+        }, 50);
+    }
+    
+    function stopProgressAnimation() {
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
+        }
     }
     
     function showPreloader(isNavigation = false) {
@@ -53,6 +111,10 @@
         preloader.classList.remove('fade-out');
         preloader.style.display = 'flex';
         document.body.style.overflow = 'hidden';
+        
+        // Iniciar animação de progresso
+        const duration = isNavigation ? 2500 : 3000;
+        startProgressAnimation(duration);
     }
     
     function hidePreloader(force = false) {
@@ -73,6 +135,13 @@
         }
         
         console.log('Ocultando preloader');
+        
+        // Parar animação de progresso
+        stopProgressAnimation();
+        
+        // Garantir que o progresso chegue a 100% antes de ocultar
+        updateProgress(100);
+        
         isLoading = false;
         isNavigationPreloader = false;
         navigationStartTime = 0;
@@ -82,6 +151,8 @@
         setTimeout(() => {
             if (preloader) {
                 preloader.style.display = 'none';
+                // Reset do progresso para próxima vez
+                updateProgress(0);
             }
             document.body.style.overflow = '';
         }, 500);
@@ -146,26 +217,39 @@
             return;
         }
         
-        // Preloader normal de carregamento inicial (apenas para primeira visita)
-        if (document.readyState === 'loading') {
-            console.log('Página ainda carregando, mostrando preloader inicial');
+        // Preloader normal de carregamento inicial
+        // Mostrar sempre no carregamento inicial, especialmente para o dashboard
+        const isInitialLoad = !sessionStorage.getItem('app_loaded');
+        const isDashboard = window.location.pathname === '/' || window.location.pathname === '/index';
+        
+        if (document.readyState === 'loading' || isInitialLoad || isDashboard) {
+            console.log('Mostrando preloader inicial - readyState:', document.readyState, 'isInitialLoad:', isInitialLoad, 'isDashboard:', isDashboard);
             showPreloader(false);
+            
+            // Marcar que a aplicação foi carregada
+            if (isInitialLoad) {
+                sessionStorage.setItem('app_loaded', 'true');
+            }
             
             // Aguardar carregamento completo
             function checkAndHide() {
                 if (document.readyState === 'complete') {
+                    // Aguardar um pouco mais para o dashboard carregar as estatísticas
+                    const delay = isDashboard ? 1200 : 800;
                     setTimeout(() => {
                         if (!isNavigationPreloader) {
                             hidePreloader();
                         }
-                    }, 800);
+                    }, delay);
                 } else {
                     window.addEventListener('load', () => {
+                        // Aguardar um pouco mais para o dashboard carregar as estatísticas
+                        const delay = isDashboard ? 1200 : 800;
                         setTimeout(() => {
                             if (!isNavigationPreloader) {
                                 hidePreloader();
                             }
-                        }, 800);
+                        }, delay);
                     });
                 }
             }
@@ -178,7 +262,7 @@
                     console.log('Timeout de segurança: forçando ocultação do preloader inicial');
                     hidePreloader(true);
                 }
-            }, 5000);
+            }, 6000);
         } else {
             console.log('Página já carregada, não mostrando preloader inicial');
         }
@@ -196,12 +280,16 @@
         showPreloader(isNavigation);
     };
     window.hidePreloader = hidePreloader;
+    window.updatePreloaderProgress = updateProgress;
+    window.startPreloaderProgress = startProgressAnimation;
+    window.stopPreloaderProgress = stopProgressAnimation;
     
     // Debug: expor variáveis para inspeção
     window.preloaderDebug = {
         get isLoading() { return isLoading; },
         get isNavigationPreloader() { return isNavigationPreloader; },
-        get navigationStartTime() { return navigationStartTime; }
+        get navigationStartTime() { return navigationStartTime; },
+        get currentProgress() { return currentProgress; }
     };
     
 })();

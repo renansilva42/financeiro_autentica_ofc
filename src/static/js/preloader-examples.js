@@ -1,5 +1,27 @@
 // Exemplos de uso do Preloader - Financeira Autêntica
 
+// Função utilitária para mostrar alertas
+function showAlert(message, type = 'info') {
+    // Criar elemento de alerta
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 10000; min-width: 300px;';
+    
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Remover automaticamente após 5 segundos
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
 // Exemplo 1: Preloader para carregamento de dados de clientes
 function loadClientsData() {
     showPreloader('Carregando dados dos clientes...');
@@ -224,6 +246,54 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Demonstração de progresso manual
+function demonstrateManualProgress() {
+    showPreloader();
+    
+    // Parar a animação automática para controle manual
+    if (typeof stopPreloaderProgress === 'function') {
+        stopPreloaderProgress();
+    }
+    
+    let progress = 0;
+    const steps = [
+        { progress: 15, message: 'Iniciando processo...', delay: 600 },
+        { progress: 35, message: 'Carregando dados...', delay: 800 },
+        { progress: 55, message: 'Processando informações...', delay: 700 },
+        { progress: 75, message: 'Validando dados...', delay: 600 },
+        { progress: 90, message: 'Finalizando...', delay: 500 },
+        { progress: 100, message: 'Concluído!', delay: 800 }
+    ];
+    
+    function executeStep(index) {
+        if (index >= steps.length) {
+            setTimeout(hidePreloader, 1000);
+            return;
+        }
+        
+        const step = steps[index];
+        
+        if (typeof updatePreloaderProgress === 'function') {
+            updatePreloaderProgress(step.progress);
+        }
+        
+        // Atualizar texto de carregamento se possível
+        const loadingText = document.querySelector('.loading-text');
+        if (loadingText) {
+            loadingText.textContent = step.message;
+        }
+        
+        setTimeout(() => executeStep(index + 1), step.delay);
+    }
+    
+    // Iniciar com 0%
+    if (typeof updatePreloaderProgress === 'function') {
+        updatePreloaderProgress(0);
+    }
+    
+    setTimeout(() => executeStep(0), 300);
+}
+
 // Funções utilitárias para demonstração
 function showPreloaderDemo(type) {
     switch(type) {
@@ -233,7 +303,13 @@ function showPreloaderDemo(type) {
             break;
             
         case 'progress':
-            syncDataWithProgress();
+            showPreloader();
+            showAlert('Preloader com contador automático de 0% a 100%', 'info');
+            setTimeout(hidePreloader, 4000);
+            break;
+            
+        case 'manual':
+            demonstrateManualProgress();
             break;
             
         case 'card':
@@ -245,8 +321,13 @@ function showPreloaderDemo(type) {
             break;
             
         case 'minimal':
-            preloaderManager.showMinimalPreloader();
-            setTimeout(() => preloaderManager.hideMinimalPreloader(), 2000);
+            if (typeof preloaderManager !== 'undefined') {
+                preloaderManager.showMinimalPreloader();
+                setTimeout(() => preloaderManager.hideMinimalPreloader(), 2000);
+            } else {
+                showPreloader();
+                setTimeout(hidePreloader, 2000);
+            }
             break;
             
         default:

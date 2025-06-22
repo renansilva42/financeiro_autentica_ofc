@@ -100,7 +100,22 @@
     background: linear-gradient(90deg, #fff, #f6c23e, #1cc88a, #36b9cc);
     background-size: 200% 100%;
     border-radius: 2px;
-    animation: progressMove 2s ease-in-out infinite;
+    transition: width 0.3s ease-out;
+    animation: progressGlow 2s ease-in-out infinite;
+}
+
+/* Contador de porcentagem */
+.preloader-percentage {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.percentage-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    animation: percentagePulse 2s ease-in-out infinite;
 }
 
 /* Texto de carregamento */
@@ -132,6 +147,28 @@
     0% { transform: translateX(-100%); }
     50% { transform: translateX(0%); }
     100% { transform: translateX(100%); }
+}
+
+@keyframes progressGlow {
+    0%, 100% { 
+        background-position: 0% 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+    50% { 
+        background-position: 100% 50%;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+    }
+}
+
+@keyframes percentagePulse {
+    0%, 100% { 
+        transform: scale(1);
+        opacity: 0.9;
+    }
+    50% { 
+        transform: scale(1.05);
+        opacity: 1;
+    }
 }
 
 @keyframes textFade {
@@ -272,6 +309,10 @@
     
     .preloader-progress {
         width: 150px;
+    }
+    
+    .percentage-text {
+        font-size: 1rem;
     }
 }
 

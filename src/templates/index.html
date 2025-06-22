@@ -219,3 +219,45 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Garantir que o preloader apareça no dashboard inicial
+    console.log('Dashboard carregado - verificando preloader');
+    
+    // Se não há preloader ativo e é o carregamento inicial, mostrar
+    if (typeof window.preloaderDebug !== 'undefined' && !window.preloaderDebug.isLoading) {
+        const isFirstLoad = !sessionStorage.getItem('dashboard_loaded');
+        if (isFirstLoad) {
+            console.log('Primeira carga do dashboard - ativando preloader');
+            sessionStorage.setItem('dashboard_loaded', 'true');
+            
+            if (typeof window.showPreloader === 'function') {
+                window.showPreloader(false);
+                
+                // Simular carregamento das estatísticas
+                setTimeout(() => {
+                    if (typeof window.hidePreloader === 'function') {
+                        window.hidePreloader();
+                    }
+                }, 2000);
+            }
+        }
+    }
+    
+    // Adicionar efeito de fade-in para os cards após o carregamento
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100 * index);
+    });
+});
+</script>
+{% endblock %}
