@@ -28,7 +28,7 @@
                     <div class="flex-grow-1 ms-3">
                         <h6 class="text-muted mb-1">Total de Clientes</h6>
                         <h3 class="mb-2">{{ stats.total_clients | default(0) }}</h3>
-                        <a href="{{ url_for('clients') }}" class="btn btn-primary btn-sm">
+                        <a href="{{ url_for('clients') }}" class="btn btn-primary btn-sm nav-preloader-link">
                             <i class="bi bi-people me-1"></i>Ver Clientes
                         </a>
                     </div>
@@ -48,10 +48,10 @@
                     </div>
                     <div class="flex-grow-1 ms-3">
                         <h6 class="text-muted mb-1">Vendas</h6>
-                        <h3 class="mb-2">Dashboard</h3>
-                        <a href="{{ url_for('sales') }}" class="btn btn-success btn-sm">
-                            <i class="bi bi-cart-check me-1"></i>Ver Vendas
-                        </a>
+                        <h3 class="mb-2">Em breve</h3>
+                        <button class="btn btn-success btn-sm" disabled>
+                            <i class="bi bi-cart-check me-1"></i>Em desenvolvimento
+                        </button>
                     </div>
                 </div>
             </div>
@@ -70,7 +70,7 @@
                     <div class="flex-grow-1 ms-3">
                         <h6 class="text-muted mb-1">Serviços</h6>
                         <h3 class="mb-2">Dashboard</h3>
-                        <a href="{{ url_for('services') }}" class="btn btn-info btn-sm">
+                        <a href="{{ url_for('services') }}" class="btn btn-info btn-sm nav-preloader-link">
                             <i class="bi bi-tools me-1"></i>Ver Serviços
                         </a>
                     </div>
@@ -90,10 +90,10 @@
                     </div>
                     <div class="flex-grow-1 ms-3">
                         <h6 class="text-muted mb-1">Compras Faturadas</h6>
-                        <h3 class="mb-2">Dashboard</h3>
-                        <a href="{{ url_for('purchase_orders') }}" class="btn btn-warning btn-sm">
-                            <i class="bi bi-cart-check me-1"></i>Ver Compras
-                        </a>
+                        <h3 class="mb-2">Em breve</h3>
+                        <button class="btn btn-warning btn-sm" disabled>
+                            <i class="bi bi-cart-check me-1"></i>Em desenvolvimento
+                        </button>
                     </div>
                 </div>
             </div>
@@ -183,7 +183,7 @@
                 <div class="row">
                     <div class="col-md-3 mb-3">
                         <div class="d-grid">
-                            <a href="{{ url_for('clients') }}" class="btn btn-outline-primary">
+                            <a href="{{ url_for('clients') }}" class="btn btn-outline-primary nav-preloader-link">
                                 <i class="bi bi-people me-2"></i>
                                 Gerenciar Clientes
                             </a>
@@ -191,15 +191,15 @@
                     </div>
                     <div class="col-md-3 mb-3">
                         <div class="d-grid">
-                            <a href="{{ url_for('sales') }}" class="btn btn-outline-success">
+                            <button class="btn btn-outline-success" disabled>
                                 <i class="bi bi-cart-check me-2"></i>
-                                Dashboard de Vendas
-                            </a>
+                                Dashboard de Vendas (Em breve)
+                            </button>
                         </div>
                     </div>
                     <div class="col-md-3 mb-3">
                         <div class="d-grid">
-                            <a href="{{ url_for('services') }}" class="btn btn-outline-info">
+                            <a href="{{ url_for('services') }}" class="btn btn-outline-info nav-preloader-link">
                                 <i class="bi bi-tools me-2"></i>
                                 Dashboard de Serviços
                             </a>
@@ -207,14 +207,14 @@
                     </div>
                     <div class="col-md-3 mb-3">
                         <div class="d-grid">
-                            <a href="{{ url_for('purchase_orders') }}" class="btn btn-outline-warning">
+                            <button class="btn btn-outline-warning" disabled>
                                 <i class="bi bi-cart-check me-2"></i>
-                                Dashboard de Compras
-                            </a>
+                                Dashboard de Compras (Em breve)
+                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
+                            </div>
         </div>
     </div>
 </div>

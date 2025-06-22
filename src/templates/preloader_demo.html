@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}Demonstração do Preloader - Financeira Autêntica{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-spinner text-primary me-2"></i>
+                Demonstração do Preloader
+            </h1>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Voltar ao Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Tipos de Preloader -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-circle-notch me-2"></i>Preloader Principal
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Preloader de tela cheia para carregamentos principais da aplicação.</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" onclick="showPreloaderDemo('basic')">
+                        <i class="fas fa-play me-1"></i>Demonstrar Preloader Básico
+                    </button>
+                    <button class="btn btn-info" onclick="showPreloaderDemo('progress')">
+                        <i class="fas fa-tasks me-1"></i>Preloader com Progresso
+                    </button>
+                    <button class="btn btn-warning" onclick="showPreloaderDemo('minimal')">
+                        <i class="fas fa-minus me-1"></i>Preloader Minimalista
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow" id="demo-card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-layer-group me-2"></i>Preloader para Cards
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Preloader específico para carregamento de conteúdo em cards.</p>
+                <button class="btn btn-success" onclick="showPreloaderDemo('card')">
+                    <i class="fas fa-play me-1"></i>Demonstrar Card Preloader
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preloader para Tabelas -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-table me-2"></i>Skeleton Loader para Tabelas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <p class="mb-0">Demonstração do skeleton loader para tabelas durante o carregamento de dados.</p>
+                    <button class="btn btn-info" onclick="showPreloaderDemo('table')">
+                        <i class="fas fa-play me-1"></i>Demonstrar Skeleton
+                    </button>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover" id="demo-table">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Cidade</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>João Silva</td>
+                                <td>joao@email.com</td>
+                                <td><span class="badge bg-success">Ativo</span></td>
+                                <td>São Paulo</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Maria Santos</td>
+                                <td>maria@email.com</td>
+                                <td><span class="badge bg-success">Ativo</span></td>
+                                <td>Rio de Janeiro</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Pedro Costa</td>
+                                <td>pedro@email.com</td>
+                                <td><span class="badge bg-warning">Inativo</span></td>
+                                <td>Belo Horizonte</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Formulário com Preloader -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2"></i>Formulário com Preloader
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="demo-form" data-loading>
+                    <div class="mb-3">
+                        <label for="demo-name" class="form-label">Nome</label>
+                        <input type="text" class="form-control" id="demo-name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="demo-email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="demo-email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="demo-phone" class="form-label">Telefone</label>
+                        <input type="tel" class="form-control" id="demo-phone" data-phone>
+                    </div>
+                    <button type="submit" class="btn btn-warning">
+                        <span class="btn-text">
+                            <i class="fas fa-save me-1"></i>Salvar Dados
+                        </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-search me-2"></i>Busca com Preloader
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="demo-search" class="form-label">Buscar Clientes</label>
+                    <input type="text" class="form-control" id="demo-search" 
+                           placeholder="Digite pelo menos 3 caracteres..." data-live-search>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="demo-file" class="form-label">Upload de Arquivo</label>
+                    <input type="file" class="form-control" id="demo-file">
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-danger" onclick="exportDataWithPreloader('excel')">
+                        <i class="fas fa-file-excel me-1"></i>Exportar para Excel
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="exportDataWithPreloader('pdf')">
+                        <i class="fas fa-file-pdf me-1"></i>Exportar para PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ações Rápidas -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2"></i>Ações Rápidas com Preloader
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="d-grid">
+                            <button class="btn btn-outline-primary" onclick="loadClientsData()">
+                                <i class="fas fa-users me-2"></i>
+                                Carregar Clientes
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="d-grid">
+                            <button class="btn btn-outline-success" onclick="syncDataWithProgress()">
+                                <i class="fas fa-sync me-2"></i>
+                                Sincronizar Dados
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="d-grid">
+                            <button class="btn btn-outline-info" onclick="refreshData()">
+                                <i class="fas fa-refresh me-2"></i>
+                                Atualizar Página
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="d-grid">
+                            <a href="{{ url_for('clients') }}" class="btn btn-outline-warning">
+                                <i class="fas fa-external-link-alt me-2"></i>
+                                Navegar (com Preloader)
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Documentação -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-book me-2"></i>Como Usar o Preloader
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Funções JavaScript Disponíveis:</h6>
+                        <ul class="list-unstyled">
+                            <li><code>showPreloader(texto)</code> - Mostra preloader principal</li>
+                            <li><code>hidePreloader()</code> - Esconde preloader principal</li>
+                            <li><code>showCardPreloader(elemento)</code> - Preloader para cards</li>
+                            <li><code>hideCardPreloader(elemento)</code> - Remove preloader do card</li>
+                            <li><code>showSkeletonLoader(tabela, linhas)</code> - Skeleton para tabelas</li>
+                            <li><code>showButtonLoader(botao)</code> - Preloader para botões</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-success">Recursos Automáticos:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Preloader automático no carregamento da página</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Interceptação automática de requisições AJAX</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Preloader automático para formulários</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Preloader automático para navegação</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Múltiplos estilos e animações</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Totalmente responsivo</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/preloader-examples.js') }}"></script>
+<script>
+// Configurar eventos específicos da página de demonstração
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar formulário de demonstração
+    const demoForm = document.getElementById('demo-form');
+    if (demoForm) {
+        demoForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const submitButton = this.querySelector('button[type="submit"]');
+            showButtonLoader(submitButton);
+            
+            // Simular processamento
+            setTimeout(() => {
+                hideButtonLoader(submitButton);
+                showAlert('Formulário processado com sucesso!', 'success');
+                this.reset();
+            }, 3000);
+        });
+    }
+    
+    // Configurar busca de demonstração
+    const searchInput = document.getElementById('demo-search');
+    if (searchInput) {
+        let searchTimeout;
+        
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            
+            searchTimeout = setTimeout(() => {
+                const query = this.value.trim();
+                if (query.length > 2) {
+                    showPreloader('Buscando "' + query + '"...');
+                    
+                    setTimeout(() => {
+                        hidePreloader();
+                        showAlert('Encontrados ' + Math.floor(Math.random() * 10 + 1) + ' resultados para "' + query + '"', 'info');
+                    }, 1500);
+                }
+            }, 500);
+        });
+    }
+    
+    // Configurar upload de demonstração
+    const fileInput = document.getElementById('demo-file');
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                showPreloader('Fazendo upload de "' + file.name + '"...');
+                
+                setTimeout(() => {
+                    hidePreloader();
+                    showAlert('Arquivo "' + file.name + '" enviado com sucesso!', 'success');
+                }, 2500);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

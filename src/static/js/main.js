@@ -32,14 +32,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Loading state para formulários
+    // Loading state para formulários (integrado com preloader)
     var forms = document.querySelectorAll('form[data-loading]');
     forms.forEach(function(form) {
         form.addEventListener('submit', function() {
             var submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Carregando...';
+            if (submitBtn && window.showButtonLoader) {
+                window.showButtonLoader(submitBtn);
             }
         });
     });
@@ -151,7 +150,7 @@ function hideLoading(element) {
     element.style.pointerEvents = 'auto';
 }
 
-// Função para fazer requisições AJAX
+// Função para fazer requisições AJAX (integrada com preloader)
 function makeRequest(url, options = {}) {
     const defaultOptions = {
         method: 'GET',
@@ -161,6 +160,11 @@ function makeRequest(url, options = {}) {
     };
     
     const finalOptions = { ...defaultOptions, ...options };
+    
+    // Mostrar preloader se disponível
+    if (window.showPreloader) {
+        window.showPreloader('Carregando dados...');
+    }
     
     return fetch(url, finalOptions)
         .then(response => {
@@ -173,12 +177,22 @@ function makeRequest(url, options = {}) {
             console.error('Erro na requisição:', error);
             showAlert('Erro ao carregar dados. Tente novamente.', 'danger');
             throw error;
+        })
+        .finally(() => {
+            // Esconder preloader se disponível
+            if (window.hidePreloader) {
+                window.hidePreloader();
+            }
         });
 }
 
 // Função para atualizar dados em tempo real
 function refreshData() {
-    showAlert('Atualizando dados...', 'info');
+    if (window.showPreloader) {
+        window.showPreloader('Atualizando dados...');
+    } else {
+        showAlert('Atualizando dados...', 'info');
+    }
     setTimeout(() => {
         location.reload();
     }, 1000);
