@@ -17,8 +17,9 @@ class OmieService:
         
         # Cache simples com expiração configurável
         self._cache = {}
-        self._cache_expiry = 300  # 5 minutos em segundos (padrão)
-        self._service_cache_expiry = 900  # 15 minutos para ordens de serviço
+        self._cache_expiry = 600  # 10 minutos em segundos (padrão)
+        self._service_cache_expiry = 1800  # 30 minutos para ordens de serviço
+        self._mapping_cache_expiry = 3600  # 1 hora para mapeamentos (mudam menos)
     
     def _get_cache_key(self, method_name: str, **kwargs) -> str:
         """Gera uma chave de cache baseada no método e parâmetros"""
@@ -27,11 +28,19 @@ class OmieService:
             key_parts.append(f"{k}={v}")
         return "|".join(key_parts)
     
-    def _get_from_cache(self, cache_key: str, use_service_expiry: bool = False):
+    def _get_from_cache(self, cache_key: str, use_service_expiry: bool = False, use_mapping_expiry: bool = False):
         """Recupera dados do cache se ainda válidos"""
         if cache_key in self._cache:
             data, timestamp = self._cache[cache_key]
-            expiry_time = self._service_cache_expiry if use_service_expiry else self._cache_expiry
+            
+            # Determinar tempo de expiração baseado no tipo de dados
+            if use_mapping_expiry:
+                expiry_time = self._mapping_cache_expiry
+            elif use_service_expiry:
+                expiry_time = self._service_cache_expiry
+            else:
+                expiry_time = self._cache_expiry
+                
             if time.time() - timestamp < expiry_time:
                 return data
             else:
@@ -53,20 +62,22 @@ class OmieService:
         for key in keys_to_remove:
             del self._cache[key]
     
-    def _make_request(self, resource: str, body: dict) -> dict:
-        """Faz uma requisição para a API do Omie"""
+    def _make_request(self, resource: str, body: dict, timeout: int = 10) -> dict:
+        """Faz uma requisição para a API do Omie com timeout configurável"""
         try:
             response = requests.post(
                 url=f"{self.base_url}{resource}",
                 headers=self.headers,
                 json=body,
-                timeout=15  # Reduzido para 15 segundos para falhar mais rápido
+                timeout=timeout
             )
             
             if response.status_code == 200:
                 return response.json()
             else:
                 raise Exception(f"Erro na API: {response.status_code} - {response.text}")
+        except requests.exceptions.Timeout:
+            raise Exception(f"Timeout na requisição para {resource} após {timeout} segundos")
         except requests.exceptions.RequestException as e:
             raise Exception(f"Erro de conexão: {str(e)}")
     
@@ -138,10 +149,11 @@ class OmieService:
     
     def get_all_clients_summary(self) -> List[dict]:
         """Busca todos os clientes resumido (mais rápido para mapeamento de nomes)"""
-        # Verificar cache primeiro
+        # Verificar cache primeiro com tempo de vida estendido
         cache_key = self._get_cache_key("get_all_clients_summary")
-        cached_data = self._get_from_cache(cache_key)
+        cached_data = self._get_from_cache(cache_key, use_mapping_expiry=True)
         if cached_data is not None:
+            print(f"Clientes carregados do cache: {len(cached_data)} registros")
             return cached_data
         
         all_clients = []
@@ -151,16 +163,31 @@ class OmieService:
             # Primeira requisição para saber o total de páginas
             first_response = self.get_clients_summary_page(page)
             total_pages = first_response.get("total_de_paginas", 1)
+            total_records = first_response.get("total_de_registros", 0)
+            
+            print(f"Carregando clientes: {total_pages} páginas, {total_records} registros")
             
             # Adiciona os clientes da primeira página
             clients = first_response.get("clientes_cadastro_resumido", [])
             all_clients.extend(clients)
             
-            # Busca as páginas restantes
+            # Busca as páginas restantes com timeout otimizado
             for page in range(2, total_pages + 1):
-                response = self.get_clients_summary_page(page)
-                clients = response.get("clientes_cadastro_resumido", [])
-                all_clients.extend(clients)
+                try:
+                    response = self.get_clients_summary_page(page)
+                    clients = response.get("clientes_cadastro_resumido", [])
+                    all_clients.extend(clients)
+                    
+                    # Log de progresso a cada 20 páginas
+                    if page % 20 == 0:
+                        print(f"Progresso clientes: {page}/{total_pages} páginas ({len(all_clients)} registros)")
+                        
+                except Exception as page_error:
+                    print(f"Erro ao buscar página {page} de clientes: {str(page_error)}")
+                    # Continue com as próximas páginas mesmo se uma falhar
+                    continue
+            
+            print(f"Clientes carregados: {len(all_clients)} registros de {total_pages} páginas")
             
             # Armazenar no cache
             self._set_cache(cache_key, all_clients)
@@ -172,13 +199,15 @@ class OmieService:
     
     def get_client_name_mapping(self) -> Dict[int, str]:
         """Retorna um dicionário mapeando código do cliente para nome"""
-        # Verificar cache primeiro
+        # Verificar cache primeiro com tempo de vida estendido
         cache_key = self._get_cache_key("get_client_name_mapping")
-        cached_data = self._get_from_cache(cache_key)
+        cached_data = self._get_from_cache(cache_key, use_mapping_expiry=True)
         if cached_data is not None:
+            print(f"Mapeamento de clientes carregado do cache: {len(cached_data)} clientes")
             return cached_data
         
         try:
+            # Buscar todos os clientes para mapeamento completo
             clients_summary = self.get_all_clients_summary()
             mapping = {}
             
@@ -196,6 +225,7 @@ class OmieService:
             
             # Armazenar no cache
             self._set_cache(cache_key, mapping)
+            print(f"Mapeamento de clientes criado: {len(mapping)} clientes")
             return mapping
             
         except Exception as e:
@@ -224,10 +254,11 @@ class OmieService:
     
     def get_all_sellers(self) -> List[dict]:
         """Busca todos os vendedores de todas as páginas"""
-        # Verificar cache primeiro
+        # Verificar cache primeiro com tempo de vida estendido
         cache_key = self._get_cache_key("get_all_sellers")
-        cached_data = self._get_from_cache(cache_key)
+        cached_data = self._get_from_cache(cache_key, use_mapping_expiry=True)
         if cached_data is not None:
+            print(f"Vendedores carregados do cache: {len(cached_data)} registros")
             return cached_data
         
         all_sellers = []
@@ -237,16 +268,31 @@ class OmieService:
             # Primeira requisição para saber o total de páginas
             first_response = self.get_sellers_page(page)
             total_pages = first_response.get("total_de_paginas", 1)
+            total_records = first_response.get("total_de_registros", 0)
+            
+            print(f"Carregando vendedores: {total_pages} páginas, {total_records} registros")
             
             # Adiciona os vendedores da primeira página
             sellers = first_response.get("cadastro", [])
             all_sellers.extend(sellers)
             
-            # Busca as páginas restantes
+            # Busca as páginas restantes com timeout otimizado
             for page in range(2, total_pages + 1):
-                response = self.get_sellers_page(page)
-                sellers = response.get("cadastro", [])
-                all_sellers.extend(sellers)
+                try:
+                    response = self.get_sellers_page(page)
+                    sellers = response.get("cadastro", [])
+                    all_sellers.extend(sellers)
+                    
+                    # Log de progresso a cada 10 páginas
+                    if page % 10 == 0:
+                        print(f"Progresso vendedores: {page}/{total_pages} páginas ({len(all_sellers)} registros)")
+                        
+                except Exception as page_error:
+                    print(f"Erro ao buscar página {page} de vendedores: {str(page_error)}")
+                    # Continue com as próximas páginas mesmo se uma falhar
+                    continue
+            
+            print(f"Vendedores carregados: {len(all_sellers)} registros de {total_pages} páginas")
             
             # Armazenar no cache
             self._set_cache(cache_key, all_sellers)
@@ -258,13 +304,15 @@ class OmieService:
     
     def get_seller_name_mapping(self) -> Dict[int, str]:
         """Retorna um dicionário mapeando código do vendedor para nome"""
-        # Verificar cache primeiro
+        # Verificar cache primeiro com tempo de vida estendido
         cache_key = self._get_cache_key("get_seller_name_mapping")
-        cached_data = self._get_from_cache(cache_key)
+        cached_data = self._get_from_cache(cache_key, use_mapping_expiry=True)
         if cached_data is not None:
+            print(f"Mapeamento de vendedores carregado do cache: {len(cached_data)} vendedores")
             return cached_data
         
         try:
+            # Buscar todos os vendedores para mapeamento completo
             sellers = self.get_all_sellers()
             mapping = {}
             
@@ -280,6 +328,7 @@ class OmieService:
             
             # Armazenar no cache
             self._set_cache(cache_key, mapping)
+            print(f"Mapeamento de vendedores criado: {len(mapping)} vendedores")
             return mapping
             
         except Exception as e:
@@ -656,13 +705,13 @@ class OmieService:
         
         return self._make_request(resource, body)
     
-    def get_all_service_orders(self, max_pages: int = None, use_background_loading: bool = True) -> List[dict]:
+    def get_all_service_orders(self, use_optimized_loading: bool = True) -> List[dict]:
         """Busca todas as ordens de serviço com estratégia de carregamento otimizada"""
         # Verificar cache primeiro (com tempo de vida estendido)
-        cache_key = self._get_cache_key("get_all_service_orders", max_pages=max_pages)
+        cache_key = self._get_cache_key("get_all_service_orders")
         cached_data = self._get_from_cache(cache_key, use_service_expiry=True)
         if cached_data is not None:
-            print(f"Dados de ordens de serviço carregados do cache: {len(cached_data)} registros")
+            print(f"Ordens de serviço carregadas do cache: {len(cached_data)} registros")
             return cached_data
         
         all_orders = []
@@ -674,35 +723,33 @@ class OmieService:
             total_pages = first_response.get("total_de_paginas", 1)
             total_records = first_response.get("total_de_registros", 0)
             
-            print(f"Total de páginas de OS: {total_pages}, Total de registros: {total_records}")
+            print(f"Carregando ordens de serviço: {total_pages} páginas, {total_records} registros")
             
-            # Se há muitas páginas e use_background_loading está ativo, usar estratégia otimizada
-            if total_pages > 10 and use_background_loading:
+            # Se há muitas páginas, usar estratégia otimizada
+            if total_pages > 10 and use_optimized_loading:
                 return self._get_service_orders_optimized(first_response, total_pages)
-            
-            # Limitar o número de páginas se especificado
-            if max_pages:
-                total_pages = min(total_pages, max_pages)
             
             # Adiciona as ordens da primeira página
             orders = first_response.get("osCadastro", [])
             all_orders.extend(orders)
             
-            # Busca as páginas restantes com timeout por página
+            # Busca as páginas restantes com timeout otimizado
             for page in range(2, total_pages + 1):
                 try:
                     response = self.get_service_orders_page(page)
                     orders = response.get("osCadastro", [])
                     all_orders.extend(orders)
                     
-                    # Log de progresso a cada 5 páginas
-                    if page % 5 == 0:
-                        print(f"Progresso: {page}/{total_pages} páginas carregadas")
+                    # Log de progresso a cada 10 páginas
+                    if page % 10 == 0:
+                        print(f"Progresso OS: {page}/{total_pages} páginas ({len(all_orders)} registros)")
                         
                 except Exception as page_error:
-                    print(f"Erro ao buscar página {page}: {str(page_error)}")
+                    print(f"Erro ao buscar página {page} de OS: {str(page_error)}")
                     # Continue com as próximas páginas mesmo se uma falhar
                     continue
+            
+            print(f"Ordens de serviço carregadas: {len(all_orders)} registros de {total_pages} páginas")
             
             # Armazenar no cache
             self._set_cache(cache_key, all_orders)
@@ -713,39 +760,50 @@ class OmieService:
             return []
     
     def _get_service_orders_optimized(self, first_response: dict, total_pages: int) -> List[dict]:
-        """Estratégia otimizada para muitas páginas - carrega em lotes menores"""
+        """Estratégia otimizada para muitas páginas - carrega em lotes com pausa"""
         all_orders = []
         
         # Adiciona as ordens da primeira página
         orders = first_response.get("osCadastro", [])
         all_orders.extend(orders)
         
-        # Carrega em lotes de 5 páginas por vez
-        batch_size = 5
+        # Carrega em lotes de 8 páginas por vez com pausa entre lotes
+        batch_size = 8
         current_page = 2
         
         while current_page <= total_pages:
             batch_end = min(current_page + batch_size - 1, total_pages)
-            print(f"Carregando lote: páginas {current_page} a {batch_end}")
+            print(f"Carregando lote OS: páginas {current_page} a {batch_end}")
             
             # Carrega o lote atual
+            batch_orders = 0
             for page in range(current_page, batch_end + 1):
                 try:
                     response = self.get_service_orders_page(page)
                     orders = response.get("osCadastro", [])
                     all_orders.extend(orders)
+                    batch_orders += len(orders)
+                    
+                    # Pequena pausa entre páginas para não sobrecarregar
+                    import time
+                    time.sleep(0.05)
+                    
                 except Exception as page_error:
-                    print(f"Erro ao buscar página {page}: {str(page_error)}")
+                    print(f"Erro ao buscar página {page} de OS: {str(page_error)}")
                     continue
             
+            print(f"Lote concluído: {batch_orders} ordens carregadas ({len(all_orders)} total)")
             current_page = batch_end + 1
             
-            # Pequena pausa entre lotes para não sobrecarregar a API
-            import time
-            time.sleep(0.1)
+            # Pausa maior entre lotes para dar tempo ao servidor
+            if current_page <= total_pages:
+                import time
+                time.sleep(0.2)
+        
+        print(f"Carregamento otimizado concluído: {len(all_orders)} ordens de serviço")
         
         # Cache com tempo de vida maior para dados completos
-        cache_key = self._get_cache_key("get_all_service_orders", max_pages=None)
+        cache_key = self._get_cache_key("get_all_service_orders")
         self._set_cache(cache_key, all_orders)
         
         return all_orders
@@ -1017,3 +1075,37 @@ class OmieService:
                 "average_value": 0,
                 "unique_clients": 0
             }
+    
+    def load_full_data_background(self) -> dict:
+        """Carrega todos os dados completos em background"""
+        print("Iniciando carregamento completo de dados em background...")
+        
+        result = {
+            'service_orders': [],
+            'client_mapping': {},
+            'seller_mapping': {},
+            'loaded_at': time.time()
+        }
+        
+        try:
+            # Carregar ordens de serviço completas
+            print("Carregando todas as ordens de serviço...")
+            result['service_orders'] = self.get_all_service_orders(use_optimized_loading=True)
+            print(f"Carregadas {len(result['service_orders'])} ordens de serviço")
+            
+            # Carregar mapeamento completo de clientes
+            print("Carregando mapeamento completo de clientes...")
+            result['client_mapping'] = self.get_client_name_mapping()
+            print(f"Carregados {len(result['client_mapping'])} clientes")
+            
+            # Carregar mapeamento completo de vendedores
+            print("Carregando mapeamento completo de vendedores...")
+            result['seller_mapping'] = self.get_seller_name_mapping()
+            print(f"Carregados {len(result['seller_mapping'])} vendedores")
+            
+            print("Carregamento completo de dados finalizado com sucesso!")
+            return result
+            
+        except Exception as e:
+            print(f"Erro no carregamento completo de dados: {str(e)}")
+            raise e

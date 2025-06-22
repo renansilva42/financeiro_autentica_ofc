@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from flask_session import Session
 from services.omie_service import OmieService
 from services.auth_service import AuthService
+from services.background_service import background_service
+from services.startup_service import initialize_startup_service
 from utils.auth_decorators import login_required, logout_required
 import json
 import os
@@ -22,6 +24,9 @@ Session(app)
 # Inicializar serviços
 omie_service = OmieService()
 
+# Inicializar serviço de startup para pré-carregamento
+startup_service = initialize_startup_service(omie_service)
+
 # Inicializar serviço de autenticação com tratamento de erro
 auth_service = None
 try:
@@ -31,6 +36,10 @@ except Exception as e:
     print(f"⚠️  Aviso: Não foi possível inicializar o serviço de autenticação: {e}")
     print("   Verifique se as variáveis SUPABASE_URL e SUPABASE_KEY estão configuradas corretamente no arquivo .env")
     print("   A aplicação continuará funcionando, mas sem autenticação.")
+
+# Iniciar pré-carregamento de dados
+print("🚀 Iniciando pré-carregamento de dados...")
+startup_service.start_preload()
 
 @app.context_processor
 def inject_current_year():
@@ -197,13 +206,19 @@ def services():
         
         # Buscar mapeamento de clientes (código -> nome)
         print("Buscando mapeamento de nomes de clientes...")
-        client_name_mapping = omie_service.get_client_name_mapping()
-        print(f"Mapeamento de clientes carregado: {len(client_name_mapping)} clientes")
+        try:
+            client_name_mapping = omie_service.get_client_name_mapping()
+        except Exception as e:
+            print(f"Erro ao carregar mapeamento de clientes: {str(e)}")
+            client_name_mapping = {}
         
         # Buscar mapeamento de vendedores (código -> nome)
         print("Buscando mapeamento de nomes de vendedores...")
-        seller_name_mapping = omie_service.get_seller_name_mapping()
-        print(f"Mapeamento de vendedores carregado: {len(seller_name_mapping)} vendedores")
+        try:
+            seller_name_mapping = omie_service.get_seller_name_mapping()
+        except Exception as e:
+            print(f"Erro ao carregar mapeamento de vendedores: {str(e)}")
+            seller_name_mapping = {}
         
         # Filtrar por mês se especificado
         if month_filter:
@@ -283,19 +298,43 @@ def services():
             'next_num': page + 1 if has_next else None
         }
         
-        # Buscar estatísticas (sem filtro para manter visão geral)
+        # Buscar estatísticas (sem filtro para manter visão geral) com tratamento de erro
         print("Buscando estatísticas de ordens de serviço...")
-        stats = omie_service.get_service_orders_stats()
+        try:
+            stats = omie_service.get_service_orders_stats()
+        except Exception as e:
+            print(f"Erro ao carregar estatísticas: {str(e)}")
+            stats = {
+                "total_orders": len(all_orders),
+                "total_value": 0,
+                "average_value": 0,
+                "by_client": {},
+                "top_clients": [],
+                "by_status": {},
+                "by_service_type": {},
+                "top_services": [],
+                "by_technician": {},
+                "monthly_stats": {},
+                "monthly_values": {}
+            }
         
         # Se há filtro de mês, calcular estatísticas específicas do mês
         monthly_stats = None
         if month_filter:
             print(f"Buscando estatísticas mensais para {month_filter}...")
-            monthly_stats = omie_service.get_monthly_service_stats(month_filter)
+            try:
+                monthly_stats = omie_service.get_monthly_service_stats(month_filter)
+            except Exception as e:
+                print(f"Erro ao carregar estatísticas mensais: {str(e)}")
+                monthly_stats = None
         
         # Buscar lista de meses disponíveis para o filtro
         print("Buscando meses disponíveis...")
-        available_months = omie_service.get_available_months_for_services()
+        try:
+            available_months = omie_service.get_available_months_for_services()
+        except Exception as e:
+            print(f"Erro ao carregar meses disponíveis: {str(e)}")
+            available_months = []
         
         return render_template('services.html', 
                              orders=orders_page, 
@@ -374,14 +413,22 @@ def api_services():
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
         
-        # Limitar a 10 páginas para evitar timeout na API
+        # Buscar todas as ordens de serviço
         orders = omie_service.get_all_service_orders()
         
         # Buscar mapeamento de clientes
-        client_name_mapping = omie_service.get_client_name_mapping()
+        try:
+            client_name_mapping = omie_service.get_client_name_mapping()
+        except Exception as e:
+            print(f"Erro ao carregar mapeamento de clientes na API: {str(e)}")
+            client_name_mapping = {}
         
         # Buscar mapeamento de vendedores
-        seller_name_mapping = omie_service.get_seller_name_mapping()
+        try:
+            seller_name_mapping = omie_service.get_seller_name_mapping()
+        except Exception as e:
+            print(f"Erro ao carregar mapeamento de vendedores na API: {str(e)}")
+            seller_name_mapping = {}
         
         # Filtrar por mês se especificado
         if month_filter:
@@ -467,6 +514,87 @@ def api_services_stats():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/background/load-full-data', methods=['POST'])
+@login_required
+def api_start_background_loading():
+    """Inicia carregamento completo de dados em background"""
+    try:
+        task_id = "full_data_load"
+        
+        # Verificar se já há uma tarefa rodando
+        if background_service.is_task_running(task_id):
+            return jsonify({
+                'status': 'already_running',
+                'task_id': task_id,
+                'message': 'Carregamento já está em andamento'
+            })
+        
+        # Iniciar nova tarefa
+        background_service.start_task(
+            task_id,
+            omie_service.load_full_data_background
+        )
+        
+        return jsonify({
+            'status': 'started',
+            'task_id': task_id,
+            'message': 'Carregamento completo iniciado em background'
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/background/status/<task_id>')
+@login_required
+def api_background_task_status(task_id):
+    """Verifica o status de uma tarefa em background"""
+    try:
+        status = background_service.get_task_status(task_id)
+        
+        if not status:
+            return jsonify({'error': 'Tarefa não encontrada'}), 404
+        
+        return jsonify(status)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/cache/clear', methods=['POST'])
+@login_required
+def api_clear_cache():
+    """Limpa o cache do serviço Omie"""
+    try:
+        omie_service.clear_cache()
+        return jsonify({
+            'status': 'success',
+            'message': 'Cache limpo com sucesso'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/startup/status')
+@login_required
+def api_startup_status():
+    """Verifica o status do pré-carregamento de dados"""
+    try:
+        status = startup_service.get_status()
+        return jsonify(status)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/startup/restart', methods=['POST'])
+@login_required
+def api_restart_preload():
+    """Reinicia o pré-carregamento de dados"""
+    try:
+        startup_service.start_preload()
+        return jsonify({
+            'status': 'started',
+            'message': 'Pré-carregamento reiniciado'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.template_filter('format_cpf_cnpj')
 def format_cpf_cnpj(value):
     """Filtro para formatar CPF/CNPJ"""
@@ -539,7 +667,17 @@ def not_found_error(error):
 def internal_error(error):
     return render_template('error.html', error='Erro interno do servidor'), 500
 
+def cleanup_background_tasks():
+    """Limpa tarefas antigas em background"""
+    try:
+        background_service.cleanup_old_tasks(max_age_hours=24)
+    except Exception as e:
+        print(f"Erro ao limpar tarefas antigas: {e}")
+
 if __name__ == '__main__':
+    # Limpar tarefas antigas na inicialização
+    cleanup_background_tasks()
+    
     # Configuração para desenvolvimento
     port = int(os.getenv('PORT', 8002))
     debug = os.getenv('FLASK_ENV') == 'development'

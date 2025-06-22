@@ -1,1 +1,1 @@
-web: gunicorn --chdir src --bind 0.0.0.0:$PORT app:app
+web: gunicorn --chdir src --bind 0.0.0.0:$PORT --timeout 300 --keep-alive 10 --max-requests 500 --max-requests-jitter 50 --preload app:app
