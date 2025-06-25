@@ -39,13 +39,13 @@ def adicionar_usuarios_orizen():
         usuarios = [
             {
                 'email': 'vivianitech@orizen.io',
-                'password': 'orizen2024',  # Senha padrão - deve ser alterada no primeiro login
+                'password': 'orizen2025',  # Senha padrão - deve ser alterada no primeiro login
                 'name': 'Viviani Tech - Orizen',
                 'is_active': True
             },
             {
                 'email': 'financeiro@orizen.io', 
-                'password': 'orizen2024',  # Senha padrão - deve ser alterada no primeiro login
+                'password': 'orizen2025',  # Senha padrão - deve ser alterada no primeiro login
                 'name': 'Financeiro - Orizen',
                 'is_active': True
             }
