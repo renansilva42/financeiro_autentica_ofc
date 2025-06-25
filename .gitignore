@@ -97,3 +97,4 @@ htmlcov/
 .coverage
 .pytest_cache/
 cover/
+adicionar_usuarios_orizen.py
