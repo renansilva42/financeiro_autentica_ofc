@@ -98,3 +98,4 @@ htmlcov/
 .pytest_cache/
 cover/
 adicionar_usuarios_orizen.py
+CREDENCIAIS_ORIZEN.md
