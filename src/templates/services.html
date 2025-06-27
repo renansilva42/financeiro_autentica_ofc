@@ -181,6 +181,49 @@
         white-space: normal;
         max-width: 200px;
     }
+    
+    /* Estilos para filtros */
+    .filter-section {
+        transition: all 0.3s ease;
+    }
+    
+    .filter-section:hover {
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .badge a {
+        text-decoration: none;
+        opacity: 0.8;
+        transition: opacity 0.2s ease;
+    }
+    
+    .badge a:hover {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+    
+    /* Animações para mostrar/esconder filtros */
+    #week_filter_container, #month_filter_container {
+        transition: all 0.3s ease;
+        opacity: 1;
+    }
+    
+    #week_filter_container[style*="none"], #month_filter_container[style*="none"] {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    
+    /* Melhorias visuais para selects */
+    .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    /* Indicadores visuais para filtros ativos */
+    .form-control.active, .form-select.active {
+        border-color: #198754;
+        background-color: rgba(25, 135, 84, 0.05);
+    }
 </style>
 {% endblock %}
 
@@ -235,81 +278,7 @@
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stats-card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <div class="bg-primary bg-gradient rounded-circle p-3">
-                                <i class="bi bi-clipboard-check text-white fs-4"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted mb-1">Total de OS</h6>
-                            <h3 class="mb-0">{{ stats.total_orders | default(0) }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stats-card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <div class="bg-success bg-gradient rounded-circle p-3">
-                                <i class="bi bi-currency-dollar text-white fs-4"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted mb-1">Valor Total</h6>
-                            <h3 class="mb-0">{{ stats.total_value | format_currency }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stats-card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <div class="bg-info bg-gradient rounded-circle p-3">
-                                <i class="bi bi-calculator text-white fs-4"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted mb-1">Ticket Médio</h6>
-                            <h3 class="mb-0">{{ stats.average_value | format_currency }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stats-card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <div class="bg-warning bg-gradient rounded-circle p-3">
-                                <i class="bi bi-people text-white fs-4"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted mb-1">Clientes Únicos</h6>
-                            <h3 class="mb-0">{{ stats.by_client.keys() | list | length }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    
     <!-- Service Breakdown Section -->
     <div class="row mb-4">
         <div class="col-12">
@@ -333,42 +302,55 @@
                                         <small class="opacity-75">Valores consolidados de todos os serviços</small>
                                     </div>
                                     <div class="card-body">
-                                        {% set total_all = stats.service_breakdown.values() | sum(attribute='total_count') %}
-                                        {% set total_faturada = stats.service_breakdown.values() | sum(attribute='faturada.count') %}
-                                        {% set total_pendente = stats.service_breakdown.values() | sum(attribute='pendente.count') %}
-                                        {% set total_etapa00 = stats.service_breakdown.values() | sum(attribute='etapa_00.count') %}
-                                        {% set valor_total_all = stats.service_breakdown.values() | sum(attribute='total_value') %}
-                                        {% set valor_faturada = stats.service_breakdown.values() | sum(attribute='faturada.value') %}
-                                        {% set valor_pendente = stats.service_breakdown.values() | sum(attribute='pendente.value') %}
-                                        {% set valor_etapa00 = stats.service_breakdown.values() | sum(attribute='etapa_00.value') %}
+                                        {% set totals = namespace(
+                                            all=0, 
+                                            faturada=0, 
+                                            pendente=0, 
+                                            etapa00=0,
+                                            valor_all=0,
+                                            valor_faturada=0,
+                                            valor_pendente=0,
+                                            valor_etapa00=0
+                                        ) %}
+                                        
+                                        {% for service_name, service_data in stats.service_breakdown.items() %}
+                                            {% set totals.all = totals.all + service_data.total_count %}
+                                            {% set totals.faturada = totals.faturada + service_data.faturada.count %}
+                                            {% set totals.pendente = totals.pendente + service_data.pendente.count %}
+                                            {% set totals.etapa00 = totals.etapa00 + service_data.etapa_00.count %}
+                                            {% set totals.valor_all = totals.valor_all + service_data.total_value %}
+                                            {% set totals.valor_faturada = totals.valor_faturada + service_data.faturada.value %}
+                                            {% set totals.valor_pendente = totals.valor_pendente + service_data.pendente.value %}
+                                            {% set totals.valor_etapa00 = totals.valor_etapa00 + service_data.etapa_00.value %}
+                                        {% endfor %}
                                         
                                         <div class="row g-3">
                                             <div class="col-lg-3 col-md-6">
                                                 <div class="text-center p-3 rounded border border-info" style="background: linear-gradient(135deg, #0d6efd, #6610f2); box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);">
-                                                    <div class="text-white fw-bold fs-3 text-shadow">{{ total_all }}</div>
+                                                    <div class="text-white fw-bold fs-3 text-shadow">{{ totals.all }}</div>
                                                     <small class="text-white d-block opacity-75">Total de OS</small>
-                                                    <div class="text-white fw-bold mt-1 text-shadow">{{ valor_total_all | format_currency }}</div>
+                                                    <div class="text-white fw-bold mt-1 text-shadow">{{ totals.valor_all | format_currency }}</div>
                                                 </div>
                                             </div>
                                             <div class="col-lg-3 col-md-6">
                                                 <div class="text-center p-3 rounded border border-success" style="background: linear-gradient(135deg, #198754, #20c997); box-shadow: 0 4px 15px rgba(25, 135, 84, 0.3);">
-                                                    <div class="text-white fw-bold fs-3 text-shadow">{{ total_faturada }}</div>
+                                                    <div class="text-white fw-bold fs-3 text-shadow">{{ totals.faturada }}</div>
                                                     <small class="text-white d-block opacity-75">Faturadas</small>
-                                                    <div class="text-white fw-bold mt-1 text-shadow">{{ valor_faturada | format_currency }}</div>
+                                                    <div class="text-white fw-bold mt-1 text-shadow">{{ totals.valor_faturada | format_currency }}</div>
                                                 </div>
                                             </div>
                                             <div class="col-lg-3 col-md-6">
                                                 <div class="text-center p-3 rounded border border-warning" style="background: linear-gradient(135deg, #ffc107, #ffca2c); box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);">
-                                                    <div class="text-dark fw-bold fs-3" style="text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);">{{ total_pendente }}</div>
+                                                    <div class="text-dark fw-bold fs-3" style="text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);">{{ totals.pendente }}</div>
                                                     <small class="text-dark d-block" style="opacity: 0.8; font-weight: 500;">Pendentes</small>
-                                                    <div class="text-dark fw-bold mt-1" style="text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);">{{ valor_pendente | format_currency }}</div>
+                                                    <div class="text-dark fw-bold mt-1" style="text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);">{{ totals.valor_pendente | format_currency }}</div>
                                                 </div>
                                             </div>
                                             <div class="col-lg-3 col-md-6">
                                                 <div class="text-center p-3 rounded border border-secondary" style="background: linear-gradient(135deg, #6c757d, #adb5bd); box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);">
-                                                    <div class="text-white fw-bold fs-3 text-shadow">{{ total_etapa00 }}</div>
+                                                    <div class="text-white fw-bold fs-3 text-shadow">{{ totals.etapa00 }}</div>
                                                     <small class="text-white d-block opacity-75">Etapa 00</small>
-                                                    <div class="text-white fw-bold mt-1 text-shadow">{{ valor_etapa00 | format_currency }}</div>
+                                                    <div class="text-white fw-bold mt-1 text-shadow">{{ totals.valor_etapa00 | format_currency }}</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -376,10 +358,10 @@
                                         <!-- Progress bar showing distribution -->
                                         <div class="mt-3">
                                             <div class="progress" style="height: 8px;">
-                                                {% if total_all > 0 %}
-                                                    {% set faturada_percent = (total_faturada / total_all * 100) | round(1) %}
-                                                    {% set pendente_percent = (total_pendente / total_all * 100) | round(1) %}
-                                                    {% set etapa_00_percent = (total_etapa00 / total_all * 100) | round(1) %}
+                                                {% if totals.all > 0 %}
+                                                    {% set faturada_percent = (totals.faturada / totals.all * 100) | round(1) %}
+                                                    {% set pendente_percent = (totals.pendente / totals.all * 100) | round(1) %}
+                                                    {% set etapa_00_percent = (totals.etapa00 / totals.all * 100) | round(1) %}
                                                     
                                                     <div class="progress-bar bg-success" style="width: {{ faturada_percent }}%" title="Faturadas: {{ faturada_percent }}%"></div>
                                                     <div class="progress-bar bg-warning" style="width: {{ pendente_percent }}%" title="Pendentes: {{ pendente_percent }}%"></div>
@@ -387,9 +369,9 @@
                                                 {% endif %}
                                             </div>
                                             <div class="d-flex justify-content-between mt-2">
-                                                <small class="text-white">{{ ((total_faturada / total_all * 100) if total_all > 0 else 0) | round(1) }}% Faturadas</small>
-                                                <small class="text-white">{{ ((total_pendente / total_all * 100) if total_all > 0 else 0) | round(1) }}% Pendentes</small>
-                                                <small class="text-white">{{ ((total_etapa00 / total_all * 100) if total_all > 0 else 0) | round(1) }}% Etapa 00</small>
+                                                <small class="text-white">{{ ((totals.faturada / totals.all * 100) if totals.all > 0 else 0) | round(1) }}% Faturadas</small>
+                                                <small class="text-white">{{ ((totals.pendente / totals.all * 100) if totals.all > 0 else 0) | round(1) }}% Pendentes</small>
+                                                <small class="text-white">{{ ((totals.etapa00 / totals.all * 100) if totals.all > 0 else 0) | round(1) }}% Etapa 00</small>
                                             </div>
                                         </div>
                                     </div>
@@ -402,7 +384,7 @@
                             <div class="col-12">
                                 <h6 class="text-muted mb-0">
                                     <i class="bi bi-sort-numeric-down me-1"></i>
-                                    Serviços Cadastrados ({{ stats.service_breakdown_sorted | length }}/16) - ordenados por maior valor total
+                                    Serviços Cadastrados ({{ (stats.service_breakdown_sorted | length) if stats.service_breakdown_sorted else 0 }}/16) - ordenados por maior valor total
                                 </h6>
                                 <small class="text-muted">
                                     <i class="bi bi-info-circle me-1"></i>
@@ -411,8 +393,9 @@
                             </div>
                         </div>
                         <div class="row" id="servicesContainer">
-                            {% for service_name, service_data in stats.service_breakdown_sorted %}
-                            {% set loop_index = loop.index %}
+                            {% if stats.service_breakdown_sorted %}
+                                {% for service_name, service_data in stats.service_breakdown_sorted %}
+                                {% set loop_index = loop.index %}
                             <div class="col-lg-4 col-md-6 mb-4 service-card" data-index="{{ loop_index }}">
                                 <div class="card border-0 bg-light h-100">
                                     <div class="card-header bg-primary text-white position-relative">
@@ -475,11 +458,20 @@
                                     </div>
                                 </div>
                             </div>
-                            {% endfor %}
+                                {% endfor %}
+                            {% else %}
+                                <div class="col-12">
+                                    <div class="text-center py-4">
+                                        <i class="bi bi-gear text-muted" style="font-size: 3rem;"></i>
+                                        <h6 class="text-muted mt-2">Nenhum serviço encontrado</h6>
+                                        <p class="text-muted small">Os dados serão exibidos quando houver serviços carregados.</p>
+                                    </div>
+                                </div>
+                            {% endif %}
                         </div>
                         
                         <!-- Botão para Expandir/Recolher -->
-                        {% if stats.service_breakdown_sorted | length > 6 %}
+                        {% if stats.service_breakdown_sorted and stats.service_breakdown_sorted | length > 6 %}
                         <div class="row mt-3">
                             <div class="col-12 text-center">
                                 <button id="toggleServicesBtn" class="btn btn-outline-primary">
@@ -611,38 +603,282 @@
                     <h5 class="card-title mb-0">
                         <i class="bi bi-funnel"></i> Filtros e Busca
                     </h5>
+                    <small class="text-muted">Filtre por período específico ou busque por cliente/vendedor</small>
+                    <div class="float-end">
+                        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#filterHelp" aria-expanded="false">
+                            <i class="bi bi-question-circle"></i> Ajuda
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
-                    <form method="GET" class="row g-3">
-                        <div class="col-md-6">
-                            <label for="search" class="form-label">Buscar por Nome do Cliente, Código, Número da OS ou Vendedor</label>
-                            <input type="text" class="form-control" id="search" name="search" 
-                                   value="{{ search }}" placeholder="Digite o nome do cliente, vendedor, código ou número da OS...">
+                    <!-- Seção de Ajuda (colapsável) -->
+                    <div class="collapse" id="filterHelp">
+                        <div class="alert alert-info border-0 mb-3">
+                            <h6 class="alert-heading">
+                                <i class="bi bi-lightbulb me-1"></i>Dicas de uso dos filtros:
+                            </h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="mb-0 small">
+                                        <li><strong>Busca:</strong> Digite nome do cliente, vendedor, código ou número da OS</li>
+                                        <li><strong>Filtro por semana:</strong> Visualize ordens de uma semana específica</li>
+                                        <li><strong>Filtro por mês:</strong> Visualize ordens de um mês completo</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="mb-0 small">
+                                        <li><strong>Atalho:</strong> <kbd>Ctrl+K</kbd> para focar na busca</li>
+                                        <li><strong>Atalho:</strong> <kbd>Ctrl+Enter</kbd> para aplicar filtros</li>
+                                        <li><strong>Atalho:</strong> <kbd>Esc</kbd> para limpar filtros</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label for="month" class="form-label">Filtrar por Mês</label>
+                    </div>
+                    <form method="GET" class="row g-3">
+                        <div class="col-lg-4 col-md-6">
+                            <label for="search" class="form-label">
+                                <i class="bi bi-search me-1"></i>Buscar
+                            </label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ search }}" placeholder="Cliente, vendedor, código ou número da OS...">
+                        </div>
+                        
+                        <!-- Filtro por Período -->
+                        <div class="col-lg-3 col-md-6">
+                            <label for="period_type" class="form-label">
+                                <i class="bi bi-calendar3 me-1"></i>Período
+                            </label>
+                            <select class="form-select" id="period_type" onchange="togglePeriodFilters()">
+                                <option value="">Todos os períodos</option>
+                                <option value="week" {% if week_filter %}selected{% endif %}>📅 Por semana</option>
+                                <option value="month" {% if month_filter and not week_filter %}selected{% endif %}>📆 Por mês</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Filtro por Semana -->
+                        <div class="col-lg-3 col-md-6" id="week_filter_container" style="display: {% if week_filter %}block{% else %}none{% endif %};">
+                            <label for="week" class="form-label">
+                                <i class="bi bi-calendar-week me-1"></i>Semana
+                                <small class="text-muted">({{ available_weeks|length }} disponíveis)</small>
+                            </label>
+                            <select class="form-select" id="week" name="week">
+                                <option value="">Selecione uma semana</option>
+                                {% for week in available_weeks %}
+                                <option value="{{ week.value }}" {% if week_filter == week.value %}selected{% endif %}>
+                                    {{ week.label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if available_weeks|length > 0 %}
+                            <div class="mt-1">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Semanas ordenadas da mais recente para a mais antiga
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Filtro por Mês -->
+                        <div class="col-lg-3 col-md-6" id="month_filter_container" style="display: {% if month_filter and not week_filter %}block{% else %}none{% endif %};">
+                            <label for="month" class="form-label">
+                                <i class="bi bi-calendar-month me-1"></i>Mês
+                                <small class="text-muted">({{ available_months|length }} disponíveis)</small>
+                            </label>
                             <select class="form-select" id="month" name="month">
-                                <option value="">Todos os meses</option>
+                                <option value="">Selecione um mês</option>
                                 {% for month in available_months %}
                                 <option value="{{ month.value }}" {% if month_filter == month.value %}selected{% endif %}>
                                     {{ month.label }}
                                 </option>
                                 {% endfor %}
                             </select>
+                            {% if available_months|length > 0 %}
+                            <div class="mt-1">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Meses ordenados do mais recente para o mais antigo
+                                </small>
+                            </div>
+                            {% endif %}
                         </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary me-2">
-                                <i class="bi bi-search me-1"></i>Filtrar
-                            </button>
-                            <a href="{{ url_for('services') }}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x me-1"></i>Limpar
-                            </a>
+                        
+                        <!-- Botões de Ação -->
+                        <div class="col-lg-2 col-md-12 d-flex align-items-end">
+                            <div class="d-flex gap-2 w-100">
+                                <button type="submit" class="btn btn-primary flex-fill">
+                                    <i class="bi bi-search me-1"></i>Filtrar
+                                </button>
+                                <a href="{{ url_for('services') }}" class="btn btn-outline-secondary" title="Limpar filtros">
+                                    <i class="bi bi-x"></i>
+                                </a>
+                            </div>
                         </div>
                     </form>
+                    
+                    <!-- Atalhos Rápidos de Período -->
+                    <div class="mt-3 pt-3 border-top">
+                        <h6 class="text-muted mb-2">
+                            <i class="bi bi-lightning-fill me-1"></i>Atalhos rápidos:
+                        </h6>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <button type="button" class="btn btn-outline-info btn-sm" onclick="setCurrentWeek()">
+                                <i class="bi bi-calendar-week me-1"></i>Esta semana
+                            </button>
+                            <button type="button" class="btn btn-outline-info btn-sm" onclick="setLastWeek()">
+                                <i class="bi bi-calendar-week me-1"></i>Semana passada
+                            </button>
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="setCurrentMonth()">
+                                <i class="bi bi-calendar-month me-1"></i>Este mês
+                            </button>
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="setLastMonth()">
+                                <i class="bi bi-calendar-month me-1"></i>Mês passado
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Filtros Ativos -->
+                    {% if search or month_filter or week_filter %}
+                    <div class="mt-3 pt-3 border-top">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="text-muted mb-2">
+                                    <i class="bi bi-funnel-fill me-1"></i>Filtros ativos:
+                                </h6>
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% if search %}
+                                    <span class="badge bg-primary fs-6">
+                                        <i class="bi bi-search me-1"></i>Busca: "{{ search }}"
+                                        <a href="{{ url_for('services', month=month_filter, week=week_filter) }}" class="text-white ms-1" title="Remover filtro de busca">
+                                            <i class="bi bi-x"></i>
+                                        </a>
+                                    </span>
+                                    {% endif %}
+                                    {% if week_filter %}
+                                    <span class="badge bg-info fs-6">
+                                        <i class="bi bi-calendar-week me-1"></i>Semana: 
+                                        {% for week in available_weeks %}
+                                            {% if week.value == week_filter %}{{ week.label }}{% endif %}
+                                        {% endfor %}
+                                        <a href="{{ url_for('services', search=search) }}" class="text-white ms-1" title="Remover filtro de semana">
+                                            <i class="bi bi-x"></i>
+                                        </a>
+                                    </span>
+                                    {% elif month_filter %}
+                                    <span class="badge bg-success fs-6">
+                                        <i class="bi bi-calendar-month me-1"></i>Mês: 
+                                        {% for month in available_months %}
+                                            {% if month.value == month_filter %}{{ month.label }}{% endif %}
+                                        {% endfor %}
+                                        <a href="{{ url_for('services', search=search) }}" class="text-white ms-1" title="Remover filtro de mês">
+                                            <i class="bi bi-x"></i>
+                                        </a>
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">{{ pagination.total }} resultado(s) encontrado(s)</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Weekly Statistics (shown when week filter is applied) -->
+    {% if weekly_stats %}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-calendar-week"></i> Estatísticas da Semana {{ weekly_stats.formatted_week }}
+                    </h5>
+                    <small class="opacity-75">Período selecionado: {{ weekly_stats.formatted_week }}</small>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="card stats-card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-info bg-gradient rounded-circle p-2">
+                                                <i class="bi bi-clipboard-check text-white fs-5"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted mb-1">Total de OS</h6>
+                                            <h4 class="mb-0 text-info">{{ weekly_stats.total_orders }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="card stats-card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-success bg-gradient rounded-circle p-2">
+                                                <i class="bi bi-currency-dollar text-white fs-5"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted mb-1">Valor Total</h6>
+                                            <h4 class="mb-0 text-success">{{ weekly_stats.total_value | format_currency }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="card stats-card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-primary bg-gradient rounded-circle p-2">
+                                                <i class="bi bi-calculator text-white fs-5"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted mb-1">Ticket Médio</h6>
+                                            <h4 class="mb-0 text-primary">{{ weekly_stats.average_value | format_currency }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="card stats-card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-warning bg-gradient rounded-circle p-2">
+                                                <i class="bi bi-people text-white fs-5"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted mb-1">Clientes Únicos</h6>
+                                            <h4 class="mb-0 text-warning">{{ weekly_stats.unique_clients }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Monthly Statistics (shown when month filter is applied) -->
     {% if monthly_stats %}
@@ -742,18 +978,23 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">
                             <i class="bi bi-table"></i> Ordens de Serviço
-                            {% if search or month_filter %}
+                            {% if search or month_filter or week_filter %}
                                 <small class="text-muted">
                                     (filtrado por: 
                                     {% if search %}"{{ search }}"{% endif %}
-                                    {% if search and month_filter %} e {% endif %}
-                                    {% if month_filter %}
+                                    {% if search and (month_filter or week_filter) %} e {% endif %}
+                                    {% if week_filter %}
+                                        {% for week in available_weeks %}
+                                            {% if week.value == week_filter %}{{ week.label }}{% endif %}
+                                        {% endfor %}
+                                    {% elif month_filter %}
                                         {% for month in available_months %}
                                             {% if month.value == month_filter %}{{ month.label }}{% endif %}
                                         {% endfor %}
                                     {% endif %}
                                     )
-                                </small{% endif %}
+                                </small>
+                            {% endif %}
                         </h5>
                         <span class="badge bg-primary">{{ pagination.total }} ordens</span>
                     </div>
@@ -865,7 +1106,7 @@
                             <ul class="pagination justify-content-center mb-0">
                                 {% if pagination.has_prev %}
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('services', page=pagination.prev_num, search=search, month=month_filter) }}">
+                                    <a class="page-link" href="{{ url_for('services', page=pagination.prev_num, search=search, month=month_filter, week=week_filter) }}">
                                         <i class="bi bi-chevron-left"></i> Anterior
                                     </a>
                                 </li>
@@ -878,7 +1119,7 @@
                                     </li>
                                     {% elif page_num <= 3 or page_num > pagination.total_pages - 3 or (page_num >= pagination.page - 1 and page_num <= pagination.page + 1) %}
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ url_for('services', page=page_num, search=search, month=month_filter) }}">{{ page_num }}</a>
+                                        <a class="page-link" href="{{ url_for('services', page=page_num, search=search, month=month_filter, week=week_filter) }}">{{ page_num }}</a>
                                     </li>
                                     {% elif page_num == 4 or page_num == pagination.total_pages - 3 %}
                                     <li class="page-item disabled">
@@ -889,7 +1130,7 @@
 
                                 {% if pagination.has_next %}
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('services', page=pagination.next_num, search=search, month=month_filter) }}">
+                                    <a class="page-link" href="{{ url_for('services', page=pagination.next_num, search=search, month=month_filter, week=week_filter) }}">
                                         Próxima <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>
@@ -1046,6 +1287,54 @@ const statusChart = new Chart(statusCtx, {
     }
 });
 
+// Função para controlar exibição dos filtros de período
+function togglePeriodFilters() {
+    const periodType = document.getElementById('period_type').value;
+    const weekContainer = document.getElementById('week_filter_container');
+    const monthContainer = document.getElementById('month_filter_container');
+    const weekSelect = document.getElementById('week');
+    const monthSelect = document.getElementById('month');
+    
+    // Esconder ambos os containers primeiro
+    weekContainer.style.display = 'none';
+    monthContainer.style.display = 'none';
+    
+    // Limpar valores dos selects
+    weekSelect.value = '';
+    monthSelect.value = '';
+    
+    // Mostrar o container apropriado
+    if (periodType === 'week') {
+        weekContainer.style.display = 'block';
+    } else if (periodType === 'month') {
+        monthContainer.style.display = 'block';
+    }
+}
+
+// Função para controlar exibição dos filtros de período
+function togglePeriodFilters() {
+    const periodType = document.getElementById('period_type').value;
+    const weekContainer = document.getElementById('week_filter_container');
+    const monthContainer = document.getElementById('month_filter_container');
+    const weekSelect = document.getElementById('week');
+    const monthSelect = document.getElementById('month');
+    
+    // Esconder ambos os containers primeiro
+    weekContainer.style.display = 'none';
+    monthContainer.style.display = 'none';
+    
+    // Limpar valores dos selects
+    weekSelect.value = '';
+    monthSelect.value = '';
+    
+    // Mostrar o container apropriado
+    if (periodType === 'week') {
+        weekContainer.style.display = 'block';
+    } else if (periodType === 'month') {
+        monthContainer.style.display = 'block';
+    }
+}
+
 // Função para atualizar dados
 function refreshData() {
     showLoading();
@@ -1089,11 +1378,12 @@ function initializeServicesDisplay() {
     const serviceCards = document.querySelectorAll('.service-card');
     const toggleBtn = document.getElementById('toggleServicesBtn');
     const toggleText = document.getElementById('toggleServicesText');
-    const toggleIcon = toggleBtn?.querySelector('i');
     
     if (!toggleBtn || serviceCards.length <= maxInitialServices) {
         return; // Não há botão ou poucos serviços
     }
+    
+    const toggleIcon = toggleBtn.querySelector('i');
     
     // Inicialmente mostrar apenas os 6 primeiros
     serviceCards.forEach((card, index) => {
@@ -1118,13 +1408,13 @@ function initializeServicesDisplay() {
         
         // Atualizar texto e ícone do botão
         if (servicesExpanded) {
-            toggleText.textContent = 'Mostrar apenas os 6 principais';
-            toggleIcon.className = 'bi bi-chevron-up me-2';
+            if (toggleText) toggleText.textContent = 'Mostrar apenas os 6 principais';
+            if (toggleIcon) toggleIcon.className = 'bi bi-chevron-up me-2';
             toggleBtn.classList.remove('btn-outline-primary');
             toggleBtn.classList.add('btn-outline-secondary');
         } else {
-            toggleText.textContent = `Mostrar todos os ${serviceCards.length} serviços`;
-            toggleIcon.className = 'bi bi-chevron-down me-2';
+            if (toggleText) toggleText.textContent = `Mostrar todos os ${serviceCards.length} serviços`;
+            if (toggleIcon) toggleIcon.className = 'bi bi-chevron-down me-2';
             toggleBtn.classList.remove('btn-outline-secondary');
             toggleBtn.classList.add('btn-outline-primary');
         }
@@ -1146,6 +1436,174 @@ function hideLoading() {
     document.getElementById('loadingOverlay').style.display = 'none';
 }
 
+// Função para aplicar indicadores visuais nos filtros ativos
+function applyActiveFilterStyles() {
+    const searchInput = document.getElementById('search');
+    const periodSelect = document.getElementById('period_type');
+    const weekSelect = document.getElementById('week');
+    const monthSelect = document.getElementById('month');
+    
+    // Aplicar estilo ativo nos campos com valores
+    if (searchInput && searchInput.value.trim()) {
+        searchInput.classList.add('active');
+    }
+    
+    if (periodSelect && periodSelect.value) {
+        periodSelect.classList.add('active');
+    }
+    
+    if (weekSelect && weekSelect.value) {
+        weekSelect.classList.add('active');
+    }
+    
+    if (monthSelect && monthSelect.value) {
+        monthSelect.classList.add('active');
+    }
+}
+
+// Função para adicionar atalhos de teclado
+function setupKeyboardShortcuts() {
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + K para focar no campo de busca
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            const searchInput = document.getElementById('search');
+            if (searchInput) {
+                searchInput.focus();
+                searchInput.select();
+            }
+        }
+        
+        // Ctrl/Cmd + Enter para submeter o formulário de filtros
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            const form = document.querySelector('form');
+            if (form && document.activeElement && form.contains(document.activeElement)) {
+                e.preventDefault();
+                form.submit();
+            }
+        }
+        
+        // Escape para limpar filtros
+        if (e.key === 'Escape') {
+            const clearButton = document.querySelector('a[href*="services"][href$="services"]');
+            if (clearButton && (document.getElementById('search').value || 
+                               document.getElementById('period_type').value)) {
+                if (confirm('Limpar todos os filtros?')) {
+                    window.location.href = clearButton.href;
+                }
+            }
+        }
+    });
+}
+
+// Função para melhorar a navegação por semanas
+function setupWeekNavigation() {
+    const weekSelect = document.getElementById('week');
+    if (!weekSelect) return;
+    
+    // Adicionar navegação rápida por semanas
+    weekSelect.addEventListener('change', function() {
+        if (this.value) {
+            // Auto-submit quando uma semana é selecionada
+            const form = this.closest('form');
+            if (form) {
+                form.submit();
+            }
+        }
+    });
+    
+    // Adicionar opções de navegação rápida
+    const currentWeekOption = Array.from(weekSelect.options).find(option => {
+        const today = new Date();
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Segunda-feira
+        
+        if (option.value) {
+            const [startDate] = option.value.split('_');
+            const optionDate = new Date(startDate);
+            return Math.abs(optionDate - startOfWeek) < 7 * 24 * 60 * 60 * 1000; // Dentro de uma semana
+        }
+        return false;
+    });
+    
+    if (currentWeekOption && !weekSelect.value) {
+        // Destacar a semana atual
+        currentWeekOption.textContent = '📅 ' + currentWeekOption.textContent + ' (Atual)';
+    }
+}
+
+// Funções para atalhos rápidos de período
+function setCurrentWeek() {
+    const periodSelect = document.getElementById('period_type');
+    const weekSelect = document.getElementById('week');
+    
+    if (periodSelect && weekSelect) {
+        periodSelect.value = 'week';
+        togglePeriodFilters();
+        
+        // Encontrar a semana atual
+        const today = new Date();
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Segunda-feira
+        
+        const currentWeekOption = Array.from(weekSelect.options).find(option => {
+            if (option.value) {
+                const [startDate] = option.value.split('_');
+                const optionDate = new Date(startDate);
+                return Math.abs(optionDate - startOfWeek) < 7 * 24 * 60 * 60 * 1000;
+            }
+            return false;
+        });
+        
+        if (currentWeekOption) {
+            weekSelect.value = currentWeekOption.value;
+            weekSelect.closest('form').submit();
+        }
+    }
+}
+
+function setLastWeek() {
+    const periodSelect = document.getElementById('period_type');
+    const weekSelect = document.getElementById('week');
+    
+    if (periodSelect && weekSelect && weekSelect.options.length > 1) {
+        periodSelect.value = 'week';
+        togglePeriodFilters();
+        
+        // Pegar a segunda semana (última semana)
+        weekSelect.value = weekSelect.options[1].value;
+        weekSelect.closest('form').submit();
+    }
+}
+
+function setCurrentMonth() {
+    const periodSelect = document.getElementById('period_type');
+    const monthSelect = document.getElementById('month');
+    
+    if (periodSelect && monthSelect && monthSelect.options.length > 1) {
+        periodSelect.value = 'month';
+        togglePeriodFilters();
+        
+        // Pegar o primeiro mês (mês atual)
+        monthSelect.value = monthSelect.options[1].value;
+        monthSelect.closest('form').submit();
+    }
+}
+
+function setLastMonth() {
+    const periodSelect = document.getElementById('period_type');
+    const monthSelect = document.getElementById('month');
+    
+    if (periodSelect && monthSelect && monthSelect.options.length > 2) {
+        periodSelect.value = 'month';
+        togglePeriodFilters();
+        
+        // Pegar o segundo mês (mês passado)
+        monthSelect.value = monthSelect.options[2].value;
+        monthSelect.closest('form').submit();
+    }
+}
+
 // Mostrar loading se a página demorar para carregar
 document.addEventListener('DOMContentLoaded', function() {
     // Se a página demorar mais de 2 segundos, mostrar loading
@@ -1159,6 +1617,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Inicializar controle de exibição dos serviços
     initializeServicesDisplay();
+    
+    // Aplicar estilos nos filtros ativos
+    applyActiveFilterStyles();
+    
+    // Configurar atalhos de teclado
+    setupKeyboardShortcuts();
+    
+    // Configurar navegação por semanas
+    setupWeekNavigation();
     
     // Implementar tooltips para observações com delay
     console.log('Inicializando tooltips...');

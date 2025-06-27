@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 import sys
 import os
 import time
+from datetime import datetime, timedelta
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import Settings
 
@@ -785,7 +786,6 @@ class OmieService:
                     batch_orders += len(orders)
                     
                     # Pequena pausa entre páginas para não sobrecarregar
-                    import time
                     time.sleep(0.05)
                     
                 except Exception as page_error:
@@ -797,7 +797,6 @@ class OmieService:
             
             # Pausa maior entre lotes para dar tempo ao servidor
             if current_page <= total_pages:
-                import time
                 time.sleep(0.2)
         
         print(f"Carregamento otimizado concluído: {len(all_orders)} ordens de serviço")
@@ -1092,6 +1091,96 @@ class OmieService:
             print(f"Erro ao buscar meses disponíveis: {str(e)}")
             return []
     
+    def get_available_weeks_for_services(self) -> List[dict]:
+        """Retorna lista de semanas disponíveis para filtro de ordens de serviço"""
+        try:
+            # Verificar cache primeiro
+            cache_key = self._get_cache_key("get_available_weeks_for_services")
+            cached_data = self._get_from_cache(cache_key, use_mapping_expiry=True)
+            if cached_data is not None:
+                print(f"Semanas disponíveis carregadas do cache: {len(cached_data)} semanas")
+                return cached_data
+            
+            # Buscar todas as ordens para ter lista completa de semanas
+            orders = self.get_all_service_orders()
+            weeks_set = set()
+            
+            for order in orders:
+                try:
+                    cabecalho = order.get("Cabecalho", {})
+                    date_str = cabecalho.get("dDtPrevisao", "")
+                    if date_str and "/" in date_str:
+                        # Converter data dd/mm/yyyy para datetime
+                        parts = date_str.split("/")
+                        if len(parts) == 3:
+                            day, month, year = parts
+                            date_obj = datetime(int(year), int(month), int(day))
+                            
+                            # Calcular início da semana (segunda-feira)
+                            start_of_week = date_obj - timedelta(days=date_obj.weekday())
+                            end_of_week = start_of_week + timedelta(days=6)
+                            
+                            # Formato da semana: "YYYY-MM-DD_YYYY-MM-DD" (início_fim)
+                            week_key = f"{start_of_week.strftime('%Y-%m-%d')}_{end_of_week.strftime('%Y-%m-%d')}"
+                            weeks_set.add(week_key)
+                except Exception as date_error:
+                    # Log do erro específico mas continue processando
+                    print(f"Erro ao processar data da ordem: {date_error}")
+                    continue
+            
+            # Converter para lista e ordenar cronologicamente (mais recentes primeiro)
+            def sort_week_key(week_key):
+                try:
+                    start_date_str = week_key.split("_")[0]
+                    year, month, day = start_date_str.split("-")
+                    return (int(year), int(month), int(day))
+                except:
+                    return (0, 0, 0)
+            
+            sorted_weeks = sorted(list(weeks_set), key=sort_week_key, reverse=True)
+            
+            # Converter para formato mais amigável
+            result = []
+            for week_key in sorted_weeks:
+                try:
+                    start_date_str, end_date_str = week_key.split("_")
+                    start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+                    end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+                    
+                    # Formato amigável: "02/12 a 08/12/2024"
+                    if start_date.year == end_date.year and start_date.month == end_date.month:
+                        # Mesma semana, mesmo mês
+                        label = f"{start_date.strftime('%d/%m')} a {end_date.strftime('%d/%m/%Y')}"
+                    else:
+                        # Semana que cruza meses
+                        label = f"{start_date.strftime('%d/%m')} a {end_date.strftime('%d/%m/%Y')}"
+                    
+                    result.append({
+                        'value': week_key,
+                        'label': label,
+                        'start_date': start_date_str,
+                        'end_date': end_date_str
+                    })
+                except Exception as format_error:
+                    print(f"Erro ao formatar semana {week_key}: {format_error}")
+                    result.append({
+                        'value': week_key,
+                        'label': week_key,
+                        'start_date': '',
+                        'end_date': ''
+                    })
+            
+            # Armazenar no cache
+            self._set_cache(cache_key, result)
+            print(f"Semanas disponíveis processadas: {len(result)} semanas")
+            return result
+            
+        except Exception as e:
+            print(f"Erro ao buscar semanas disponíveis: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return []
+    
     def get_monthly_service_stats(self, month_filter: str) -> dict:
         """Retorna estatísticas das ordens de serviço para um mês específico"""
         try:
@@ -1166,6 +1255,134 @@ class OmieService:
                 "average_value": 0,
                 "unique_clients": 0
             }
+    
+    def get_weekly_service_stats(self, week_filter: str) -> dict:
+        """Retorna estatísticas das ordens de serviço para uma semana específica"""
+        try:
+            # Buscar todas as ordens para estatísticas precisas
+            all_orders = self.get_all_service_orders()
+            
+            # Extrair datas de início e fim da semana
+            start_date_str, end_date_str = week_filter.split("_")
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+            
+            # Filtrar ordens pela semana especificada
+            filtered_orders = []
+            for order in all_orders:
+                cabecalho = order.get("Cabecalho", {})
+                date_str = cabecalho.get("dDtPrevisao", "")
+                if date_str:
+                    try:
+                        # Converter data dd/mm/yyyy para datetime
+                        day, month, year = date_str.split("/")
+                        order_date = datetime(int(year), int(month), int(day))
+                        
+                        # Verificar se a data está dentro da semana
+                        if start_date <= order_date <= end_date:
+                            filtered_orders.append(order)
+                    except:
+                        pass
+            
+            total_orders = len(filtered_orders)
+            
+            # Calcular valor total
+            total_value = 0
+            for order in filtered_orders:
+                cabecalho = order.get("Cabecalho", {})
+                total_value += float(cabecalho.get("nValorTotal", 0))
+            
+            # Calcular ticket médio
+            average_value = total_value / total_orders if total_orders > 0 else 0
+            
+            # Contar clientes únicos
+            unique_clients = set()
+            for order in filtered_orders:
+                cabecalho = order.get("Cabecalho", {})
+                client_code = cabecalho.get("nCodCli", "")
+                if client_code:
+                    unique_clients.add(client_code)
+            
+            unique_clients_count = len(unique_clients)
+            
+            # Formatar o período da semana para exibição
+            if start_date.year == end_date.year and start_date.month == end_date.month:
+                formatted_week = f"{start_date.strftime('%d/%m')} a {end_date.strftime('%d/%m/%Y')}"
+            else:
+                formatted_week = f"{start_date.strftime('%d/%m')} a {end_date.strftime('%d/%m/%Y')}"
+            
+            return {
+                "week_filter": week_filter,
+                "formatted_week": formatted_week,
+                "start_date": start_date_str,
+                "end_date": end_date_str,
+                "total_orders": total_orders,
+                "total_value": total_value,
+                "average_value": average_value,
+                "unique_clients": unique_clients_count
+            }
+            
+        except Exception as e:
+            print(f"Erro ao calcular estatísticas semanais: {str(e)}")
+            return {
+                "week_filter": week_filter,
+                "formatted_week": week_filter,
+                "start_date": "",
+                "end_date": "",
+                "total_orders": 0,
+                "total_value": 0,
+                "average_value": 0,
+                "unique_clients": 0
+            }
+    
+    def filter_orders_by_date_range(self, start_date: str, end_date: str) -> List[dict]:
+        """Filtra ordens de serviço por um período específico (formato YYYY-MM-DD)"""
+        try:
+            # Buscar todas as ordens
+            all_orders = self.get_all_service_orders()
+            
+            # Converter datas de filtro
+            start_filter = datetime.strptime(start_date, '%Y-%m-%d')
+            end_filter = datetime.strptime(end_date, '%Y-%m-%d')
+            
+            # Filtrar ordens pelo período especificado
+            filtered_orders = []
+            for order in all_orders:
+                cabecalho = order.get("Cabecalho", {})
+                date_str = cabecalho.get("dDtPrevisao", "")
+                if date_str:
+                    try:
+                        # Converter data dd/mm/yyyy para datetime
+                        day, month, year = date_str.split("/")
+                        order_date = datetime(int(year), int(month), int(day))
+                        
+                        # Verificar se a data está dentro do período
+                        if start_filter <= order_date <= end_filter:
+                            filtered_orders.append(order)
+                    except:
+                        pass
+            
+            return filtered_orders
+            
+        except Exception as e:
+            print(f"Erro ao filtrar ordens por período: {str(e)}")
+            return []
+    
+    def get_current_week_key(self) -> str:
+        """Retorna a chave da semana atual no formato usado pelos filtros"""
+        try:
+            today = datetime.now()
+            # Calcular início da semana (segunda-feira)
+            start_of_week = today - timedelta(days=today.weekday())
+            end_of_week = start_of_week + timedelta(days=6)
+            
+            # Formato da semana: "YYYY-MM-DD_YYYY-MM-DD"
+            week_key = f"{start_of_week.strftime('%Y-%m-%d')}_{end_of_week.strftime('%Y-%m-%d')}"
+            return week_key
+            
+        except Exception as e:
+            print(f"Erro ao calcular semana atual: {str(e)}")
+            return ""
     
     def load_full_data_background(self) -> dict:
         """Carrega todos os dados completos em background"""
