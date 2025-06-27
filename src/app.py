@@ -565,9 +565,27 @@ def api_clear_cache():
     """Limpa o cache do serviço Omie"""
     try:
         omie_service.clear_cache()
+        print("Cache limpo - dados serão recarregados na próxima requisição")
         return jsonify({
             'status': 'success',
-            'message': 'Cache limpo com sucesso'
+            'message': 'Cache limpo com sucesso - dados serão recarregados na próxima requisição'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/cache/clear-services', methods=['POST'])
+@login_required
+def api_clear_services_cache():
+    """Limpa especificamente o cache de serviços"""
+    try:
+        # Limpar cache específico de serviços
+        omie_service.clear_cache_by_pattern("get_service_name_mapping")
+        omie_service.clear_cache_by_pattern("get_all_services")
+        omie_service.clear_cache_by_pattern("get_service_orders_stats")
+        print("Cache de serviços limpo - mapeamento será recarregado")
+        return jsonify({
+            'status': 'success',
+            'message': 'Cache de serviços limpo com sucesso'
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500

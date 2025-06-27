@@ -141,6 +141,33 @@
         font-size: 0.875rem;
     }
     
+    /* Sombras de texto para melhor legibilidade */
+    .text-shadow {
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+    
+    .text-shadow-light {
+        text-shadow: 0 1px 3px rgba(255, 255, 255, 0.8);
+    }
+    
+    /* Controle de exibição dos serviços */
+    .service-card {
+        transition: all 0.3s ease-in-out;
+    }
+    
+    .service-card.hidden {
+        display: none !important;
+    }
+    
+    #toggleServicesBtn {
+        transition: all 0.3s ease;
+    }
+    
+    #toggleServicesBtn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
     /* Larguras responsivas para colunas da tabela */
     /* Colunas com larguras mais flexíveis */
     .table th, .table td {
@@ -182,8 +209,11 @@
                     <p class="text-muted mb-0">Visualização e análise de ordens de serviço</p>
                 </div>
                 <div>
-                    <button class="btn btn-outline-primary" onclick="refreshData()">
+                    <button class="btn btn-outline-primary me-2" onclick="refreshData()">
                         <i class="bi bi-arrow-clockwise"></i> Atualizar
+                    </button>
+                    <button class="btn btn-outline-warning" onclick="clearServicesCache()">
+                        <i class="bi bi-trash"></i> Limpar Cache
                     </button>
                 </div>
             </div>
@@ -275,6 +305,197 @@
                             <h3 class="mb-0">{{ stats.by_client.keys() | list | length }}</h3>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Breakdown Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-pie-chart-fill text-primary"></i> Breakdown por Serviço
+                    </h5>
+                    <p class="text-muted mb-0 small">Valores discriminados por tipo de serviço e status</p>
+                </div>
+                <div class="card-body">
+                    {% if stats.service_breakdown %}
+                        <!-- Container de Totais Gerais -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card border-0 bg-gradient-primary text-white">
+                                    <div class="card-header bg-transparent border-0">
+                                        <h5 class="card-title mb-0 text-white">
+                                            <i class="bi bi-calculator-fill me-2"></i>Totais Consolidados
+                                        </h5>
+                                        <small class="opacity-75">Valores consolidados de todos os serviços</small>
+                                    </div>
+                                    <div class="card-body">
+                                        {% set total_all = stats.service_breakdown.values() | sum(attribute='total_count') %}
+                                        {% set total_faturada = stats.service_breakdown.values() | sum(attribute='faturada.count') %}
+                                        {% set total_pendente = stats.service_breakdown.values() | sum(attribute='pendente.count') %}
+                                        {% set total_etapa00 = stats.service_breakdown.values() | sum(attribute='etapa_00.count') %}
+                                        {% set valor_total_all = stats.service_breakdown.values() | sum(attribute='total_value') %}
+                                        {% set valor_faturada = stats.service_breakdown.values() | sum(attribute='faturada.value') %}
+                                        {% set valor_pendente = stats.service_breakdown.values() | sum(attribute='pendente.value') %}
+                                        {% set valor_etapa00 = stats.service_breakdown.values() | sum(attribute='etapa_00.value') %}
+                                        
+                                        <div class="row g-3">
+                                            <div class="col-lg-3 col-md-6">
+                                                <div class="text-center p-3 rounded border border-info" style="background: linear-gradient(135deg, #0d6efd, #6610f2); box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);">
+                                                    <div class="text-white fw-bold fs-3 text-shadow">{{ total_all }}</div>
+                                                    <small class="text-white d-block opacity-75">Total de OS</small>
+                                                    <div class="text-white fw-bold mt-1 text-shadow">{{ valor_total_all | format_currency }}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-3 col-md-6">
+                                                <div class="text-center p-3 rounded border border-success" style="background: linear-gradient(135deg, #198754, #20c997); box-shadow: 0 4px 15px rgba(25, 135, 84, 0.3);">
+                                                    <div class="text-white fw-bold fs-3 text-shadow">{{ total_faturada }}</div>
+                                                    <small class="text-white d-block opacity-75">Faturadas</small>
+                                                    <div class="text-white fw-bold mt-1 text-shadow">{{ valor_faturada | format_currency }}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-3 col-md-6">
+                                                <div class="text-center p-3 rounded border border-warning" style="background: linear-gradient(135deg, #ffc107, #ffca2c); box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);">
+                                                    <div class="text-dark fw-bold fs-3" style="text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);">{{ total_pendente }}</div>
+                                                    <small class="text-dark d-block" style="opacity: 0.8; font-weight: 500;">Pendentes</small>
+                                                    <div class="text-dark fw-bold mt-1" style="text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);">{{ valor_pendente | format_currency }}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-3 col-md-6">
+                                                <div class="text-center p-3 rounded border border-secondary" style="background: linear-gradient(135deg, #6c757d, #adb5bd); box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);">
+                                                    <div class="text-white fw-bold fs-3 text-shadow">{{ total_etapa00 }}</div>
+                                                    <small class="text-white d-block opacity-75">Etapa 00</small>
+                                                    <div class="text-white fw-bold mt-1 text-shadow">{{ valor_etapa00 | format_currency }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Progress bar showing distribution -->
+                                        <div class="mt-3">
+                                            <div class="progress" style="height: 8px;">
+                                                {% if total_all > 0 %}
+                                                    {% set faturada_percent = (total_faturada / total_all * 100) | round(1) %}
+                                                    {% set pendente_percent = (total_pendente / total_all * 100) | round(1) %}
+                                                    {% set etapa_00_percent = (total_etapa00 / total_all * 100) | round(1) %}
+                                                    
+                                                    <div class="progress-bar bg-success" style="width: {{ faturada_percent }}%" title="Faturadas: {{ faturada_percent }}%"></div>
+                                                    <div class="progress-bar bg-warning" style="width: {{ pendente_percent }}%" title="Pendentes: {{ pendente_percent }}%"></div>
+                                                    <div class="progress-bar bg-secondary" style="width: {{ etapa_00_percent }}%" title="Etapa 00: {{ etapa_00_percent }}%"></div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <small class="text-white">{{ ((total_faturada / total_all * 100) if total_all > 0 else 0) | round(1) }}% Faturadas</small>
+                                                <small class="text-white">{{ ((total_pendente / total_all * 100) if total_all > 0 else 0) | round(1) }}% Pendentes</small>
+                                                <small class="text-white">{{ ((total_etapa00 / total_all * 100) if total_all > 0 else 0) | round(1) }}% Etapa 00</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Serviços Individuais (ordenados por valor total) -->
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-0">
+                                    <i class="bi bi-sort-numeric-down me-1"></i>
+                                    Serviços Cadastrados ({{ stats.service_breakdown_sorted | length }}/16) - ordenados por maior valor total
+                                </h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Valor total = Faturado + Pendente + Etapa 00
+                                </small>
+                            </div>
+                        </div>
+                        <div class="row" id="servicesContainer">
+                            {% for service_name, service_data in stats.service_breakdown_sorted %}
+                            {% set loop_index = loop.index %}
+                            <div class="col-lg-4 col-md-6 mb-4 service-card" data-index="{{ loop_index }}">
+                                <div class="card border-0 bg-light h-100">
+                                    <div class="card-header bg-primary text-white position-relative">
+                                        <!-- Ranking Badge -->
+                                        <div class="position-absolute top-0 end-0 translate-middle">
+                                            <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.75rem;">
+                                                #{{ loop_index }}
+                                            </span>
+                                        </div>
+                                        <h6 class="card-title mb-0 text-truncate pe-3" title="{{ service_name }}">
+                                            <i class="bi bi-gear-fill me-2"></i>{{ service_name }}
+                                        </h6>
+                                        <small class="opacity-75">{{ service_data.total_count }} OS • {{ service_data.total_value | format_currency }}</small>
+                                    </div>
+                                    <div class="card-body p-3">
+                                        <div class="row g-2">
+                                            <div class="col-4">
+                                                <div class="text-center p-2 rounded" style="background-color: rgba(25, 135, 84, 0.1);">
+                                                    <div class="text-success fw-bold">{{ service_data.faturada.count }}</div>
+                                                    <small class="text-muted">Faturadas</small>
+                                                    <div class="text-success small fw-semibold">{{ service_data.faturada.value | format_currency }}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="text-center p-2 rounded" style="background-color: rgba(255, 193, 7, 0.1);">
+                                                    <div class="text-warning fw-bold">{{ service_data.pendente.count }}</div>
+                                                    <small class="text-muted">Pendentes</small>
+                                                    <div class="text-warning small fw-semibold">{{ service_data.pendente.value | format_currency }}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="text-center p-2 rounded" style="background-color: rgba(108, 117, 125, 0.1);">
+                                                    <div class="text-secondary fw-bold">{{ service_data.etapa_00.count }}</div>
+                                                    <small class="text-muted">Etapa 00</small>
+                                                    <div class="text-secondary small fw-semibold">{{ service_data.etapa_00.value | format_currency }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Progress bar showing distribution -->
+                                        <div class="mt-3">
+                                            <div class="progress" style="height: 6px;">
+                                                {% set total_for_progress = service_data.total_count %}
+                                                {% if total_for_progress > 0 %}
+                                                    {% set faturada_percent = (service_data.faturada.count / total_for_progress * 100) | round(1) %}
+                                                    {% set pendente_percent = (service_data.pendente.count / total_for_progress * 100) | round(1) %}
+                                                    {% set etapa_00_percent = (service_data.etapa_00.count / total_for_progress * 100) | round(1) %}
+                                                    
+                                                    <div class="progress-bar bg-success" style="width: {{ faturada_percent }}%" title="Faturadas: {{ faturada_percent }}%"></div>
+                                                    <div class="progress-bar bg-warning" style="width: {{ pendente_percent }}%" title="Pendentes: {{ pendente_percent }}%"></div>
+                                                    <div class="progress-bar bg-secondary" style="width: {{ etapa_00_percent }}%" title="Etapa 00: {{ etapa_00_percent }}%"></div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-1">
+                                                <small class="text-success">{{ ((service_data.faturada.count / service_data.total_count * 100) if service_data.total_count > 0 else 0) | round(1) }}%</small>
+                                                <small class="text-warning">{{ ((service_data.pendente.count / service_data.total_count * 100) if service_data.total_count > 0 else 0) | round(1) }}%</small>
+                                                <small class="text-secondary">{{ ((service_data.etapa_00.count / service_data.total_count * 100) if service_data.total_count > 0 else 0) | round(1) }}%</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Botão para Expandir/Recolher -->
+                        {% if stats.service_breakdown_sorted | length > 6 %}
+                        <div class="row mt-3">
+                            <div class="col-12 text-center">
+                                <button id="toggleServicesBtn" class="btn btn-outline-primary">
+                                    <i class="bi bi-chevron-down me-2"></i>
+                                    <span id="toggleServicesText">Mostrar todos os {{ stats.service_breakdown_sorted | length }} serviços</span>
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-pie-chart text-muted" style="font-size: 3rem;"></i>
+                            <h6 class="text-muted mt-2">Nenhum dado de serviço disponível</h6>
+                            <p class="text-muted small">Os dados serão exibidos quando houver ordens de serviço carregadas.</p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -831,6 +1052,90 @@ function refreshData() {
     location.reload();
 }
 
+// Função para limpar cache de serviços
+function clearServicesCache() {
+    if (confirm('Tem certeza que deseja limpar o cache de serviços? Isso forçará o recarregamento de todos os dados.')) {
+        showLoading();
+        
+        fetch('/api/cache/clear-services', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Cache de serviços limpo com sucesso! A página será recarregada.');
+                location.reload();
+            } else {
+                alert('Erro ao limpar cache: ' + (data.error || 'Erro desconhecido'));
+                hideLoading();
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao limpar cache: ' + error.message);
+            hideLoading();
+        });
+    }
+}
+
+// Controle de exibição dos serviços (mostrar apenas 6 inicialmente)
+let servicesExpanded = false;
+const maxInitialServices = 6;
+
+function initializeServicesDisplay() {
+    const serviceCards = document.querySelectorAll('.service-card');
+    const toggleBtn = document.getElementById('toggleServicesBtn');
+    const toggleText = document.getElementById('toggleServicesText');
+    const toggleIcon = toggleBtn?.querySelector('i');
+    
+    if (!toggleBtn || serviceCards.length <= maxInitialServices) {
+        return; // Não há botão ou poucos serviços
+    }
+    
+    // Inicialmente mostrar apenas os 6 primeiros
+    serviceCards.forEach((card, index) => {
+        if (index >= maxInitialServices) {
+            card.classList.add('hidden');
+        }
+    });
+    
+    // Configurar evento do botão
+    toggleBtn.addEventListener('click', function() {
+        servicesExpanded = !servicesExpanded;
+        
+        serviceCards.forEach((card, index) => {
+            if (index >= maxInitialServices) {
+                if (servicesExpanded) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            }
+        });
+        
+        // Atualizar texto e ícone do botão
+        if (servicesExpanded) {
+            toggleText.textContent = 'Mostrar apenas os 6 principais';
+            toggleIcon.className = 'bi bi-chevron-up me-2';
+            toggleBtn.classList.remove('btn-outline-primary');
+            toggleBtn.classList.add('btn-outline-secondary');
+        } else {
+            toggleText.textContent = `Mostrar todos os ${serviceCards.length} serviços`;
+            toggleIcon.className = 'bi bi-chevron-down me-2';
+            toggleBtn.classList.remove('btn-outline-secondary');
+            toggleBtn.classList.add('btn-outline-primary');
+        }
+        
+        // Scroll suave para o botão se estiver recolhendo
+        if (!servicesExpanded) {
+            toggleBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+}
+
 // Função para mostrar loading
 function showLoading() {
     document.getElementById('loadingOverlay').style.display = 'flex';
@@ -851,6 +1156,9 @@ document.addEventListener('DOMContentLoaded', function() {
         clearTimeout(loadingTimeout);
         hideLoading();
     });
+    
+    // Inicializar controle de exibição dos serviços
+    initializeServicesDisplay();
     
     // Implementar tooltips para observações com delay
     console.log('Inicializando tooltips...');

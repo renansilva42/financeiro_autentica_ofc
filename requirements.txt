@@ -1,7 +1,7 @@
 Flask
 python-dotenv
 requests
-pydantic-settings
+pydantic-settingspy
 supabase
 Flask-Session
 gunicorn

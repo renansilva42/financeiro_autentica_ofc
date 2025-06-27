@@ -857,15 +857,85 @@ class OmieService:
                 status_name = status_map.get(status, f"Etapa {status}")
                 status_count[status_name] = status_count.get(status_name, 0) + 1
             
+            # Buscar mapeamento de serviços para usar nomes reais
+            service_name_mapping = self.get_service_name_mapping()
+            print(f"Mapeamento de serviços carregado: {len(service_name_mapping)} serviços")
+            
             # Contagem por tipo de serviço
             service_types = {}
+            service_breakdown = {}
+            
             for order in orders:
+                cabecalho = order.get("Cabecalho", {})
+                order_status = cabecalho.get("cEtapa", "")
+                order_code = cabecalho.get("nCodOS", "")
+                
                 servicos = order.get("ServicosPrestados", [])
-                for servico in servicos:
-                    service_type = servico.get("cDescServ", "Não informado")
-                    if service_type == "":
+                
+                for i, servico in enumerate(servicos):
+                    # Usar código do serviço (nCodServico) para buscar o nome real
+                    service_code = servico.get("nCodServico", "")
+                    service_desc = servico.get("cDescServ", "").strip()
+                    
+                    if service_code and service_code != 0:
+                        # Usar código do serviço se disponível
+                        service_type = service_name_mapping.get(service_code, f"Serviço {service_code}")
+                    elif service_desc:
+                        # Se código não está disponível, tentar mapear a descrição para um serviço cadastrado
+                        service_type = self._map_service_description_to_registered(service_desc, service_name_mapping)
+                    else:
                         service_type = "Não informado"
+                    
+                    # Calcular valor específico do item de serviço
+                    quantidade = float(servico.get("nQtde", 1))
+                    valor_unitario = float(servico.get("nValUnit", 0))
+                    valor_desconto = float(servico.get("nValorDesconto", 0))
+                    valor_acrescimos = float(servico.get("nValorAcrescimos", 0))
+                    service_value = (quantidade * valor_unitario) - valor_desconto + valor_acrescimos
+                    
+                    # Contagem simples por tipo de serviço
                     service_types[service_type] = service_types.get(service_type, 0) + 1
+                    
+                    # Breakdown detalhado por serviço e status
+                    if service_type not in service_breakdown:
+                        service_breakdown[service_type] = {
+                            'total_count': 0,
+                            'total_value': 0,
+                            'faturada': {'count': 0, 'value': 0},
+                            'pendente': {'count': 0, 'value': 0},
+                            'etapa_00': {'count': 0, 'value': 0}
+                        }
+                    
+                    # Incrementar totais
+                    service_breakdown[service_type]['total_count'] += 1
+                    service_breakdown[service_type]['total_value'] += service_value
+                    
+                    # Classificar por status
+                    if order_status == "60":  # Faturada
+                        service_breakdown[service_type]['faturada']['count'] += 1
+                        service_breakdown[service_type]['faturada']['value'] += service_value
+                    elif order_status == "10":  # Pendente
+                        service_breakdown[service_type]['pendente']['count'] += 1
+                        service_breakdown[service_type]['pendente']['value'] += service_value
+                    elif order_status == "00":  # Etapa 00
+                        service_breakdown[service_type]['etapa_00']['count'] += 1
+                        service_breakdown[service_type]['etapa_00']['value'] += service_value
+            
+            # Adicionar serviços cadastrados que não têm ordens (para mostrar todos os 16 serviços)
+            for service_code, service_name in service_name_mapping.items():
+                if service_name not in service_breakdown:
+                    service_breakdown[service_name] = {
+                        'total_count': 0,
+                        'total_value': 0,
+                        'faturada': {'count': 0, 'value': 0},
+                        'pendente': {'count': 0, 'value': 0},
+                        'etapa_00': {'count': 0, 'value': 0}
+                    }
+            
+            # Debug: mostrar resumo do breakdown
+            print(f"\nService Breakdown processado: {len(service_breakdown)} tipos de serviço")
+            for service_name, data in service_breakdown.items():
+                print(f"  {service_name}: Total={data['total_count']}, Faturada={data['faturada']['count']}, Pendente={data['pendente']['count']}, Etapa00={data['etapa_00']['count']}")
             
             # Contagem por mês
             monthly_stats = {}
@@ -913,6 +983,21 @@ class OmieService:
                     seller_name = seller_name_mapping.get(seller_code, f"Vendedor {seller_code}")
                     sellers[seller_name] = sellers.get(seller_name, 0) + 1
             
+            # Criar versão ordenada do service_breakdown por valor total (maior para menor)
+            # Separar serviços cadastrados dos não cadastrados
+            registered_service_names = set(service_name_mapping.values())
+            
+            # Serviços cadastrados ordenados por faturamento
+            registered_services = {k: v for k, v in service_breakdown.items() if k in registered_service_names}
+            service_breakdown_sorted = sorted(
+                registered_services.items(), 
+                key=lambda x: x[1]['total_value'], 
+                reverse=True
+            )
+            
+            # Serviços não cadastrados (como "Não informado")
+            unregistered_services = {k: v for k, v in service_breakdown.items() if k not in registered_service_names}
+            
             return {
                 "total_orders": total_orders,
                 "total_value": total_value,
@@ -924,7 +1009,10 @@ class OmieService:
                 "top_services": top_services,
                 "by_technician": sellers,  # Usando vendedores como "técnicos"
                 "monthly_stats": monthly_stats,
-                "monthly_values": monthly_values
+                "monthly_values": monthly_values,
+                "service_breakdown": service_breakdown,
+                "service_breakdown_sorted": service_breakdown_sorted,
+                "unregistered_services": unregistered_services
             }
             
         except Exception as e:
@@ -940,7 +1028,10 @@ class OmieService:
                 "top_services": [],
                 "by_technician": {},
                 "monthly_stats": {},
-                "monthly_values": {}
+                "monthly_values": {},
+                "service_breakdown": {},
+                "service_breakdown_sorted": [],
+                "unregistered_services": {}
             }
     
     def get_available_months_for_services(self) -> List[dict]:
@@ -1109,3 +1200,199 @@ class OmieService:
         except Exception as e:
             print(f"Erro no carregamento completo de dados: {str(e)}")
             raise e
+    def get_services_page(self, page: int = 1, records_per_page: int = 20) -> dict:
+        """Busca uma página de serviços cadastrados"""
+        resource = "servicos/servico/"
+        action = "ListarCadastroServico"
+        
+        params = {
+            "nPagina": page,
+            "nRegPorPagina": records_per_page
+        }
+        
+        body = {
+            "call": action,
+            "app_key": self.app_key,
+            "app_secret": self.app_secret,
+            "param": [params]
+        }
+        
+        return self._make_request(resource, body)
+    
+    def get_all_services(self) -> List[dict]:
+        """Busca todos os serviços cadastrados de todas as páginas"""
+        # Verificar cache primeiro com tempo de vida estendido
+        cache_key = self._get_cache_key("get_all_services")
+        cached_data = self._get_from_cache(cache_key, use_mapping_expiry=True)
+        if cached_data is not None:
+            print(f"Serviços carregados do cache: {len(cached_data)} registros")
+            return cached_data
+        
+        all_services = []
+        page = 1
+        
+        try:
+            # Primeira requisição para saber o total de páginas
+            first_response = self.get_services_page(page)
+            total_pages = first_response.get("total_de_paginas", 1)
+            total_records = first_response.get("total_de_registros", 0)
+            
+            print(f"Carregando serviços: {total_pages} páginas, {total_records} registros")
+            
+            # Adiciona os serviços da primeira página
+            services = first_response.get("cadastros", [])
+            all_services.extend(services)
+            
+            # Busca as páginas restantes com timeout otimizado
+            for page in range(2, total_pages + 1):
+                try:
+                    response = self.get_services_page(page)
+                    services = response.get("cadastros", [])
+                    all_services.extend(services)
+                    
+                    # Log de progresso a cada 10 páginas
+                    if page % 10 == 0:
+                        print(f"Progresso serviços: {page}/{total_pages} páginas ({len(all_services)} registros)")
+                        
+                except Exception as page_error:
+                    print(f"Erro ao buscar página {page} de serviços: {str(page_error)}")
+                    # Continue com as próximas páginas mesmo se uma falhar
+                    continue
+            
+            print(f"Serviços carregados: {len(all_services)} registros de {total_pages} páginas")
+            
+            # Armazenar no cache
+            self._set_cache(cache_key, all_services)
+            return all_services
+            
+        except Exception as e:
+            print(f"Erro ao buscar serviços: {str(e)}")
+            return []
+    
+    def _map_service_description_to_registered(self, service_desc: str, service_name_mapping: Dict[int, str]) -> str:
+        """Mapeia uma descrição de serviço para um serviço cadastrado usando lógica inteligente"""
+        if not service_desc:
+            return "Não informado"
+        
+        service_desc_clean = service_desc.strip()
+        registered_names = list(service_name_mapping.values())
+        
+        # 1. Correspondência exata (case-insensitive)
+        for reg_name in registered_names:
+            if reg_name.lower() == service_desc_clean.lower():
+                return reg_name
+        
+        # 2. Mapeamentos específicos conhecidos
+        desc_lower = service_desc_clean.lower()
+        
+        # Mapeamentos para Be Master
+        if any(keyword in desc_lower for keyword in ['be master', 'bemaster']):
+            if 'parcial' in desc_lower:
+                return "Be Master Parcial"
+            elif 'renovação' in desc_lower or 'renovacao' in desc_lower:
+                # Mapear "Renovação Be Master" para "Be Master" (serviço principal)
+                return "Be Master"
+            else:
+                return "Be Master"
+        
+        # Mapeamentos para Imersão BLI
+        if any(keyword in desc_lower for keyword in ['imersão bli', 'imersao bli', 'bli']):
+            if 'almoço' in desc_lower or 'almoco' in desc_lower:
+                return "Almoço Imersão BLI (Aplicação para o Be Master)"
+            else:
+                return "Imersão BLI"
+        
+        # Mapeamentos para BLA
+        if 'bla' in desc_lower and ('advanced' in desc_lower or 'leader' in desc_lower):
+            return "BLA (Be Leader Advanced)"
+        
+        # Mapeamentos para BLC
+        if any(keyword in desc_lower for keyword in ['blc', 'be leader in company', 'consultoria de posicionamento']):
+            return "BLC"
+        
+        # Mapeamentos para Escola de Vendedores
+        if 'escola de vendedores' in desc_lower:
+            return "Escola de Vendedores"
+        
+        # Mapeamentos para serviços genéricos
+        if any(keyword in desc_lower for keyword in ['serviços prestados', 'servicos prestados']):
+            if 'teste' in desc_lower:
+                # Mapear para um serviço existente ou manter separado se necessário
+                return "Serviços de produção de vídeos"  # ou outro serviço apropriado
+            else:
+                # Mapear serviços prestados genéricos para um serviço existente
+                return "Serviços de produção de vídeos"  # ou outro serviço apropriado
+        
+        # Mapeamentos para BLP
+        if 'blp' in desc_lower:
+            return "BLC"  # Mapear BLP para BLC (serviço similar)
+        
+        # Mapeamentos para IPM
+        if 'ipm' in desc_lower or 'imersão de posicionamento' in desc_lower:
+            return "Imersão BLI"  # Mapear para serviço similar
+        
+        # 3. Correspondência parcial (contém palavras-chave)
+        for reg_name in registered_names:
+            reg_words = reg_name.lower().split()
+            desc_words = service_desc_clean.lower().split()
+            
+            # Se pelo menos 50% das palavras do serviço registrado estão na descrição
+            matching_words = sum(1 for word in reg_words if any(word in desc_word for desc_word in desc_words))
+            if len(reg_words) > 0 and matching_words / len(reg_words) >= 0.5:
+                return reg_name
+        
+        # 4. Se não encontrou correspondência, retornar a descrição original
+        # mas com aviso de que não está cadastrado
+        return f"⚠️ {service_desc_clean}"
+
+    def get_service_name_mapping(self) -> Dict[int, str]:
+        """Retorna um dicionário mapeando código do serviço para nome"""
+        # Verificar cache primeiro com tempo de vida estendido
+        cache_key = self._get_cache_key("get_service_name_mapping")
+        cached_data = self._get_from_cache(cache_key, use_mapping_expiry=True)
+        if cached_data is not None:
+            print(f"Mapeamento de serviços carregado do cache: {len(cached_data)} serviços")
+            return cached_data
+        
+        try:
+            # Buscar todos os serviços para mapeamento completo
+            services = self.get_all_services()
+            mapping = {}
+            
+            for service in services:
+                # Tentar diferentes estruturas para encontrar o c��digo do serviço
+                service_code = None
+                service_name = ""
+                
+                # Estrutura 1: intListar.nCodServ (estrutura atual)
+                if "intListar" in service and "nCodServ" in service["intListar"]:
+                    service_code = service["intListar"]["nCodServ"]
+                    if "cabecalho" in service and "cDescricao" in service["cabecalho"]:
+                        service_name = service["cabecalho"]["cDescricao"].strip()
+                
+                # Estrutura 2: nCodServ direto (conforme mencionado pelo usuário)
+                elif "nCodServ" in service:
+                    service_code = service["nCodServ"]
+                    service_name = service.get("cDescricao", "").strip()
+                
+                # Estrutura 3: Outras possíveis estruturas
+                elif "codigo" in service:
+                    service_code = service["codigo"]
+                    service_name = service.get("descricao", "").strip()
+                
+                # Se não encontrou nome, usar nome padrão
+                if not service_name and service_code:
+                    service_name = f"Serviço {service_code}"
+                
+                if service_code and service_name:
+                    mapping[service_code] = service_name
+            
+            # Armazenar no cache
+            self._set_cache(cache_key, mapping)
+            print(f"Mapeamento de serviços criado: {len(mapping)} serviços")
+            
+            return mapping
+            
+        except Exception as e:
+            print(f"Erro ao criar mapeamento de serviços: {str(e)}")
+            return {}
