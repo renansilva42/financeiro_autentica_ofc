@@ -237,6 +237,23 @@ footer {
     background: #a8a8a8;
 }
 
+/* Icon containers - Fix for stretched icons */
+.rounded-circle.p-3 {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.rounded-circle.p-3 i {
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* Utilities */
 .shadow {
     box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
