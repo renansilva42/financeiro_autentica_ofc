@@ -168,6 +168,24 @@
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     
+    /* Controle de exibição dos vendedores */
+    .seller-item {
+        transition: all 0.3s ease-in-out;
+    }
+    
+    .seller-item.hidden {
+        display: none !important;
+    }
+    
+    #toggleSellersBtn {
+        transition: all 0.3s ease;
+    }
+    
+    #toggleSellersBtn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
     /* Larguras responsivas para colunas da tabela */
     /* Colunas com larguras mais flexíveis */
     .table th, .table td {
@@ -643,16 +661,30 @@
                 <div class="card-header bg-white">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-person-gear"></i> Vendedores
+                        <small class="text-muted ms-2">({{ stats.by_technician|length if stats.by_technician else 0 }} vendedores)</small>
                     </h5>
                 </div>
                 <div class="card-body">
                     {% if stats.by_technician %}
-                        {% for tech, count in stats.by_technician.items() %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-truncate">{{ tech }}</span>
-                            <span class="badge bg-info">{{ count }} OS</span>
+                        {% set sorted_technicians = stats.by_technician.items() | sort(attribute=1, reverse=true) %}
+                        <div id="sellersContainer">
+                            {% for tech, count in sorted_technicians %}
+                            <div class="d-flex justify-content-between align-items-center mb-2 seller-item" data-index="{{ loop.index }}">
+                                <span class="text-truncate">{{ tech }}</span>
+                                <span class="badge bg-info">{{ count }} OS</span>
+                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
+                        
+                        <!-- Botão para Expandir/Recolher Vendedores -->
+                        {% if sorted_technicians|length > 5 %}
+                        <div class="text-center mt-3">
+                            <button id="toggleSellersBtn" class="btn btn-outline-info btn-sm">
+                                <i class="bi bi-chevron-down me-1"></i>
+                                <span id="toggleSellersText">Ver todos os {{ sorted_technicians|length }} vendedores</span>
+                            </button>
+                        </div>
+                        {% endif %}
                     {% else %}
                         <p class="text-muted">Nenhum dado disponível</p>
                     {% endif %}
@@ -2049,6 +2081,62 @@ document.addEventListener('DOMContentLoaded', function() {
 // Se a página demorar mais de 2 segundos, mostrar loading
 const loadingTimeout = setTimeout(showLoading, 2000);
 
+// Controle de exibição dos vendedores (mostrar apenas 5 inicialmente)
+let sellersExpanded = false;
+const maxInitialSellers = 5;
+
+function initializeSellersDisplay() {
+    const sellerItems = document.querySelectorAll('.seller-item');
+    const toggleBtn = document.getElementById('toggleSellersBtn');
+    const toggleText = document.getElementById('toggleSellersText');
+    
+    if (!toggleBtn || sellerItems.length <= maxInitialSellers) {
+        return; // Não há botão ou poucos vendedores
+    }
+    
+    const toggleIcon = toggleBtn.querySelector('i');
+    
+    // Inicialmente mostrar apenas os 5 primeiros
+    sellerItems.forEach((item, index) => {
+        if (index >= maxInitialSellers) {
+            item.classList.add('hidden');
+        }
+    });
+    
+    // Configurar evento do botão
+    toggleBtn.addEventListener('click', function() {
+        sellersExpanded = !sellersExpanded;
+        
+        sellerItems.forEach((item, index) => {
+            if (index >= maxInitialSellers) {
+                if (sellersExpanded) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            }
+        });
+        
+        // Atualizar texto e ícone do botão
+        if (sellersExpanded) {
+            if (toggleText) toggleText.textContent = 'Ver apenas os 5 principais';
+            if (toggleIcon) toggleIcon.className = 'bi bi-chevron-up me-1';
+            toggleBtn.classList.remove('btn-outline-info');
+            toggleBtn.classList.add('btn-outline-secondary');
+        } else {
+            if (toggleText) toggleText.textContent = `Ver todos os ${sellerItems.length} vendedores`;
+            if (toggleIcon) toggleIcon.className = 'bi bi-chevron-down me-1';
+            toggleBtn.classList.remove('btn-outline-secondary');
+            toggleBtn.classList.add('btn-outline-info');
+        }
+        
+        // Scroll suave para o botão se estiver recolhendo
+        if (!sellersExpanded) {
+            toggleBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+}
+
 // Esconder loading quando a página terminar de carregar
 window.addEventListener('load', function() {
 clearTimeout(loadingTimeout);
@@ -2057,6 +2145,9 @@ hideLoading();
 
 // Inicializar controle de exibição dos serviços
 initializeServicesDisplay();
+
+// Inicializar controle de exibição dos vendedores
+initializeSellersDisplay();
 
 // Aplicar estilos nos filtros ativos
 applyActiveFilterStyles();
