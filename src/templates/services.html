@@ -435,9 +435,9 @@
                                                 {% endif %}
                                             </div>
                                             <div class="d-flex justify-content-between mt-2">
-                                                <small class="text-white">{{ ((totals.faturada / totals.all * 100) if totals.all > 0 else 0) | round(1) }}% Faturadas</small>
-                                                <small class="text-white">{{ ((totals.pendente / totals.all * 100) if totals.all > 0 else 0) | round(1) }}% Pendentes</small>
-                                                <small class="text-white">{{ ((totals.etapa00 / totals.all * 100) if totals.all > 0 else 0) | round(1) }}% Etapa 00</small>
+                                                <small class="text-success fw-semibold">{{ ((totals.faturada / totals.all * 100) if totals.all > 0 else 0) | round(1) }}% Faturadas</small>
+                                                <small class="text-warning fw-semibold">{{ ((totals.pendente / totals.all * 100) if totals.all > 0 else 0) | round(1) }}% Pendentes</small>
+                                                <small class="text-secondary fw-semibold">{{ ((totals.etapa00 / totals.all * 100) if totals.all > 0 else 0) | round(1) }}% Etapa 00</small>
                                             </div>
                                         </div>
                                     </div>
