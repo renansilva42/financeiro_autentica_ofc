@@ -1,6 +1,6 @@
 {
-  "timestamp": "2025-06-22T19:05:03.011850",
-  "total_clients": 1498,
+  "timestamp": "2025-06-28T13:42:22.955498",
+  "total_clients": 1536,
   "clients": [
     {
       "bairro": "",
@@ -48810,7 +48810,7 @@
       "endereco": "RUA QUARENTA E QUATRO",
       "enderecoEntrega": {},
       "endereco_numero": "23",
-      "enviar_anexos": "N",
+      "enviar_anexos": "S",
       "estado": "MA",
       "exterior": "N",
       "fax_ddd": "98",
@@ -83694,18 +83694,526 @@
       "telefone1_numero": "976746701"
     },
     {
-      "bairro": "",
+      "bairro": "NOVA ALIANCA",
       "bloquear_exclusao": "N",
       "bloquear_faturamento": "N",
-      "cep": "06465134",
-      "cidade": "",
-      "cidade_ibge": "",
+      "cep": "14026587",
+      "cidade": "RIBEIRAO PRETO (SP)",
+      "cidade_ibge": "3543402",
       "cnpj_cpf": "078.739.166-26",
       "codigo_cliente_integracao": "lastlink_07873916626",
       "codigo_cliente_omie": 9794170743,
       "codigo_pais": "1058",
-      "complemento": "",
+      "complemento": "PROXIMO A UNIP",
       "contato": "Jonathan Rios",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "jonriosilva@gmail.com",
+      "endereco": "RUA JOAO PERONE",
+      "enderecoEntrega": {},
+      "endereco_numero": "360",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "fax_ddd": "37",
+      "fax_numero": "35587958",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "S",
+        "dAlt": "23/06/2025",
+        "dInc": "18/06/2025",
+        "hAlt": "11:26:37",
+        "hInc": "20:23:26",
+        "uAlt": "P000952423",
+        "uInc": "WEBSERVICE"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "JONATHAN RIOS DA SILVA",
+      "pessoa_fisica": "S",
+      "razao_social": "JONATHAN RIOS DA SILVA",
+      "recomendacoes": {
+        "gerar_boletos": "N"
+      },
+      "tags": [
+        {
+          "tag": "Cliente"
+        }
+      ],
+      "telefone1_ddd": "16",
+      "telefone1_numero": "997074613",
+      "telefone2_ddd": "35",
+      "telefone2_numero": "991193488"
+    },
+    {
+      "bairro": "MEIER",
+      "bloquear_faturamento": "N",
+      "cep": "20720010",
+      "cidade": "RIO DE JANEIRO (RJ)",
+      "cidade_ibge": "3304557",
+      "cnpj_cpf": "056.534.457-97",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9795300920,
+      "codigo_pais": "1058",
+      "complemento": "AP 507",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "fasciapilates@gmail.com",
+      "endereco": "RUA DIAS DA CRUZ",
+      "enderecoEntrega": {},
+      "endereco_numero": "203",
+      "enviar_anexos": "N",
+      "estado": "RJ",
+      "exterior": "N",
+      "fax_ddd": "21",
+      "fax_numero": "32443528",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "23/06/2025",
+        "dInc": "23/06/2025",
+        "hAlt": "11:03:04",
+        "hInc": "11:01:43",
+        "uAlt": "P000952423",
+        "uInc": "P000952423"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "MONICK CASTILHOS DE SIQUEIRA",
+      "pessoa_fisica": "S",
+      "razao_social": "MONICK CASTILHOS DE SIQUEIRA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Cliente"
+        }
+      ],
+      "telefone1_ddd": "21",
+      "telefone1_numero": "964197198",
+      "telefone2_ddd": "21",
+      "telefone2_numero": "991246077"
+    },
+    {
+      "bairro": "CENTRO",
+      "bloquear_faturamento": "N",
+      "cep": "96810002",
+      "cidade": "SANTA CRUZ DO SUL (RS)",
+      "cidade_ibge": "4316808",
+      "cnpj_cpf": "996.551.440-20",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9795348151,
+      "codigo_pais": "1058",
+      "complemento": "AP 301",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "edubiten@gmail.com",
+      "endereco": "RUA MARECHAL FLORIANO",
+      "enderecoEntrega": {},
+      "endereco_numero": "145",
+      "enviar_anexos": "N",
+      "estado": "RS",
+      "exterior": "N",
+      "fax_ddd": "51",
+      "fax_numero": "21074120",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "23/06/2025",
+        "dInc": "23/06/2025",
+        "hAlt": "12:03:45",
+        "hInc": "12:03:34",
+        "uAlt": "P000952423",
+        "uInc": "P000952423"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "EDUARDO PAES BITENCOURT",
+      "pessoa_fisica": "S",
+      "razao_social": "EDUARDO PAES BITENCOURT",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [],
+      "telefone1_ddd": "51",
+      "telefone1_numero": "999263363",
+      "telefone2_ddd": "51",
+      "telefone2_numero": "999155404"
+    },
+    {
+      "bairro": "CENTRO",
+      "bloquear_faturamento": "N",
+      "cep": "88840000",
+      "cidade": "URUSSANGA (SC)",
+      "cidade_ibge": "4219002",
+      "cnae": "6201501",
+      "cnpj_cpf": "47.921.894/0001-16",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9796242347,
+      "codigo_pais": "1058",
+      "complemento": "EDIF ROSALINO DAMIANI;SALA 210 L21",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "contatoricardoweb@gmail.com",
+      "endereco": "PRACA ANITA GARIBALDI",
+      "enderecoEntrega": {},
+      "endereco_numero": "193",
+      "enviar_anexos": "N",
+      "estado": "SC",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "24/06/2025",
+        "dInc": "24/06/2025",
+        "hAlt": "11:28:18",
+        "hInc": "11:27:44",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "262.995.832",
+      "inscricao_municipal": "",
+      "nome_fantasia": "RMF DESIGN - SOLUCOES DIGITAIS",
+      "optante_simples_nacional": "S",
+      "pessoa_fisica": "N",
+      "razao_social": "RMF SERVICOS DIGITAIS LTDA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "61",
+      "telefone1_numero": "9282-9553",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "CENTRO",
+      "bloquear_faturamento": "N",
+      "cep": "78455000",
+      "cidade": "PORTO DOS GAUCHOS (MT)",
+      "cidade_ibge": "5106802",
+      "cnpj_cpf": "064.213.961-00",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797212603,
+      "codigo_pais": "1058",
+      "complemento": "000",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "queirozzssocial50@gmail.com",
+      "endereco": "Avenida Guilherme Meyer",
+      "enderecoEntrega": {},
+      "endereco_numero": "000",
+      "enviar_anexos": "N",
+      "estado": "MT",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "25/06/2025",
+        "dInc": "25/06/2025",
+        "hAlt": "16:05:38",
+        "hInc": "13:39:55",
+        "uAlt": "P000952423",
+        "uInc": "P000952423"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "LEONARDO SILVA QUEIROZ",
+      "pessoa_fisica": "S",
+      "razao_social": "LEONARDO SILVA QUEIROZ",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Cliente"
+        }
+      ],
+      "telefone1_ddd": "65",
+      "telefone1_numero": "9817-0463"
+    },
+    {
+      "bairro": "CENTRO",
+      "bloquear_faturamento": "N",
+      "cep": "85810050",
+      "cidade": "CASCAVEL (PR)",
+      "cidade_ibge": "4104808",
+      "cnpj_cpf": "954.849.811-15",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797289377,
+      "codigo_pais": "1058",
+      "complemento": "",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "kalynebeloto@gmail.com",
+      "endereco": "RUA FORTALEZA",
+      "enderecoEntrega": {},
+      "endereco_numero": "356",
+      "enviar_anexos": "N",
+      "estado": "PR",
+      "exterior": "N",
+      "fax_ddd": "41",
+      "fax_numero": "30390330",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "25/06/2025",
+        "dInc": "25/06/2025",
+        "hAlt": "16:10:50",
+        "hInc": "16:10:36",
+        "uAlt": "P000952423",
+        "uInc": "P000952423"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "KALYNE ALVES DE SOUZA BELOTO",
+      "pessoa_fisica": "S",
+      "razao_social": "KALYNE ALVES DE SOUZA BELOTO",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Cliente"
+        }
+      ],
+      "telefone1_ddd": "45",
+      "telefone1_numero": "999170732",
+      "telefone2_ddd": "45",
+      "telefone2_numero": "30390330"
+    },
+    {
+      "bairro": "CENTRO",
+      "bloquear_faturamento": "N",
+      "cep": "09725200",
+      "cidade": "SAO BERNARDO DO CAMPO (SP)",
+      "cidade_ibge": "3548708",
+      "cnae": "8599604",
+      "cnpj_cpf": "60.738.029/0001-05",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797301490,
+      "codigo_pais": "1058",
+      "complemento": "SALA 44 EDIF VANCOUVER",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "andradestratintel@gmail.com",
+      "endereco": "RUA PRINCIPE HUMBERTO",
+      "enderecoEntrega": {},
+      "endereco_numero": "112",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "25/06/2025",
+        "dInc": "25/06/2025",
+        "hAlt": "16:35:54",
+        "hInc": "16:35:35",
+        "uAlt": "P000952423",
+        "uInc": "P000952423"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "CAMADA INTELIGENTE",
+      "pessoa_fisica": "N",
+      "razao_social": "ANDRADE ZAHRA LTDA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Cliente"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "3458-7367",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "CENTRO",
+      "bloquear_faturamento": "N",
+      "cep": "09015020",
+      "cidade": "SANTO ANDRE (SP)",
+      "cidade_ibge": "3547809",
+      "cnpj_cpf": "354.020.188-20",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797304873,
+      "codigo_pais": "1058",
+      "complemento": "NAO POSSUI",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "thaislopes_psi@yahoo.com.br",
+      "endereco": "RUA MONTE CASSEROS",
+      "enderecoEntrega": {},
+      "endereco_numero": "281",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "fax_ddd": "11",
+      "fax_numero": "985843152",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "25/06/2025",
+        "dInc": "25/06/2025",
+        "hAlt": "16:45:36",
+        "hInc": "16:45:26",
+        "uAlt": "P000952423",
+        "uInc": "P000952423"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "THAIS REGINA DE SOUSA LOPES",
+      "pessoa_fisica": "S",
+      "razao_social": "THAIS REGINA DE SOUSA LOPES",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Cliente"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "973340368",
+      "telefone2_ddd": "11",
+      "telefone2_numero": "995306601"
+    },
+    {
+      "bairro": "CENTRO",
+      "bloquear_faturamento": "N",
+      "cep": "86020400",
+      "cidade": "LONDRINA (PR)",
+      "cidade_ibge": "4113700",
+      "cnae": "4744003",
+      "cnpj_cpf": "61.256.480/0001-40",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797322704,
+      "codigo_pais": "1058",
+      "complemento": "SALA 04",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "davidrothes26@gmail.com",
+      "endereco": "RUA PARÁ",
+      "enderecoEntrega": {},
+      "endereco_numero": "1750",
+      "enviar_anexos": "N",
+      "estado": "PR",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "25/06/2025",
+        "dInc": "25/06/2025",
+        "hAlt": "17:20:28",
+        "hInc": "17:19:46",
+        "uAlt": "P000952423",
+        "uInc": "P000952423"
+      },
+      "inscricao_estadual": "911.53495-94",
+      "inscricao_municipal": "",
+      "nome_fantasia": "BISPO CONSTRUTORA LTDA",
+      "pessoa_fisica": "N",
+      "razao_social": "BISPO CONSTRUTORA LTDA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Cliente"
+        }
+      ],
+      "telefone1_ddd": "43",
+      "telefone1_numero": "8403-0620",
+      "tipo_atividade": "1"
+    },
+    {
+      "bairro": "",
+      "bloquear_faturamento": "N",
+      "cep": "",
+      "cidade": "",
+      "cidade_ibge": "",
+      "cnpj_cpf": "",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797364177,
+      "codigo_pais": "1058",
+      "complemento": "",
       "dadosBancarios": {
         "agencia": "",
         "cChavePix": "",
@@ -83723,25 +84231,1683 @@
       "exterior": "N",
       "inativo": "N",
       "info": {
-        "cImpAPI": "S",
-        "dAlt": "18/06/2025",
-        "dInc": "18/06/2025",
-        "hAlt": "20:23:26",
-        "hInc": "20:23:26",
-        "uAlt": "WEBSERVICE",
-        "uInc": "WEBSERVICE"
+        "cImpAPI": "N",
+        "dAlt": "25/06/2025",
+        "dInc": "25/06/2025",
+        "hAlt": "20:27:28",
+        "hInc": "20:25:44",
+        "uAlt": "P000770710",
+        "uInc": "P000770710"
       },
       "inscricao_estadual": "",
       "inscricao_municipal": "",
-      "nome_fantasia": "Jonathan Rios",
-      "pessoa_fisica": "S",
-      "razao_social": "Jonathan Rios",
+      "nome_fantasia": "Marcos Dantas I ISABELLE DE OLIVEIRA RIBEIRO",
+      "pessoa_fisica": "N",
+      "razao_social": "Marcos Dantas I ISABELLE DE OLIVEIRA RIBEIRO",
       "recomendacoes": {
-        "gerar_boletos": "N"
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Cliente"
+        }
+      ],
+      "telefone1_ddd": "21",
+      "telefone1_numero": "990864863"
+    },
+    {
+      "bairro": "CENTRO",
+      "bloquear_faturamento": "N",
+      "cep": "84130000",
+      "cidade": "PALMEIRA (PR)",
+      "cidade_ibge": "4117701",
+      "cnpj_cpf": "110.016.979-28",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797373402,
+      "codigo_pais": "1058",
+      "complemento": "3 C",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "11001697928",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "endereco": "RUA SANTOS DUMONT",
+      "enderecoEntrega": {},
+      "endereco_numero": "654",
+      "enviar_anexos": "N",
+      "estado": "PR",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "25/06/2025",
+        "dInc": "25/06/2025",
+        "hAlt": "21:37:06",
+        "hInc": "21:36:17",
+        "uAlt": "P000770710",
+        "uInc": "P000770710"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "ALAN PATRIC MARQUES",
+      "pessoa_fisica": "S",
+      "razao_social": "ALAN PATRIC MARQUES",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
       },
       "tags": [],
-      "telefone1_ddd": "35",
-      "telefone1_numero": "984389537"
+      "telefone1_ddd": "42",
+      "telefone1_numero": "999977495"
+    },
+    {
+      "bairro": "ALPHAVILLE INDUSTRIAL",
+      "bloquear_faturamento": "N",
+      "cep": "06455972",
+      "cidade": "BARUERI (SP)",
+      "cidade_ibge": "3505708",
+      "cnae": "5310501",
+      "cnpj_cpf": "34.028.316/2387-89",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797818699,
+      "codigo_pais": "1058",
+      "complemento": "",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "spmaccaph@correios.com.br",
+      "endereco": "ALAMEDA ARAGUAIA",
+      "enderecoEntrega": {},
+      "endereco_numero": "360",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "18:30:59",
+        "hInc": "18:30:45",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "112.388.853.119",
+      "inscricao_municipal": "",
+      "nome_fantasia": "AC ALPHAVILLE",
+      "optante_simples_nacional": "N",
+      "pessoa_fisica": "N",
+      "razao_social": "EMPRESA BRASILEIRA DE CORREIOS E TELEGRAFOS",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "4313-7013",
+      "telefone2_ddd": "11",
+      "telefone2_numero": "2112-8702",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "CENTRO",
+      "bloquear_faturamento": "N",
+      "cep": "20021340",
+      "cidade": "RIO DE JANEIRO (RJ)",
+      "cidade_ibge": "3304557",
+      "cnae": "5111100",
+      "cnpj_cpf": "07.575.651/0001-59",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797820113,
+      "codigo_pais": "1058",
+      "complemento": "TERREOAEREA PUBLICA ENT EIXOS 46-48 O-P SALA DE GERENCIA BAC",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "bambanassessoria@hotmail.com",
+      "endereco": "PRACA SENADOR SALGADO FILHO",
+      "enderecoEntrega": {},
+      "endereco_numero": "S/N",
+      "enviar_anexos": "N",
+      "estado": "RJ",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "18:41:28",
+        "hInc": "18:40:37",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "78.133.23-6",
+      "inscricao_municipal": "",
+      "nome_fantasia": "GOL LINHAS AEREAS S.A. I SMILES",
+      "optante_simples_nacional": "N",
+      "pessoa_fisica": "N",
+      "razao_social": "GOL LINHAS AEREAS S.A. I SMILES",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "7736-4837",
+      "telefone2_ddd": "11",
+      "telefone2_numero": "2274-4136",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "VILA BUTANTA",
+      "bloquear_faturamento": "N",
+      "cep": "05339900",
+      "cidade": "SAO PAULO (SP)",
+      "cidade_ibge": "3550308",
+      "cnae": "4771701",
+      "cnpj_cpf": "61.585.865/0001-51",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797826826,
+      "codigo_pais": "1058",
+      "complemento": "",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "fiscallegalizacao@rd.com.br",
+      "endereco": "AVENIDA CORIFEU DE AZEVEDO MARQUES 3097",
+      "enderecoEntrega": {},
+      "endereco_numero": "3097",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "19:17:52",
+        "hInc": "19:17:29",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "100.931.575.117",
+      "inscricao_municipal": "",
+      "nome_fantasia": "RD SAUDE",
+      "optante_simples_nacional": "N",
+      "pessoa_fisica": "N",
+      "razao_social": "RAIA DROGASIL S/A",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "3769-5731",
+      "telefone2_ddd": "11",
+      "telefone2_numero": "3769-5707",
+      "tipo_atividade": "1"
+    },
+    {
+      "bairro": "TAMBORE",
+      "bloquear_faturamento": "N",
+      "cep": "06460030",
+      "cidade": "BARUERI (SP)",
+      "cidade_ibge": "3505708",
+      "cnae": "4759801",
+      "cnpj_cpf": "62.270.186/0015-51",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797827927,
+      "codigo_pais": "1058",
+      "complemento": "LUC N E - 2 PT",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "adal.contabil@bol.com.br",
+      "endereco": "AVENIDA PIRACEMA",
+      "enderecoEntrega": {},
+      "endereco_numero": "669",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "fax_ddd": "11",
+      "fax_numero": "26673089",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "19:29:55",
+        "hInc": "19:23:50",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "206.118.185.111",
+      "inscricao_municipal": "",
+      "nome_fantasia": "PRECOLANDIA COMERCIAL LTDA",
+      "pessoa_fisica": "N",
+      "razao_social": "PRECOLANDIA COMERCIAL LTDA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "2667-3086",
+      "telefone2_ddd": "11",
+      "telefone2_numero": "26673085"
+    },
+    {
+      "bairro": "ALPHAVILLE CONDE II",
+      "bloquear_faturamento": "N",
+      "cep": "06473073",
+      "cidade": "BARUERI (SP)",
+      "cidade_ibge": "3505708",
+      "cnae": "9601701",
+      "cnpj_cpf": "20.318.315/0001-99",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797829508,
+      "codigo_pais": "1058",
+      "complemento": ": LOJA 26 ;",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "adm@lavanderiasantamaria.com.br",
+      "endereco": "AVENIDA SAGITARIO",
+      "enderecoEntrega": {},
+      "endereco_numero": "138",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "19:42:58",
+        "hInc": "19:42:13",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "STA MARIA LAVANDERIA LTDA",
+      "optante_simples_nacional": "S",
+      "pessoa_fisica": "N",
+      "razao_social": "STA MARIA LAVANDERIA LTDA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "8420-3052",
+      "telefone2_ddd": "11",
+      "telefone2_numero": "4191-8129",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "PARQUE BOTURUSSU",
+      "bloquear_faturamento": "N",
+      "cep": "03801120",
+      "cidade": "SAO PAULO (SP)",
+      "cidade_ibge": "3550308",
+      "cnae": "9601701",
+      "cnpj_cpf": "37.197.378/0001-37",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797830094,
+      "codigo_pais": "1058",
+      "complemento": "",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "contato@flexclean10.com.br",
+      "endereco": "RUA BOAVENTURA RODRIGUES DA SILVA",
+      "enderecoEntrega": {},
+      "endereco_numero": "309",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "19:50:42",
+        "hInc": "19:50:29",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "128.964.450.111",
+      "inscricao_municipal": "",
+      "nome_fantasia": "FLEX CLEAN",
+      "optante_simples_nacional": "S",
+      "pessoa_fisica": "N",
+      "razao_social": "FLEX CLEAN MANUTENCOES E FACILITIES LTDA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "2729-5256",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "ALPHAVILLE CENTRO INDUSTRIAL E EMPRESARIAL/ALPHAVI",
+      "bloquear_faturamento": "N",
+      "cep": "06454050",
+      "cidade": "BARUERI (SP)",
+      "cidade_ibge": "3505708",
+      "cnae": "6209100",
+      "cnpj_cpf": "11.426.676/0001-68",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797834866,
+      "codigo_pais": "1058",
+      "complemento": "CONJ 602",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "financeiro@lev.tech",
+      "endereco": "ALAMEDA GRAJAU",
+      "enderecoEntrega": {},
+      "endereco_numero": "60",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "20:22:25",
+        "hInc": "20:21:59",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "206.576.750.116",
+      "inscricao_municipal": "",
+      "nome_fantasia": "LEV TECNOLOGIA",
+      "optante_simples_nacional": "S",
+      "pessoa_fisica": "N",
+      "razao_social": "LEV TECNOLOGIA LTDA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "4201-6453",
+      "telefone2_ddd": "11",
+      "telefone2_numero": "2979-8688",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "",
+      "bloquear_faturamento": "N",
+      "cep": "",
+      "cidade": "",
+      "cidade_ibge": "",
+      "cnpj_cpf": "",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797836893,
+      "codigo_pais": "1058",
+      "complemento": "",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "endereco": "",
+      "enderecoEntrega": {},
+      "endereco_numero": "",
+      "enviar_anexos": "N",
+      "estado": "",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "20:40:28",
+        "hInc": "20:40:14",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "shopee",
+      "pessoa_fisica": "N",
+      "razao_social": "SHOPEE",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ]
+    },
+    {
+      "bairro": "SITIO TAMBORE ALPHAVILLE",
+      "bloquear_faturamento": "N",
+      "cep": "06473073",
+      "cidade": "BARUERI (SP)",
+      "cidade_ibge": "3505708",
+      "cnae": "5611201",
+      "cnpj_cpf": "58.434.430/0001-00",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797837458,
+      "codigo_pais": "1058",
+      "complemento": "LOJA 14",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "58434430000100",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "alphaville@pizzaprime.com.br",
+      "endereco": "AVENIDA SAGITARIO",
+      "enderecoEntrega": {},
+      "endereco_numero": "138",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "20:48:47",
+        "hInc": "20:48:39",
+        "uAlt": "P000770710",
+        "uInc": "P000770710"
+      },
+      "inscricao_estadual": "151.889.414.118",
+      "inscricao_municipal": "",
+      "nome_fantasia": "PIZZA PRIME",
+      "optante_simples_nacional": "S",
+      "pessoa_fisica": "N",
+      "razao_social": "V2M COMERCIO DE ALIMENTOS LTDA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "7828-3547",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "PARQUE VIANA",
+      "bloquear_faturamento": "N",
+      "cep": "06449120",
+      "cidade": "BARUERI (SP)",
+      "cidade_ibge": "3505708",
+      "cnae": "1813001",
+      "cnpj_cpf": "15.144.567/0001-09",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797839728,
+      "codigo_pais": "1058",
+      "complemento": "TERREOSALAO",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "jozita@rushadesivos.com.br",
+      "endereco": "RUA RIO CLARO",
+      "enderecoEntrega": {},
+      "endereco_numero": "124",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "21:12:21",
+        "hInc": "21:11:55",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "206.156.245.115",
+      "inscricao_municipal": "",
+      "nome_fantasia": "RUSH ADESIVOS COMUNICACAO VISUAL",
+      "optante_simples_nacional": "S",
+      "pessoa_fisica": "N",
+      "razao_social": "RUSH ADESIVOS COMUNICACAO VISUAL",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "4194-7129",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "VILA FIRMIANO PINTO",
+      "bloquear_faturamento": "N",
+      "cep": "04123020",
+      "cidade": "SAO PAULO (SP)",
+      "cidade_ibge": "3550308",
+      "cnae": "4754701",
+      "cnpj_cpf": "17.249.423/0008-19",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797840208,
+      "codigo_pais": "1058",
+      "complemento": "",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "openbox2@openbox2.com.br",
+      "endereco": "AVENIDA DOUTOR RICARDO JAFET",
+      "enderecoEntrega": {},
+      "endereco_numero": "2976",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "21:17:35",
+        "hInc": "21:16:55",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "123.016.377.118",
+      "inscricao_municipal": "",
+      "nome_fantasia": "OPENBOX 2",
+      "optante_simples_nacional": "N",
+      "pessoa_fisica": "N",
+      "razao_social": "ELAZA VAREJISTA LTDA I OPENBOX 2",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "3831-3148",
+      "tipo_atividade": "1"
+    },
+    {
+      "bairro": "JARDIM ROSEMARY",
+      "bloquear_faturamento": "N",
+      "cep": "06657220",
+      "cidade": "ITAPEVI (SP)",
+      "cidade_ibge": "3522505",
+      "cnae": "4520007",
+      "cnpj_cpf": "12.793.583/0001-34",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797840826,
+      "codigo_pais": "1058",
+      "complemento": "CASA 03",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "contato@rogersfilm.com.br",
+      "endereco": "RUA PEDRO DIAS DA ROCHA",
+      "enderecoEntrega": {},
+      "endereco_numero": "249",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "21:23:19",
+        "hInc": "21:20:53",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "ROGERS FILM",
+      "optante_simples_nacional": "N",
+      "pessoa_fisica": "N",
+      "razao_social": "ROGERS FILM I ANTONIO ROGERIO RUAS LIMA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "2831-2445",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "ALPHAVILLE CENTRO INDUSTRIAL E EMPRESARIAL/ALPHAV",
+      "bloquear_faturamento": "N",
+      "cep": "06455030",
+      "cidade": "BARUERI (SP)",
+      "cidade_ibge": "3505708",
+      "cnae": "4721104",
+      "cnpj_cpf": "53.482.487/0001-52",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797841520,
+      "codigo_pais": "1058",
+      "complemento": "LOJA 364 PISO 3",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "rubens@contabilalpha.com.br",
+      "endereco": "ALAMEDA XINGU",
+      "enderecoEntrega": {},
+      "endereco_numero": "350",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "21:33:16",
+        "hInc": "21:32:44",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "206.916.764.114",
+      "inscricao_municipal": "",
+      "nome_fantasia": "FRANQUIA DENGO CHOCOLATES",
+      "optante_simples_nacional": "S",
+      "pessoa_fisica": "N",
+      "razao_social": "AROMA DA TERRA IGUATEMI LTDA I FRANQUIA DENGO CHOCOLATES",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "4381-7949",
+      "telefone2_ddd": "11",
+      "telefone2_numero": "4382-7949",
+      "tipo_atividade": "1"
+    },
+    {
+      "bairro": "PINHEIROS",
+      "bloquear_faturamento": "N",
+      "cep": "05426100",
+      "cidade": "SAO PAULO (SP)",
+      "cidade_ibge": "3550308",
+      "cnae": "7490104",
+      "cnpj_cpf": "17.895.646/0001-87",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797842694,
+      "codigo_pais": "1058",
+      "complemento": "ANDAR 19 / 20 / 21 E 22 EDIF FARIA LIMA PLAZA",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "correspondencias@uber.com",
+      "endereco": "AVENIDA BRIG FARIA LIMA",
+      "enderecoEntrega": {},
+      "endereco_numero": "949",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "21:48:53",
+        "hInc": "21:48:19",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "UBER DO BRASIL TECNOLOGIA LTDA.",
+      "optante_simples_nacional": "N",
+      "pessoa_fisica": "N",
+      "razao_social": "UBER DO BRASIL TECNOLOGIA LTDA.",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "3198-1311",
+      "telefone2_ddd": "11",
+      "telefone2_numero": "2103-9460",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "ALPHAVILLE EMPRESAR",
+      "bloquear_faturamento": "N",
+      "cep": "06454000",
+      "cidade": "BARUERI (SP)",
+      "cidade_ibge": "3505708",
+      "cnae": "5611203",
+      "cnpj_cpf": "00.331.128/0001-38",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797843671,
+      "codigo_pais": "1058",
+      "complemento": "",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "rodolfo.bezerra@habibs.com.br",
+      "endereco": "ALAMEDA RIO NEGRO",
+      "enderecoEntrega": {},
+      "endereco_numero": "300",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "21:56:38",
+        "hInc": "21:56:25",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "206.078.100.112",
+      "inscricao_municipal": "",
+      "nome_fantasia": "ARFCO",
+      "optante_simples_nacional": "N",
+      "pessoa_fisica": "N",
+      "razao_social": "ARFCO ALIMENTOS LTDA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "3755-7000",
+      "telefone2_ddd": "11",
+      "telefone2_numero": "3755-7387",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "CERQUEIRA CESAR",
+      "bloquear_faturamento": "N",
+      "cep": "01426000",
+      "cidade": "SAO PAULO (SP)",
+      "cidade_ibge": "3550308",
+      "cnae": "5611203",
+      "cnpj_cpf": "11.950.487/0001-90",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797844507,
+      "codigo_pais": "1058",
+      "complemento": "",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "baciodilatte@baciodilatte.com.br",
+      "endereco": "RUA OSCAR FREIRE",
+      "enderecoEntrega": {},
+      "endereco_numero": "136",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "fax_ddd": "11",
+      "fax_numero": "30852954",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "22:07:00",
+        "hInc": "22:02:48",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "147.198.484.116",
+      "inscricao_municipal": "",
+      "nome_fantasia": "BACIO DI LATTE",
+      "pessoa_fisica": "N",
+      "razao_social": "MILANO COMERCIO VAREJISTA DE ALIMENTOS S.A. I BACIO DI LATTE",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "3083-6478",
+      "telefone2_ddd": "11",
+      "telefone2_numero": "38155092"
+    },
+    {
+      "bairro": "TAMBORE",
+      "bloquear_faturamento": "N",
+      "cep": "06460000",
+      "cidade": "BARUERI (SP)",
+      "cidade_ibge": "3505708",
+      "cnae": "5611201",
+      "cnpj_cpf": "32.041.250/0001-66",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797879332,
+      "codigo_pais": "1058",
+      "complemento": "LOJA 08 E 09 TERREO",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "ferahal@gmail.com",
+      "endereco": "AVENIDA TAMBORE",
+      "enderecoEntrega": {},
+      "endereco_numero": "267",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "22:26:55",
+        "hInc": "22:25:57",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "206.529.422.116",
+      "inscricao_municipal": "",
+      "nome_fantasia": "RICE N SPICE",
+      "optante_simples_nacional": "S",
+      "pessoa_fisica": "N",
+      "razao_social": "GRILL TAMBORE CANOPUS COM PROD. ALIMENTICIOS LTDA I RICE N S",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "4554-4868",
+      "telefone2_ddd": "11",
+      "telefone2_numero": "98134-0203",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "CACEIA",
+      "bloquear_faturamento": "N",
+      "cep": "07604505",
+      "cidade": "MAIRIPORA (SP)",
+      "cidade_ibge": "3528502",
+      "cnae": "5510801",
+      "cnpj_cpf": "15.099.178/0001-09",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797879948,
+      "codigo_pais": "1058",
+      "complemento": "PAVMTO243",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "financeiro@refugiocheirodemato.com.br",
+      "endereco": "RUA PLACIDO ANTONIO DA SILVA",
+      "enderecoEntrega": {},
+      "endereco_numero": "0",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "22:36:03",
+        "hInc": "22:35:46",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "433.064.039.114",
+      "inscricao_municipal": "",
+      "nome_fantasia": "HOTEL VILA DAS PEDRAS",
+      "optante_simples_nacional": "N",
+      "pessoa_fisica": "N",
+      "razao_social": "HOTEL VILA DAS PEDRAS OPERADORA DE TURISMO E EVENTOS LTDA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "4419-8550",
+      "telefone2_ddd": "11",
+      "telefone2_numero": "4419-8211",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "TAMBORE",
+      "bloquear_faturamento": "N",
+      "cep": "06460030",
+      "cidade": "BARUERI (SP)",
+      "cidade_ibge": "3505708",
+      "cnae": "4763601",
+      "cnpj_cpf": "64.731.433/0029-09",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797880312,
+      "codigo_pais": "1058",
+      "complemento": "LOJA: 201/202/203/204; : PISO TERREO;",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "grp.compliance@gruporihappy.com.br",
+      "endereco": "AVENIDA PIRACEMA",
+      "enderecoEntrega": {},
+      "endereco_numero": "669",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "22:42:14",
+        "hInc": "22:42:00",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "206.197.786.110",
+      "inscricao_municipal": "",
+      "nome_fantasia": "PBKIDS BRINQUEDOS LTDA.",
+      "optante_simples_nacional": "N",
+      "pessoa_fisica": "N",
+      "razao_social": "PBKIDS BRINQUEDOS LTDA.",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "2117-8129",
+      "telefone2_ddd": "11",
+      "telefone2_numero": "2117-8076",
+      "tipo_atividade": "1"
+    },
+    {
+      "bairro": "TAMBORE",
+      "bloquear_faturamento": "N",
+      "cep": "06460000",
+      "cidade": "BARUERI (SP)",
+      "cidade_ibge": "3505708",
+      "cnae": "5611201",
+      "cnpj_cpf": "18.972.837/0001-68",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797880408,
+      "codigo_pais": "1058",
+      "complemento": "EDIF: C. C. ALPHAVILLE; TERREO; LOJA: 13;",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "janetecapitian@yahoo.com.br",
+      "endereco": "AVENIDA TAMBORE",
+      "enderecoEntrega": {},
+      "endereco_numero": "267",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "22:45:53",
+        "hInc": "22:44:49",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "206.325.890.110",
+      "inscricao_municipal": "",
+      "nome_fantasia": "CASA MARIA RESTAURANTE E CAFE",
+      "optante_simples_nacional": "S",
+      "pessoa_fisica": "N",
+      "razao_social": "CASA MARIA GASTRONOMIA LTDA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "8201-4330",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "ALPHAVILLE",
+      "bloquear_faturamento": "N",
+      "cep": "06453029",
+      "cidade": "BARUERI (SP)",
+      "cidade_ibge": "3505708",
+      "cnae": "4751201",
+      "cnpj_cpf": "14.296.116/0001-24",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797886025,
+      "codigo_pais": "1058",
+      "complemento": "",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "sac@ciacolors.com.br",
+      "endereco": "CALCADA DAS ROSAS",
+      "enderecoEntrega": {},
+      "endereco_numero": "133",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "26/06/2025",
+        "dInc": "26/06/2025",
+        "hAlt": "23:36:39",
+        "hInc": "23:36:10",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "206.144.594.110",
+      "inscricao_municipal": "",
+      "nome_fantasia": "CIA COLORS R.T.",
+      "optante_simples_nacional": "S",
+      "pessoa_fisica": "N",
+      "razao_social": "R.T. SUPRIMENTOS PARA ESCRITORIO LTDA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "4208-5594",
+      "telefone2_ddd": "11",
+      "telefone2_numero": "97881-7518",
+      "tipo_atividade": "1"
+    },
+    {
+      "bairro": "",
+      "bloquear_faturamento": "N",
+      "cep": "",
+      "cidade": "",
+      "cidade_ibge": "",
+      "cnpj_cpf": "",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797889858,
+      "codigo_pais": "1058",
+      "complemento": "",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "endereco": "",
+      "enderecoEntrega": {},
+      "endereco_numero": "",
+      "enviar_anexos": "N",
+      "estado": "",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "27/06/2025",
+        "dInc": "27/06/2025",
+        "hAlt": "00:35:57",
+        "hInc": "00:34:24",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "GUSTAVO FERREIRA DA SILVA",
+      "pessoa_fisica": "N",
+      "razao_social": "GUSTAVO FERREIRA DA SILVA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ]
+    },
+    {
+      "bairro": "",
+      "bloquear_faturamento": "N",
+      "cep": "",
+      "cidade": "",
+      "cidade_ibge": "",
+      "cnpj_cpf": "",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797900553,
+      "codigo_pais": "1058",
+      "complemento": "",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "endereco": "",
+      "enderecoEntrega": {},
+      "endereco_numero": "",
+      "enviar_anexos": "N",
+      "estado": "",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "27/06/2025",
+        "dInc": "27/06/2025",
+        "hAlt": "01:46:16",
+        "hInc": "01:46:12",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "HIGHLEVEL AGENCY SUB",
+      "pessoa_fisica": "N",
+      "razao_social": "HIGHLEVEL AGENCY SUB",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ]
+    },
+    {
+      "bairro": "TAMBORE",
+      "bloquear_faturamento": "N",
+      "cep": "06460030",
+      "cidade": "BARUERI (SP)",
+      "cidade_ibge": "3505708",
+      "cnae": "5611203",
+      "cnpj_cpf": "57.050.898/0001-20",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9797907025,
+      "codigo_pais": "1058",
+      "complemento": "LOJA LUC STBS401A",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "csilva@fogodechao.com.br",
+      "endereco": "AVENIDA PIRACEMA",
+      "enderecoEntrega": {},
+      "endereco_numero": "669",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "27/06/2025",
+        "dInc": "27/06/2025",
+        "hAlt": "02:02:10",
+        "hInc": "02:01:31",
+        "uAlt": "P001037401",
+        "uInc": "P001037401"
+      },
+      "inscricao_estadual": "206.973.800.112",
+      "inscricao_municipal": "",
+      "nome_fantasia": "CHURRASCARIA FOGO DE CHAO TB LTDA",
+      "optante_simples_nacional": "N",
+      "pessoa_fisica": "N",
+      "razao_social": "CHURRASCARIA FOGO DE CHAO TB LTDA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "5095-1988",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "SUCURU",
+      "bloquear_faturamento": "N",
+      "cep": "55200000",
+      "cidade": "PESQUEIRA (PE)",
+      "cidade_ibge": "2610905",
+      "cnpj_cpf": "085.335.014-04",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9798205367,
+      "codigo_pais": "1058",
+      "complemento": "",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "iagorafael27@gmail.com",
+      "endereco": "RUA JOSE B SOBRINHO",
+      "enderecoEntrega": {},
+      "endereco_numero": "5",
+      "enviar_anexos": "N",
+      "estado": "PE",
+      "exterior": "N",
+      "fax_ddd": "87",
+      "fax_numero": "38352582",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "27/06/2025",
+        "dInc": "27/06/2025",
+        "hAlt": "15:47:54",
+        "hInc": "15:46:57",
+        "uAlt": "P000952423",
+        "uInc": "P000952423"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "IAGO RAFAEL SOARES DA SILVA",
+      "pessoa_fisica": "S",
+      "razao_social": "IAGO RAFAEL SOARES DA SILVA",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Cliente"
+        }
+      ],
+      "telefone1_ddd": "87",
+      "telefone1_numero": "99946-3092",
+      "telefone2_ddd": "87",
+      "telefone2_numero": "981322747"
+    },
+    {
+      "bairro": "CENTRO",
+      "bloquear_faturamento": "N",
+      "cep": "62580000",
+      "cidade": "ACARAU (CE)",
+      "cidade_ibge": "2300200",
+      "cnpj_cpf": "623.395.243-34",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9798274666,
+      "codigo_pais": "1058",
+      "complemento": "",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "clebel@costacont.com.br",
+      "endereco": "RUA FLORIANO PEIXOTO",
+      "enderecoEntrega": {},
+      "endereco_numero": "543",
+      "enviar_anexos": "N",
+      "estado": "CE",
+      "exterior": "N",
+      "fax_ddd": "88",
+      "fax_numero": "999617260",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "27/06/2025",
+        "dInc": "27/06/2025",
+        "hAlt": "16:57:40",
+        "hInc": "16:57:18",
+        "uAlt": "P000952423",
+        "uInc": "P000952423"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "MANOEL CLEBEL DA COSTA FILHO",
+      "pessoa_fisica": "S",
+      "razao_social": "MANOEL CLEBEL DA COSTA FILHO",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Cliente"
+        }
+      ],
+      "telefone1_ddd": "88",
+      "telefone1_numero": "999617197",
+      "telefone2_ddd": "88",
+      "telefone2_numero": "988096866"
+    },
+    {
+      "bairro": "LUNDCEA",
+      "bloquear_faturamento": "N",
+      "cep": "33239158",
+      "cidade": "LAGOA SANTA (MG)",
+      "cidade_ibge": "3137601",
+      "cnae": "7319002",
+      "cnpj_cpf": "58.456.258/0001-87",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9798612656,
+      "codigo_pais": "1058",
+      "complemento": "",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "malusocialsm@gmail.com",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "malusocialsm@gmail.com",
+      "endereco": "ALAMEDA FELIZIANO CASTILHO",
+      "enderecoEntrega": {},
+      "endereco_numero": "125",
+      "enviar_anexos": "N",
+      "estado": "MG",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "27/06/2025",
+        "dInc": "27/06/2025",
+        "hAlt": "21:21:06",
+        "hInc": "21:20:22",
+        "uAlt": "P000770710",
+        "uInc": "P000770710"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "MARIA LUIZA GOMES RODRIGUES",
+      "optante_simples_nacional": "S",
+      "pessoa_fisica": "N",
+      "razao_social": "MARIA LUIZA GOMES RODRIGUES",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [
+        {
+          "tag": "Fornecedor"
+        }
+      ],
+      "telefone1_ddd": "31",
+      "telefone1_numero": "999678549",
+      "tipo_atividade": "2"
+    },
+    {
+      "bairro": "BELA VISTA",
+      "bloquear_faturamento": "N",
+      "cep": "01316000",
+      "cidade": "SAO PAULO (SP)",
+      "cidade_ibge": "3550308",
+      "cnae": "7420001",
+      "cnpj_cpf": "19.227.626/0001-63",
+      "codigo_cliente_integracao": "",
+      "codigo_cliente_omie": 9798614103,
+      "codigo_pais": "1058",
+      "complemento": "APT 202",
+      "dadosBancarios": {
+        "agencia": "",
+        "cChavePix": "19227626000163",
+        "codigo_banco": "",
+        "conta_corrente": "",
+        "doc_titular": "",
+        "nome_titular": "",
+        "transf_padrao": "N"
+      },
+      "email": "contato@carolreis.com.br",
+      "endereco": "RUA FRANCISCA MIQUELINA",
+      "enderecoEntrega": {},
+      "endereco_numero": "355",
+      "enviar_anexos": "N",
+      "estado": "SP",
+      "exterior": "N",
+      "inativo": "N",
+      "info": {
+        "cImpAPI": "N",
+        "dAlt": "27/06/2025",
+        "dInc": "27/06/2025",
+        "hAlt": "21:26:16",
+        "hInc": "21:25:26",
+        "uAlt": "P000770710",
+        "uInc": "P000770710"
+      },
+      "inscricao_estadual": "",
+      "inscricao_municipal": "",
+      "nome_fantasia": "CAROLINA CAPUCHINHO DOS REIS",
+      "optante_simples_nacional": "N",
+      "pessoa_fisica": "N",
+      "razao_social": "CAROLINA CAPUCHINHO DOS REIS",
+      "recomendacoes": {
+        "gerar_boletos": "N",
+        "tipo_assinante": "6"
+      },
+      "tags": [],
+      "telefone1_ddd": "11",
+      "telefone1_numero": "953631579",
+      "tipo_atividade": "2"
     }
   ]
 }

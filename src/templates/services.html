@@ -10,6 +10,18 @@
     .stats-card:hover {
         transform: translateY(-2px);
     }
+    
+    /* Fix for statistics icons to prevent distortion */
+    .stats-card .bg-gradient.rounded-circle {
+        min-width: 48px;
+        min-height: 48px;
+        flex-shrink: 0;
+    }
+    
+    .stats-card .bg-gradient.rounded-circle i {
+        line-height: 1;
+        display: block;
+    }
     .chart-container {
         position: relative;
         height: 300px;
@@ -278,35 +290,8 @@
             padding: 0.375rem 0.5rem;
         }
     }
-    
-    /* Estilos para a seção de ajuda */
-    #filterHelp {
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-    
-    #helpToggleBtn {
-        transition: all 0.2s ease;
-        min-width: 80px;
-    }
-    
-    #helpToggleBtn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    #helpToggleBtn.btn-info {
-        background-color: #0dcaf0;
-        border-color: #0dcaf0;
-        color: white;
-    }
-    
-    #helpToggleBtn.btn-info:hover {
-        background-color: #31d2f2;
-        border-color: #25cff2;
-    }
 </style>
-{% endblock %}
+{% endblock %}    
 
 {% block content %}
 <!-- Loading Overlay -->
@@ -702,38 +687,8 @@
                         <i class="bi bi-funnel"></i> Filtros e Busca
                     </h5>
                     <small class="text-muted">Filtre por período específico ou busque por cliente/vendedor</small>
-                    <div class="float-end">
-                        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#filterHelp" aria-expanded="false" aria-controls="filterHelp">
-                            <i class="bi bi-question-circle"></i> Ajuda
-                        </button>
-                    </div>
                 </div>
                 <div class="card-body">
-                    <!-- Seção de Ajuda (colapsável) -->
-                    <div id="filterHelp" style="display: none;">
-                        <div class="alert alert-info border-0 mb-3">
-                            <h6 class="alert-heading">
-                                <i class="bi bi-lightbulb me-1"></i>Dicas de uso dos filtros:
-                            </h6>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <ul class="mb-0 small">
-                                        <li><strong>Busca:</strong> Digite nome do cliente, vendedor, código ou número da OS</li>
-                                        <li><strong>Filtro por semana:</strong> Visualize ordens de uma semana específica</li>
-                                        <li><strong>Filtro por mês:</strong> Visualize ordens de um mês completo</li>
-                                    </ul>
-                                </div>
-                                <div class="col-md-6">
-                                    <ul class="mb-0 small">
-                                        <li><strong>Atalho:</strong> <kbd>Ctrl+K</kbd> para focar na busca</li>
-                                        <li><strong>Atalho:</strong> <kbd>Ctrl+Enter</kbd> para aplicar filtros</li>
-                                        <li><strong>Atalho:</strong> <kbd>Esc</kbd> para limpar filtros</li>
-                                        <li><strong>Atalho:</strong> <kbd>F1</kbd> ou <kbd>Ctrl+H</kbd> para esta ajuda</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <form method="GET" class="row g-3" id="filtros-form">
                         <div class="col-lg-4 col-md-6">
                             <label for="search" class="form-label">
@@ -909,7 +864,7 @@
                                 <div class="card-body text-center">
                                     <div class="d-flex align-items-center justify-content-center">
                                         <div class="flex-shrink-0">
-                                            <div class="bg-info bg-gradient rounded-circle p-2">
+                                            <div class="bg-info bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                                 <i class="bi bi-clipboard-check text-white fs-5"></i>
                                             </div>
                                         </div>
@@ -927,7 +882,7 @@
                                 <div class="card-body text-center">
                                     <div class="d-flex align-items-center justify-content-center">
                                         <div class="flex-shrink-0">
-                                            <div class="bg-success bg-gradient rounded-circle p-2">
+                                            <div class="bg-success bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                                 <i class="bi bi-currency-dollar text-white fs-5"></i>
                                             </div>
                                         </div>
@@ -945,7 +900,7 @@
                                 <div class="card-body text-center">
                                     <div class="d-flex align-items-center justify-content-center">
                                         <div class="flex-shrink-0">
-                                            <div class="bg-primary bg-gradient rounded-circle p-2">
+                                            <div class="bg-primary bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                                 <i class="bi bi-calculator text-white fs-5"></i>
                                             </div>
                                         </div>
@@ -963,7 +918,7 @@
                                 <div class="card-body text-center">
                                     <div class="d-flex align-items-center justify-content-center">
                                         <div class="flex-shrink-0">
-                                            <div class="bg-warning bg-gradient rounded-circle p-2">
+                                            <div class="bg-warning bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                                 <i class="bi bi-people text-white fs-5"></i>
                                             </div>
                                         </div>
@@ -999,7 +954,7 @@
                                 <div class="card-body text-center">
                                     <div class="d-flex align-items-center justify-content-center">
                                         <div class="flex-shrink-0">
-                                            <div class="bg-primary bg-gradient rounded-circle p-2">
+                                            <div class="bg-primary bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                                 <i class="bi bi-clipboard-check text-white fs-5"></i>
                                             </div>
                                         </div>
@@ -1017,7 +972,7 @@
                                 <div class="card-body text-center">
                                     <div class="d-flex align-items-center justify-content-center">
                                         <div class="flex-shrink-0">
-                                            <div class="bg-success bg-gradient rounded-circle p-2">
+                                            <div class="bg-success bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                                 <i class="bi bi-currency-dollar text-white fs-5"></i>
                                             </div>
                                         </div>
@@ -1035,7 +990,7 @@
                                 <div class="card-body text-center">
                                     <div class="d-flex align-items-center justify-content-center">
                                         <div class="flex-shrink-0">
-                                            <div class="bg-info bg-gradient rounded-circle p-2">
+                                            <div class="bg-info bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                                 <i class="bi bi-calculator text-white fs-5"></i>
                                             </div>
                                         </div>
@@ -1053,7 +1008,7 @@
                                 <div class="card-body text-center">
                                     <div class="d-flex align-items-center justify-content-center">
                                         <div class="flex-shrink-0">
-                                            <div class="bg-warning bg-gradient rounded-circle p-2">
+                                            <div class="bg-warning bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                                 <i class="bi bi-people text-white fs-5"></i>
                                             </div>
                                         </div>
@@ -1624,35 +1579,9 @@ function setupKeyboardShortcuts() {
             }
         }
         
-        // F1 ou Ctrl/Cmd + H para abrir/fechar ajuda
-        if (e.key === 'F1' || ((e.ctrlKey || e.metaKey) && e.key === 'h')) {
-            e.preventDefault();
-            toggleHelp();
-        }
     });
 }
 
-// Função para fechar ajuda ao clicar fora dela
-function setupHelpClickOutside() {
-    document.addEventListener('click', function(e) {
-        const helpSection = document.getElementById('filterHelp');
-        const helpBtn = document.getElementById('helpToggleBtn');
-        
-        if (!helpSection || !helpBtn) return;
-        
-        // Verificar se a ajuda está visível
-        const isVisible = helpSection.style.display !== 'none';
-        
-        // Se a ajuda está visível e o clique não foi no botão de ajuda nem dentro da seção de ajuda
-        if (isVisible && 
-            !helpBtn.contains(e.target) && 
-            !helpSection.contains(e.target)) {
-            
-            // Fechar a ajuda
-            toggleHelp();
-        }
-    });
-}
 
 // Função para melhorar a navegação por semanas
 function setupWeekNavigation() {
@@ -1912,43 +1841,7 @@ function removeFilterWithScroll(filterType, keepSearch, keepMonth, keepWeek) {
     }, 300);
 }
 
-// Função simples para controlar a ajuda
-function toggleHelp() {
-    console.log('toggleHelp chamada');
-    
-    var helpSection = document.getElementById('filterHelp');
-    var helpBtn = document.getElementById('helpToggleBtn');
-    var helpBtnText = document.getElementById('helpBtnText');
-    
-    if (!helpSection) {
-        console.error('filterHelp não encontrado');
-        return;
-    }
-    
-    if (helpSection.style.display === 'none' || helpSection.style.display === '') {
-        // Mostrar
-        helpSection.style.display = 'block';
-        if (helpBtn) {
-            helpBtn.classList.remove('btn-outline-info');
-            helpBtn.classList.add('btn-info');
-        }
-        if (helpBtnText) {
-            helpBtnText.textContent = 'Fechar Ajuda';
-        }
-        console.log('Ajuda mostrada');
-    } else {
-        // Esconder
-        helpSection.style.display = 'none';
-        if (helpBtn) {
-            helpBtn.classList.remove('btn-info');
-            helpBtn.classList.add('btn-outline-info');
-        }
-        if (helpBtnText) {
-            helpBtnText.textContent = 'Ajuda';
-        }
-        console.log('Ajuda escondida');
-    }
-}
+// Função toggleHelp removida - Bootstrap gerencia o collapse automaticamente
 
 // Função para scroll automático para seção de filtros quando há filtros ativos
 function scrollToFiltersIfActive() {
@@ -2158,16 +2051,7 @@ setupKeyboardShortcuts();
 // Configurar navegação por semanas
 setupWeekNavigation();
 
-// Configurar fechamento da ajuda ao clicar fora
-setupHelpClickOutside();
-
-// Verificar se a função de ajuda está funcionando
-console.log('Verificando função de ajuda...');
-if (typeof toggleHelp === 'function') {
-    console.log('✅ Função toggleHelp carregada corretamente');
-} else {
-    console.error('❌ Função toggleHelp não encontrada');
-}
+// Verificação da função toggleHelp removida - Bootstrap gerencia o collapse automaticamente
 
 // Verificar hash na URL primeiro
 checkUrlHashAndScroll();
