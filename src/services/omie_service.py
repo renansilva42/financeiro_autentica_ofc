@@ -63,6 +63,11 @@ class OmieService:
         for key in keys_to_remove:
             del self._cache[key]
     
+    def clear_weeks_cache(self):
+        """Limpa especificamente o cache de semanas disponíveis"""
+        self.clear_cache_by_pattern("get_available_weeks_for_services")
+        print("Cache de semanas disponíveis limpo")
+    
     def _make_request(self, resource: str, body: dict, timeout: int = 10) -> dict:
         """Faz uma requisição para a API do Omie com timeout configurável"""
         try:
@@ -1091,11 +1096,15 @@ class OmieService:
             print(f"Erro ao buscar meses disponíveis: {str(e)}")
             return []
     
-    def get_available_weeks_for_services(self) -> List[dict]:
-        """Retorna lista de semanas disponíveis para filtro de ordens de serviço"""
+    def get_available_weeks_for_services(self, fill_gaps: bool = True) -> List[dict]:
+        """Retorna lista de semanas disponíveis para filtro de ordens de serviço
+        
+        Args:
+            fill_gaps: Se True, preenche lacunas entre semanas para criar sequência contínua
+        """
         try:
             # Verificar cache primeiro
-            cache_key = self._get_cache_key("get_available_weeks_for_services")
+            cache_key = self._get_cache_key("get_available_weeks_for_services", fill_gaps=fill_gaps)
             cached_data = self._get_from_cache(cache_key, use_mapping_expiry=True)
             if cached_data is not None:
                 print(f"Semanas disponíveis carregadas do cache: {len(cached_data)} semanas")
@@ -1103,7 +1112,8 @@ class OmieService:
             
             # Buscar todas as ordens para ter lista completa de semanas
             orders = self.get_all_service_orders()
-            weeks_set = set()
+            weeks_with_orders = set()
+            all_dates = []
             
             for order in orders:
                 try:
@@ -1113,31 +1123,65 @@ class OmieService:
                         # Converter data dd/mm/yyyy para datetime
                         parts = date_str.split("/")
                         if len(parts) == 3:
-                            day, month, year = parts
-                            date_obj = datetime(int(year), int(month), int(day))
-                            
-                            # Calcular início da semana (segunda-feira)
-                            start_of_week = date_obj - timedelta(days=date_obj.weekday())
-                            end_of_week = start_of_week + timedelta(days=6)
-                            
-                            # Formato da semana: "YYYY-MM-DD_YYYY-MM-DD" (início_fim)
-                            week_key = f"{start_of_week.strftime('%Y-%m-%d')}_{end_of_week.strftime('%Y-%m-%d')}"
-                            weeks_set.add(week_key)
+                            try:
+                                day, month, year = int(parts[0]), int(parts[1]), int(parts[2])
+                                
+                                # Validar se a data é válida
+                                if 1 <= day <= 31 and 1 <= month <= 12 and year >= 2000:
+                                    date_obj = datetime(year, month, day)
+                                    all_dates.append(date_obj)
+                                    
+                                    # Calcular início da semana (segunda-feira)
+                                    # weekday() retorna 0=segunda, 1=terça, ..., 6=domingo
+                                    start_of_week = date_obj - timedelta(days=date_obj.weekday())
+                                    end_of_week = start_of_week + timedelta(days=6)
+                                    
+                                    # Formato da semana: "YYYY-MM-DD_YYYY-MM-DD" (início_fim)
+                                    week_key = f"{start_of_week.strftime('%Y-%m-%d')}_{end_of_week.strftime('%Y-%m-%d')}"
+                                    weeks_with_orders.add(week_key)
+                                else:
+                                    print(f"Data inválida ignorada: {date_str}")
+                            except ValueError as ve:
+                                print(f"Erro ao converter data {date_str}: {ve}")
                 except Exception as date_error:
                     # Log do erro específico mas continue processando
                     print(f"Erro ao processar data da ordem: {date_error}")
                     continue
             
+            # Determinar conjunto final de semanas
+            final_weeks_set = weeks_with_orders.copy()
+            
+            # Se fill_gaps está ativado, preencher lacunas
+            if fill_gaps and all_dates:
+                all_dates.sort()
+                min_date = all_dates[0]
+                max_date = all_dates[-1]
+                
+                # Calcular primeira e última semana
+                first_week_start = min_date - timedelta(days=min_date.weekday())
+                last_week_start = max_date - timedelta(days=max_date.weekday())
+                
+                # Gerar todas as semanas entre a primeira e a última
+                current_week_start = first_week_start
+                while current_week_start <= last_week_start:
+                    current_week_end = current_week_start + timedelta(days=6)
+                    week_key = f"{current_week_start.strftime('%Y-%m-%d')}_{current_week_end.strftime('%Y-%m-%d')}"
+                    final_weeks_set.add(week_key)
+                    current_week_start += timedelta(days=7)
+                
+                print(f"Preenchimento de lacunas: {len(weeks_with_orders)} semanas com ordens -> {len(final_weeks_set)} semanas totais")
+            
             # Converter para lista e ordenar cronologicamente (mais recentes primeiro)
             def sort_week_key(week_key):
                 try:
                     start_date_str = week_key.split("_")[0]
-                    year, month, day = start_date_str.split("-")
-                    return (int(year), int(month), int(day))
+                    # Converter para datetime para garantir ordenação correta
+                    start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+                    return start_date
                 except:
-                    return (0, 0, 0)
+                    return datetime.min
             
-            sorted_weeks = sorted(list(weeks_set), key=sort_week_key, reverse=True)
+            sorted_weeks = sorted(list(final_weeks_set), key=sort_week_key, reverse=True)
             
             # Converter para formato mais amigável
             result = []
@@ -1147,6 +1191,9 @@ class OmieService:
                     start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
                     end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
                     
+                    # Verificar se esta semana tem ordens
+                    has_orders = week_key in weeks_with_orders
+                    
                     # Formato amigável: "02/12 a 08/12/2024"
                     if start_date.year == end_date.year and start_date.month == end_date.month:
                         # Mesma semana, mesmo mês
@@ -1155,11 +1202,16 @@ class OmieService:
                         # Semana que cruza meses
                         label = f"{start_date.strftime('%d/%m')} a {end_date.strftime('%d/%m/%Y')}"
                     
+                    # Adicionar indicador visual para semanas sem ordens
+                    if fill_gaps and not has_orders:
+                        label += " (sem ordens)"
+                    
                     result.append({
                         'value': week_key,
                         'label': label,
                         'start_date': start_date_str,
-                        'end_date': end_date_str
+                        'end_date': end_date_str,
+                        'has_orders': has_orders
                     })
                 except Exception as format_error:
                     print(f"Erro ao formatar semana {week_key}: {format_error}")
@@ -1167,12 +1219,21 @@ class OmieService:
                         'value': week_key,
                         'label': week_key,
                         'start_date': '',
-                        'end_date': ''
+                        'end_date': '',
+                        'has_orders': False
                     })
             
             # Armazenar no cache
             self._set_cache(cache_key, result)
             print(f"Semanas disponíveis processadas: {len(result)} semanas")
+            
+            # Debug: mostrar as primeiras 10 semanas para verificar ordenação
+            if result:
+                print("Primeiras 10 semanas (mais recentes):")
+                for i, week in enumerate(result[:10]):
+                    orders_indicator = "✓" if week.get('has_orders', True) else "○"
+                    print(f"  {i+1}. {orders_indicator} {week['label']} ({week['value']})")
+            
             return result
             
         except Exception as e:

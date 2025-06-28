@@ -224,6 +224,69 @@
         border-color: #198754;
         background-color: rgba(25, 135, 84, 0.05);
     }
+    
+    /* Melhorias para botões de ação dos filtros */
+    .filter-action-buttons .btn {
+        font-weight: 500;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    
+    .filter-action-buttons .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .filter-action-buttons .btn-primary {
+        background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+        border: none;
+    }
+    
+    .filter-action-buttons .btn-outline-secondary {
+        border-color: #6c757d;
+        color: #6c757d;
+    }
+    
+    .filter-action-buttons .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
+    }
+    
+    /* Responsividade para botões pequenos */
+    @media (max-width: 576px) {
+        .filter-action-buttons .btn {
+            font-size: 0.875rem;
+            padding: 0.375rem 0.5rem;
+        }
+    }
+    
+    /* Estilos para a seção de ajuda */
+    #filterHelp {
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    #helpToggleBtn {
+        transition: all 0.2s ease;
+        min-width: 80px;
+    }
+    
+    #helpToggleBtn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    #helpToggleBtn.btn-info {
+        background-color: #0dcaf0;
+        border-color: #0dcaf0;
+        color: white;
+    }
+    
+    #helpToggleBtn.btn-info:hover {
+        background-color: #31d2f2;
+        border-color: #25cff2;
+    }
 </style>
 {% endblock %}
 
@@ -255,8 +318,11 @@
                     <button class="btn btn-outline-primary me-2" onclick="refreshData()">
                         <i class="bi bi-arrow-clockwise"></i> Atualizar
                     </button>
-                    <button class="btn btn-outline-warning" onclick="clearServicesCache()">
+                    <button class="btn btn-outline-warning me-2" onclick="clearServicesCache()">
                         <i class="bi bi-trash"></i> Limpar Cache
+                    </button>
+                    <button class="btn btn-outline-info" onclick="clearWeeksCache()">
+                        <i class="bi bi-calendar-week"></i> Corrigir Semanas
                     </button>
                 </div>
             </div>
@@ -596,7 +662,7 @@
     </div>
 
     <!-- Search and Filters -->
-    <div class="row mb-3">
+    <div class="row mb-3" id="filtros-section">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white">
@@ -605,14 +671,14 @@
                     </h5>
                     <small class="text-muted">Filtre por período específico ou busque por cliente/vendedor</small>
                     <div class="float-end">
-                        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#filterHelp" aria-expanded="false">
+                        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#filterHelp" aria-expanded="false" aria-controls="filterHelp">
                             <i class="bi bi-question-circle"></i> Ajuda
                         </button>
                     </div>
                 </div>
                 <div class="card-body">
                     <!-- Seção de Ajuda (colapsável) -->
-                    <div class="collapse" id="filterHelp">
+                    <div id="filterHelp" style="display: none;">
                         <div class="alert alert-info border-0 mb-3">
                             <h6 class="alert-heading">
                                 <i class="bi bi-lightbulb me-1"></i>Dicas de uso dos filtros:
@@ -630,12 +696,13 @@
                                         <li><strong>Atalho:</strong> <kbd>Ctrl+K</kbd> para focar na busca</li>
                                         <li><strong>Atalho:</strong> <kbd>Ctrl+Enter</kbd> para aplicar filtros</li>
                                         <li><strong>Atalho:</strong> <kbd>Esc</kbd> para limpar filtros</li>
+                                        <li><strong>Atalho:</strong> <kbd>F1</kbd> ou <kbd>Ctrl+H</kbd> para esta ajuda</li>
                                     </ul>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <form method="GET" class="row g-3">
+                    <form method="GET" class="row g-3" id="filtros-form">
                         <div class="col-lg-4 col-md-6">
                             <label for="search" class="form-label">
                                 <i class="bi bi-search me-1"></i>Buscar
@@ -666,7 +733,7 @@
                                 <option value="">Selecione uma semana</option>
                                 {% for week in available_weeks %}
                                 <option value="{{ week.value }}" {% if week_filter == week.value %}selected{% endif %}>
-                                    {{ week.label }}
+                                    {% if week.has_orders is defined and not week.has_orders %}📅{% else %}✓{% endif %} {{ week.label }}
                                 </option>
                                 {% endfor %}
                             </select>
@@ -706,13 +773,16 @@
                         
                         <!-- Botões de Ação -->
                         <div class="col-lg-2 col-md-12 d-flex align-items-end">
-                            <div class="d-flex gap-2 w-100">
-                                <button type="submit" class="btn btn-primary flex-fill">
-                                    <i class="bi bi-search me-1"></i>Filtrar
+                            <div class="d-flex gap-2 w-100 filter-action-buttons">
+                                <button type="submit" class="btn btn-primary d-flex align-items-center justify-content-center" style="flex: 2; min-height: 38px;">
+                                    <i class="bi bi-search me-1"></i>
+                                    <span>Filtrar</span>
                                 </button>
-                                <a href="{{ url_for('services') }}" class="btn btn-outline-secondary" title="Limpar filtros">
-                                    <i class="bi bi-x"></i>
-                                </a>
+                                <button type="button" onclick="clearFiltersWithScroll()" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" title="Limpar todos os filtros aplicados" style="flex: 1; min-width: 85px; min-height: 38px;">
+                                    <i class="bi bi-x-circle me-1"></i>
+                                    <span class="d-none d-lg-inline">Limpar</span>
+                                    <span class="d-lg-none">X</span>
+                                </button>
                             </div>
                         </div>
                     </form>
@@ -750,7 +820,7 @@
                                     {% if search %}
                                     <span class="badge bg-primary fs-6">
                                         <i class="bi bi-search me-1"></i>Busca: "{{ search }}"
-                                        <a href="{{ url_for('services', month=month_filter, week=week_filter) }}" class="text-white ms-1" title="Remover filtro de busca">
+                                        <a href="javascript:void(0)" onclick="removeFilterWithScroll('search', false, true, true)" class="text-white ms-1" title="Remover filtro de busca">
                                             <i class="bi bi-x"></i>
                                         </a>
                                     </span>
@@ -761,7 +831,7 @@
                                         {% for week in available_weeks %}
                                             {% if week.value == week_filter %}{{ week.label }}{% endif %}
                                         {% endfor %}
-                                        <a href="{{ url_for('services', search=search) }}" class="text-white ms-1" title="Remover filtro de semana">
+                                        <a href="javascript:void(0)" onclick="removeFilterWithScroll('week', true, false, false)" class="text-white ms-1" title="Remover filtro de semana">
                                             <i class="bi bi-x"></i>
                                         </a>
                                     </span>
@@ -771,7 +841,7 @@
                                         {% for month in available_months %}
                                             {% if month.value == month_filter %}{{ month.label }}{% endif %}
                                         {% endfor %}
-                                        <a href="{{ url_for('services', search=search) }}" class="text-white ms-1" title="Remover filtro de mês">
+                                        <a href="javascript:void(0)" onclick="removeFilterWithScroll('month', true, false, false)" class="text-white ms-1" title="Remover filtro de mês">
                                             <i class="bi bi-x"></i>
                                         </a>
                                     </span>
@@ -1147,9 +1217,9 @@
                             <h5 class="mt-2">Nenhuma ordem de serviço encontrada</h5>
                             {% if search or month_filter %}
                                 <p class="text-muted">Tente ajustar os filtros de busca.</p>
-                                <a href="{{ url_for('services') }}" class="btn btn-outline-primary">
+                                <button type="button" onclick="clearFiltersWithScroll()" class="btn btn-outline-primary" title="Limpar todos os filtros">
                                     <i class="bi bi-x me-1"></i>Limpar Filtros
-                                </a>
+                                </button>
                             {% endif %}
                         </div>
                     </div>
@@ -1370,6 +1440,35 @@ function clearServicesCache() {
     }
 }
 
+// Função para limpar cache de semanas e corrigir sequência
+function clearWeeksCache() {
+    if (confirm('Tem certeza que deseja corrigir a sequência de semanas? Isso irá recalcular todas as semanas disponíveis.')) {
+        showLoading();
+        
+        fetch('/api/cache/clear-weeks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Sequência de semanas corrigida com sucesso! A página será recarregada.');
+                location.reload();
+            } else {
+                alert('Erro ao corrigir semanas: ' + (data.error || 'Erro desconhecido'));
+                hideLoading();
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao corrigir semanas: ' + error.message);
+            hideLoading();
+        });
+    }
+}
+
 // Controle de exibição dos serviços (mostrar apenas 6 inicialmente)
 let servicesExpanded = false;
 const maxInitialServices = 6;
@@ -1485,13 +1584,40 @@ function setupKeyboardShortcuts() {
         
         // Escape para limpar filtros
         if (e.key === 'Escape') {
-            const clearButton = document.querySelector('a[href*="services"][href$="services"]');
-            if (clearButton && (document.getElementById('search').value || 
-                               document.getElementById('period_type').value)) {
+            if (document.getElementById('search').value || 
+                document.getElementById('period_type').value) {
                 if (confirm('Limpar todos os filtros?')) {
-                    window.location.href = clearButton.href;
+                    clearFiltersWithScroll();
                 }
             }
+        }
+        
+        // F1 ou Ctrl/Cmd + H para abrir/fechar ajuda
+        if (e.key === 'F1' || ((e.ctrlKey || e.metaKey) && e.key === 'h')) {
+            e.preventDefault();
+            toggleHelp();
+        }
+    });
+}
+
+// Função para fechar ajuda ao clicar fora dela
+function setupHelpClickOutside() {
+    document.addEventListener('click', function(e) {
+        const helpSection = document.getElementById('filterHelp');
+        const helpBtn = document.getElementById('helpToggleBtn');
+        
+        if (!helpSection || !helpBtn) return;
+        
+        // Verificar se a ajuda está visível
+        const isVisible = helpSection.style.display !== 'none';
+        
+        // Se a ajuda está visível e o clique não foi no botão de ajuda nem dentro da seção de ajuda
+        if (isVisible && 
+            !helpBtn.contains(e.target) && 
+            !helpSection.contains(e.target)) {
+            
+            // Fechar a ajuda
+            toggleHelp();
         }
     });
 }
@@ -1537,28 +1663,32 @@ function setCurrentWeek() {
     const periodSelect = document.getElementById('period_type');
     const weekSelect = document.getElementById('week');
     
-    if (periodSelect && weekSelect) {
+    if (periodSelect && weekSelect && weekSelect.options.length > 1) {
         periodSelect.value = 'week';
         togglePeriodFilters();
         
-        // Encontrar a semana atual
-        const today = new Date();
-        const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Segunda-feira
+        // Abordagem mais simples: usar a primeira opção disponível
+        // As semanas estão ordenadas da mais recente para a mais antiga
+        // Então: options[1] = semana mais recente (atual ou mais próxima)
         
-        const currentWeekOption = Array.from(weekSelect.options).find(option => {
-            if (option.value) {
-                const [startDate] = option.value.split('_');
-                const optionDate = new Date(startDate);
-                return Math.abs(optionDate - startOfWeek) < 7 * 24 * 60 * 60 * 1000;
+        console.log('Selecionando semana atual - índice: 1');
+        console.log('Opção selecionada:', weekSelect.options[1].text);
+        
+        weekSelect.value = weekSelect.options[1].value;
+        
+        // Submeter com hash para scroll automático
+        const form = weekSelect.closest('form');
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        
+        for (let [key, value] of formData.entries()) {
+            if (value.trim() !== '') {
+                params.append(key, value);
             }
-            return false;
-        });
-        
-        if (currentWeekOption) {
-            weekSelect.value = currentWeekOption.value;
-            weekSelect.closest('form').submit();
         }
+        
+        let url = window.location.pathname + '?' + params.toString() + '#filtros-section';
+        window.location.href = url;
     }
 }
 
@@ -1570,9 +1700,35 @@ function setLastWeek() {
         periodSelect.value = 'week';
         togglePeriodFilters();
         
-        // Pegar a segunda semana (última semana)
-        weekSelect.value = weekSelect.options[1].value;
-        weekSelect.closest('form').submit();
+        // Abordagem mais simples: usar a segunda opção disponível
+        // As semanas estão ordenadas da mais recente para a mais antiga
+        // Então: options[1] = semana mais recente, options[2] = semana anterior
+        
+        let targetIndex = 2; // Segunda semana (semana passada)
+        
+        // Se não há segunda opção, usar a primeira
+        if (weekSelect.options.length <= 2) {
+            targetIndex = 1;
+        }
+        
+        console.log('Selecionando semana passada - índice:', targetIndex);
+        console.log('Opção selecionada:', weekSelect.options[targetIndex].text);
+        
+        weekSelect.value = weekSelect.options[targetIndex].value;
+        
+        // Submeter com hash para scroll automático
+        const form = weekSelect.closest('form');
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        
+        for (let [key, value] of formData.entries()) {
+            if (value.trim() !== '') {
+                params.append(key, value);
+            }
+        }
+        
+        let url = window.location.pathname + '?' + params.toString() + '#filtros-section';
+        window.location.href = url;
     }
 }
 
@@ -1586,7 +1742,20 @@ function setCurrentMonth() {
         
         // Pegar o primeiro mês (mês atual)
         monthSelect.value = monthSelect.options[1].value;
-        monthSelect.closest('form').submit();
+        
+        // Submeter com hash para scroll automático
+        const form = monthSelect.closest('form');
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        
+        for (let [key, value] of formData.entries()) {
+            if (value.trim() !== '') {
+                params.append(key, value);
+            }
+        }
+        
+        let url = window.location.pathname + '?' + params.toString() + '#filtros-section';
+        window.location.href = url;
     }
 }
 
@@ -1600,34 +1769,325 @@ function setLastMonth() {
         
         // Pegar o segundo mês (mês passado)
         monthSelect.value = monthSelect.options[2].value;
-        monthSelect.closest('form').submit();
+        
+        // Submeter com hash para scroll automático
+        const form = monthSelect.closest('form');
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        
+        for (let [key, value] of formData.entries()) {
+            if (value.trim() !== '') {
+                params.append(key, value);
+            }
+        }
+        
+        let url = window.location.pathname + '?' + params.toString() + '#filtros-section';
+        window.location.href = url;
     }
+}
+
+// Função para limpar filtros com scroll para a seção de filtros
+function clearFiltersWithScroll() {
+    // Primeiro, fazer scroll para a seção de filtros
+    const filterSection = document.getElementById('filtros-section');
+    if (filterSection) {
+        // Calcular a posição exata da seção de filtros
+        const rect = filterSection.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const targetPosition = rect.top + scrollTop - 120; // Offset para compensar o header
+
+        // Fazer scroll suave para a posição calculada
+        try {
+            window.scrollTo({
+                top: targetPosition,
+                behavior: 'smooth'
+            });
+        } catch (e) {
+            // Fallback para navegadores mais antigos
+            window.scrollTo(0, targetPosition);
+        }
+
+        // Adicionar efeito visual temporário para destacar a seção
+        const card = filterSection.querySelector('.card');
+        if (card) {
+            card.style.boxShadow = '0 0 20px rgba(255, 193, 7, 0.4)'; // Cor amarela para indicar limpeza
+            card.style.transition = 'box-shadow 0.3s ease';
+            setTimeout(() => {
+                card.style.boxShadow = '';
+            }, 1500);
+        }
+
+        console.log('Scroll para filtros executado antes de limpar');
+    }
+
+    // Aguardar um pouco para o scroll completar, depois redirecionar
+    setTimeout(() => {
+        window.location.href = "{{ url_for('services') }}#filtros-section";
+    }, 300);
+}
+
+// Função para remover filtro específico com scroll
+function removeFilterWithScroll(filterType, keepSearch, keepMonth, keepWeek) {
+    // Primeiro, fazer scroll para a seção de filtros
+    const filterSection = document.getElementById('filtros-section');
+    if (filterSection) {
+        const rect = filterSection.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const targetPosition = rect.top + scrollTop - 120;
+
+        try {
+            window.scrollTo({
+                top: targetPosition,
+                behavior: 'smooth'
+            });
+        } catch (e) {
+            window.scrollTo(0, targetPosition);
+        }
+
+        // Efeito visual com cor específica para remoção de filtro
+        const card = filterSection.querySelector('.card');
+        if (card) {
+            card.style.boxShadow = '0 0 20px rgba(220, 53, 69, 0.3)'; // Cor vermelha para remoção
+            card.style.transition = 'box-shadow 0.3s ease';
+            setTimeout(() => {
+                card.style.boxShadow = '';
+            }, 1500);
+        }
+    }
+
+    // Construir URL mantendo apenas os filtros especificados
+    let url = "{{ url_for('services') }}";
+    const params = new URLSearchParams();
+    
+    if (keepSearch && "{{ search }}") {
+        params.append('search', "{{ search }}");
+    }
+    if (keepMonth && "{{ month_filter }}") {
+        params.append('month', "{{ month_filter }}");
+    }
+    if (keepWeek && "{{ week_filter }}") {
+        params.append('week', "{{ week_filter }}");
+    }
+    
+    if (params.toString()) {
+        url += '?' + params.toString();
+    }
+    url += '#filtros-section';
+
+    // Aguardar scroll completar, depois redirecionar
+    setTimeout(() => {
+        window.location.href = url;
+    }, 300);
+}
+
+// Função simples para controlar a ajuda
+function toggleHelp() {
+    console.log('toggleHelp chamada');
+    
+    var helpSection = document.getElementById('filterHelp');
+    var helpBtn = document.getElementById('helpToggleBtn');
+    var helpBtnText = document.getElementById('helpBtnText');
+    
+    if (!helpSection) {
+        console.error('filterHelp não encontrado');
+        return;
+    }
+    
+    if (helpSection.style.display === 'none' || helpSection.style.display === '') {
+        // Mostrar
+        helpSection.style.display = 'block';
+        if (helpBtn) {
+            helpBtn.classList.remove('btn-outline-info');
+            helpBtn.classList.add('btn-info');
+        }
+        if (helpBtnText) {
+            helpBtnText.textContent = 'Fechar Ajuda';
+        }
+        console.log('Ajuda mostrada');
+    } else {
+        // Esconder
+        helpSection.style.display = 'none';
+        if (helpBtn) {
+            helpBtn.classList.remove('btn-info');
+            helpBtn.classList.add('btn-outline-info');
+        }
+        if (helpBtnText) {
+            helpBtnText.textContent = 'Ajuda';
+        }
+        console.log('Ajuda escondida');
+    }
+}
+
+// Função para scroll automático para seção de filtros quando há filtros ativos
+function scrollToFiltersIfActive() {
+    // Verificar se há filtros ativos
+    const hasSearch = document.getElementById('search').value.trim() !== '';
+    const hasWeekFilter = document.getElementById('week').value !== '';
+    const hasMonthFilter = document.getElementById('month').value !== '';
+    
+    // Se há filtros ativos, fazer scroll para a seção de filtros
+    if (hasSearch || hasWeekFilter || hasMonthFilter) {
+        // Aguardar um pouco para garantir que a página foi totalmente renderizada
+        setTimeout(() => {
+            // Buscar pela seção de filtros usando o ID específico
+            let filterSection = document.getElementById('filtros-section');
+            
+            // Fallback: buscar por outras estratégias se o ID não for encontrado
+            if (!filterSection) {
+                // Estratégia 1: Buscar pelo título "Filtros e Busca"
+                const headers = document.querySelectorAll('h5.card-title');
+                for (let header of headers) {
+                    if (header.textContent.includes('Filtros e Busca')) {
+                        filterSection = header.closest('.row');
+                        break;
+                    }
+                }
+                
+                // Estratégia 2: Buscar pelo formulário de filtros
+                if (!filterSection) {
+                    const form = document.querySelector('form');
+                    if (form) {
+                        filterSection = form.closest('.row');
+                    }
+                }
+            }
+            
+            // Fazer scroll para a seção encontrada
+            if (filterSection) {
+            // Calcular a posição exata da seção de filtros
+            const rect = filterSection.getBoundingClientRect();
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const targetPosition = rect.top + scrollTop - 120; // Offset maior para compensar o header e espaçamento
+            
+            // Fazer scroll suave para a posição calculada
+            window.scrollTo({
+                top: targetPosition,
+                behavior: 'smooth'
+            });
+            
+            // Adicionar um efeito visual temporário para destacar a seção
+            const card = filterSection.querySelector('.card');
+            if (card) {
+            card.style.boxShadow = '0 0 20px rgba(13, 110, 253, 0.3)';
+            card.style.transition = 'box-shadow 0.3s ease';
+            setTimeout(() => {
+            card.style.boxShadow = '';
+            }, 2000);
+            }
+            
+            console.log('Scroll automático para filtros executado - filtros ativos detectados');
+            }
+            }, 800);
+    }
+}
+
+// Função para interceptar o submit do formulário e adicionar hash para scroll
+function setupFormSubmitInterception() {
+    const form = document.getElementById('filtros-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Não prevenir o submit, apenas modificar a ação
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            
+            // Adicionar todos os parâmetros do formulário
+            for (let [key, value] of formData.entries()) {
+                if (value.trim() !== '') {
+                    params.append(key, value);
+                }
+            }
+            
+            // Construir a URL com os parâmetros e o hash
+            let url = window.location.pathname;
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
+            url += '#filtros-section';
+            
+            // Redirecionar para a URL com hash
+            window.location.href = url;
+            
+            // Prevenir o submit padrão já que estamos fazendo redirecionamento manual
+            e.preventDefault();
+        });
+    }
+}
+
+// Função para verificar se há hash na URL e fazer scroll
+function checkUrlHashAndScroll() {
+if (window.location.hash === '#filtros-section') {
+setTimeout(() => {
+const filterSection = document.getElementById('filtros-section');
+if (filterSection) {
+// Calcular a posição exata da seção de filtros
+const rect = filterSection.getBoundingClientRect();
+const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+const targetPosition = rect.top + scrollTop - 120; // Offset maior para compensar o header e espaçamento
+
+// Fazer scroll suave para a posição calculada
+window.scrollTo({
+    top: targetPosition,
+    behavior: 'smooth'
+});
+
+// Efeito visual
+const card = filterSection.querySelector('.card');
+if (card) {
+card.style.boxShadow = '0 0 20px rgba(13, 110, 253, 0.3)';
+card.style.transition = 'box-shadow 0.3s ease';
+setTimeout(() => {
+card.style.boxShadow = '';
+}, 2000);
+}
+}
+}, 500);
+}
 }
 
 // Mostrar loading se a página demorar para carregar
 document.addEventListener('DOMContentLoaded', function() {
-    // Se a página demorar mais de 2 segundos, mostrar loading
-    const loadingTimeout = setTimeout(showLoading, 2000);
-    
-    // Esconder loading quando a página terminar de carregar
-    window.addEventListener('load', function() {
-        clearTimeout(loadingTimeout);
-        hideLoading();
-    });
-    
-    // Inicializar controle de exibição dos serviços
-    initializeServicesDisplay();
-    
-    // Aplicar estilos nos filtros ativos
-    applyActiveFilterStyles();
-    
-    // Configurar atalhos de teclado
-    setupKeyboardShortcuts();
-    
-    // Configurar navegação por semanas
-    setupWeekNavigation();
-    
-    // Implementar tooltips para observações com delay
+// Se a página demorar mais de 2 segundos, mostrar loading
+const loadingTimeout = setTimeout(showLoading, 2000);
+
+// Esconder loading quando a página terminar de carregar
+window.addEventListener('load', function() {
+clearTimeout(loadingTimeout);
+hideLoading();
+});
+
+// Inicializar controle de exibição dos serviços
+initializeServicesDisplay();
+
+// Aplicar estilos nos filtros ativos
+applyActiveFilterStyles();
+
+// Configurar atalhos de teclado
+setupKeyboardShortcuts();
+
+// Configurar navegação por semanas
+setupWeekNavigation();
+
+// Configurar fechamento da ajuda ao clicar fora
+setupHelpClickOutside();
+
+// Verificar se a função de ajuda está funcionando
+console.log('Verificando função de ajuda...');
+if (typeof toggleHelp === 'function') {
+    console.log('✅ Função toggleHelp carregada corretamente');
+} else {
+    console.error('❌ Função toggleHelp não encontrada');
+}
+
+// Verificar hash na URL primeiro
+checkUrlHashAndScroll();
+
+// Scroll automático para seção de filtros se há filtros ativos (fallback)
+scrollToFiltersIfActive();
+
+// Configurar interceptação do formulário de filtros
+setupFormSubmitInterception();
+
+// Implementar tooltips para observações com delay
     console.log('Inicializando tooltips...');
     setTimeout(() => {
         initObservationTooltips();

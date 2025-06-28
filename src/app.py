@@ -373,10 +373,10 @@ def services():
             print(f"Erro ao carregar meses disponíveis: {str(e)}")
             available_months = []
         
-        # Buscar lista de semanas disponíveis para o filtro
+        # Buscar lista de semanas disponíveis para o filtro (com preenchimento de lacunas)
         print("Buscando semanas disponíveis...")
         try:
-            available_weeks = omie_service.get_available_weeks_for_services()
+            available_weeks = omie_service.get_available_weeks_for_services(fill_gaps=True)
         except Exception as e:
             print(f"Erro ao carregar semanas disponíveis: {str(e)}")
             available_weeks = []
@@ -661,6 +661,19 @@ def api_clear_services_cache():
         return jsonify({
             'status': 'success',
             'message': 'Cache de serviços limpo com sucesso'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/cache/clear-weeks', methods=['POST'])
+@login_required
+def api_clear_weeks_cache():
+    """Limpa especificamente o cache de semanas disponíveis"""
+    try:
+        omie_service.clear_weeks_cache()
+        return jsonify({
+            'status': 'success',
+            'message': 'Cache de semanas limpo com sucesso - sequência será recalculada'
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
