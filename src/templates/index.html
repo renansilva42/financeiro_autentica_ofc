@@ -27,7 +27,9 @@
                     </div>
                     <div class="flex-grow-1 ms-3">
                         <h6 class="text-muted mb-1">Total de Clientes</h6>
-                        <h3 class="mb-2">{{ stats.total_clients | default(0) }}</h3>
+                        <h3 class="mb-2" id="total-clients-count">
+                            <span class="loading-placeholder">{{ stats.total_clients | default('...') }}</span>
+                        </h3>
                         <a href="{{ url_for('clients') }}" class="btn btn-primary btn-sm nav-preloader-link">
                             <i class="bi bi-people me-1"></i>Ver Clientes
                         </a>
@@ -60,27 +62,40 @@
 </div>
 
 <!-- Estatísticas dos Clientes -->
-{% if stats %}
-<div class="row">
+<div class="row" id="dashboard-stats-section">
     <div class="col-lg-8">
         <div class="card border-0 shadow mb-4">
-            <div class="card-header bg-white">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">
                     <i class="bi bi-bar-chart"></i> Resumo de Clientes
                 </h5>
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="refreshDashboardStats()" title="Recarregar estatísticas">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                    <div class="dashboard-loading-indicator" id="stats-loading" style="display: none;">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <div class="text-center">
                             <h6 class="text-muted">Clientes Ativos</h6>
-                            <h2 class="text-success">{{ stats.active_clients | default(0) }}</h2>
+                            <h2 class="text-success" id="active-clients-count">
+                                {% if stats %}{{ stats.active_clients | default(0) }}{% else %}<span class="loading-placeholder">...</span>{% endif %}
+                            </h2>
                         </div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <div class="text-center">
                             <h6 class="text-muted">Clientes Inativos</h6>
-                            <h2 class="text-warning">{{ stats.inactive_clients | default(0) }}</h2>
+                            <h2 class="text-warning" id="inactive-clients-count">
+                                {% if stats %}{{ stats.inactive_clients | default(0) }}{% else %}<span class="loading-placeholder">...</span>{% endif %}
+                            </h2>
                         </div>
                     </div>
                 </div>
@@ -89,13 +104,17 @@
                     <div class="col-md-6">
                         <div class="text-center">
                             <h6 class="text-muted">Pessoa Física</h6>
-                            <h2 class="text-info">{{ stats.pessoa_fisica | default(0) }}</h2>
+                            <h2 class="text-info" id="pessoa-fisica-count">
+                                {% if stats %}{{ stats.pessoa_fisica | default(0) }}{% else %}<span class="loading-placeholder">...</span>{% endif %}
+                            </h2>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="text-center">
                             <h6 class="text-muted">Pessoa Jurídica</h6>
-                            <h2 class="text-primary">{{ stats.pessoa_juridica | default(0) }}</h2>
+                            <h2 class="text-primary" id="pessoa-juridica-count">
+                                {% if stats %}{{ stats.pessoa_juridica | default(0) }}{% else %}<span class="loading-placeholder">...</span>{% endif %}
+                            </h2>
                         </div>
                     </div>
                 </div>
@@ -110,8 +129,8 @@
                     <i class="bi bi-geo-alt"></i> Clientes por Estado
                 </h5>
             </div>
-            <div class="card-body">
-                {% if stats.by_state %}
+            <div class="card-body" id="states-breakdown">
+                {% if stats and stats.by_state %}
                     {% set state_items = stats.by_state.items() | list %}
                     {% for state, count in state_items[:5] %}
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -120,13 +139,12 @@
                     </div>
                     {% endfor %}
                 {% else %}
-                    <p class="text-muted">Nenhum dado disponível</p>
+                    <div class="loading-placeholder-text">Carregando dados por estado...</div>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
-{% endif %}
 
 <!-- Sistema de Carregamento Progressivo -->
 <div class="row mb-4" id="progressive-loading-section" style="display: none;">
@@ -214,6 +232,89 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.loading-placeholder {
+    color: #6c757d;
+    font-style: italic;
+    animation: pulse 1.5s ease-in-out infinite alternate;
+}
+
+.loading-placeholder-text {
+    color: #6c757d;
+    font-style: italic;
+    text-align: center;
+    padding: 1rem;
+    animation: pulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
+}
+
+.dashboard-loading-indicator {
+    transition: opacity 0.3s ease;
+}
+
+.state-item {
+    transition: all 0.3s ease;
+}
+
+.state-item:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    margin: -0.25rem -0.5rem 0.5rem -0.5rem;
+}
+
+/* Animação para contadores */
+#dashboard-stats-section h2 {
+    transition: all 0.3s ease;
+}
+
+/* Feedback visual para carregamento */
+.loading-feedback {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+    color: white;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+}
+
+.loading-feedback.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.loading-feedback.success {
+    background-color: #198754;
+}
+
+.loading-feedback.error {
+    background-color: #dc3545;
+}
+
+.loading-feedback.warning {
+    background-color: #fd7e14;
+}
+
+.loading-feedback.info {
+    background-color: #0dcaf0;
+}
+
+.feedback-icon {
+    margin-right: 0.5rem;
+}
+</style>
+{% endblock %}
+
 {% block extra_scripts %}
 <script>
 // Variáveis globais para o dashboard
@@ -230,25 +331,8 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('✅ UI progressiva inicializada');
     }
     
-    // Se não há preloader ativo e é o carregamento inicial, mostrar
-    if (typeof window.preloaderDebug !== 'undefined' && !window.preloaderDebug.isLoading) {
-        const isFirstLoad = !sessionStorage.getItem('dashboard_loaded');
-        if (isFirstLoad) {
-            console.log('Primeira carga do dashboard - ativando preloader');
-            sessionStorage.setItem('dashboard_loaded', 'true');
-            
-            if (typeof window.showPreloader === 'function') {
-                window.showPreloader(false);
-                
-                // Simular carregamento das estatísticas
-                setTimeout(() => {
-                    if (typeof window.hidePreloader === 'function') {
-                        window.hidePreloader();
-                    }
-                }, 2000);
-            }
-        }
-    }
+    // Carregar estatísticas assincronamente
+    loadDashboardStatsAsync();
     
     // Adicionar efeito de fade-in para os cards após o carregamento
     const cards = document.querySelectorAll('.card');
@@ -266,6 +350,184 @@ document.addEventListener('DOMContentLoaded', function() {
     // Carregar estatísticas de cache automaticamente se disponível
     loadCacheStatsIfAvailable();
 });
+
+/**
+ * Carrega estatísticas do dashboard de forma assíncrona
+ */
+async function loadDashboardStatsAsync() {
+    try {
+        // Mostrar indicador de carregamento
+        const loadingIndicator = document.getElementById('stats-loading');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'block';
+        }
+        
+        // Primeiro, tentar carregar do cache rápido
+        console.log('🔄 Tentando carregar estatísticas do cache...');
+        let response = await fetch('/api/dashboard/quick-stats');
+        let data = await response.json();
+        
+        if (data.status === 'success' && data.from_cache) {
+            console.log('✅ Estatísticas carregadas do cache');
+            updateDashboardStatsUI(data.data);
+            hideLoadingIndicator();
+            return;
+        }
+        
+        // Se não há cache, carregar da API
+        console.log('🔄 Carregando estatísticas da API...');
+        response = await fetch('/api/dashboard/stats');
+        data = await response.json();
+        
+        if (data.status === 'success') {
+            console.log('✅ Estatísticas carregadas da API');
+            updateDashboardStatsUI(data.data);
+            
+            if (data.from_cache) {
+                showNotification('Dados carregados do cache', 'success');
+            } else {
+                showNotification('Dados atualizados da API', 'info');
+            }
+        } else {
+            throw new Error(data.error || 'Erro ao carregar estatísticas');
+        }
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar estatísticas:', error);
+        showNotification(`Erro ao carregar dados: ${error.message}`, 'error');
+        
+        // Manter placeholders em caso de erro
+        updateDashboardStatsUI({
+            total_clients: 'Erro',
+            active_clients: 'Erro',
+            inactive_clients: 'Erro',
+            pessoa_fisica: 'Erro',
+            pessoa_juridica: 'Erro',
+            by_state: {}
+        });
+    } finally {
+        hideLoadingIndicator();
+    }
+}
+
+/**
+ * Atualiza a interface com as estatísticas carregadas
+ */
+function updateDashboardStatsUI(stats) {
+    // Atualizar contadores principais
+    updateElementText('total-clients-count', stats.total_clients || 0);
+    updateElementText('active-clients-count', stats.active_clients || 0);
+    updateElementText('inactive-clients-count', stats.inactive_clients || 0);
+    updateElementText('pessoa-fisica-count', stats.pessoa_fisica || 0);
+    updateElementText('pessoa-juridica-count', stats.pessoa_juridica || 0);
+    
+    // Atualizar breakdown por estado
+    updateStatesBreakdown(stats.by_state || {});
+    
+    // Adicionar efeito de animação aos números
+    animateCounters();
+}
+
+/**
+ * Atualiza texto de um elemento com animação
+ */
+function updateElementText(elementId, value) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        // Remover placeholder se existir
+        const placeholder = element.querySelector('.loading-placeholder');
+        if (placeholder) {
+            placeholder.remove();
+        }
+        
+        // Atualizar valor com animação
+        element.style.opacity = '0.5';
+        setTimeout(() => {
+            element.textContent = value;
+            element.style.opacity = '1';
+        }, 150);
+    }
+}
+
+/**
+ * Atualiza breakdown por estado
+ */
+function updateStatesBreakdown(byState) {
+    const container = document.getElementById('states-breakdown');
+    if (!container) return;
+    
+    if (Object.keys(byState).length === 0) {
+        container.innerHTML = '<p class="text-muted">Nenhum dado disponível</p>';
+        return;
+    }
+    
+    // Ordenar estados por quantidade
+    const sortedStates = Object.entries(byState)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5);
+    
+    const html = sortedStates.map(([state, count]) => `
+        <div class="d-flex justify-content-between align-items-center mb-2 state-item">
+            <span>${state}</span>
+            <span class="badge bg-primary">${count}</span>
+        </div>
+    `).join('');
+    
+    container.innerHTML = html;
+    
+    // Animar entrada dos itens
+    const items = container.querySelectorAll('.state-item');
+    items.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(-20px)';
+        setTimeout(() => {
+            item.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateX(0)';
+        }, index * 100);
+    });
+}
+
+/**
+ * Anima contadores numericos
+ */
+function animateCounters() {
+    const counters = document.querySelectorAll('#dashboard-stats-section h2');
+    counters.forEach(counter => {
+        const target = parseInt(counter.textContent) || 0;
+        if (target > 0 && target < 10000) { // Só animar números razoáveis
+            let current = 0;
+            const increment = target / 20;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    counter.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    counter.textContent = Math.floor(current);
+                }
+            }, 50);
+        }
+    });
+}
+
+/**
+ * Esconde indicador de carregamento
+ */
+function hideLoadingIndicator() {
+    const loadingIndicator = document.getElementById('stats-loading');
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'none';
+    }
+}
+
+/**
+ * Recarrega estatísticas manualmente
+ */
+async function refreshDashboardStats() {
+    console.log('🔄 Recarregando estatísticas...');
+    await loadDashboardStatsAsync();
+}
 
 /**
  * Alterna visibilidade dos recursos progressivos

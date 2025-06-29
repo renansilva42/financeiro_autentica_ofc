@@ -239,14 +239,34 @@ class OmieService:
     
     def get_client_name_mapping(self) -> Dict[int, str]:
         """Retorna um dicionário mapeando código do cliente para nome"""
-        # Verificar cache primeiro com tempo de vida estendido
         cache_key = self._get_cache_key("get_client_name_mapping")
+        
+        # Tentar cache inteligente se disponível
+        if self.intelligent_cache:
+            try:
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    cached_mapping = loop.run_until_complete(
+                        self._get_from_intelligent_cache(cache_key, "mappings")
+                    )
+                    if cached_mapping is not None:
+                        print(f"Mapeamento de clientes carregado do cache inteligente: {len(cached_mapping)} clientes")
+                        return cached_mapping
+                finally:
+                    loop.close()
+            except Exception as e:
+                print(f"Erro ao acessar cache inteligente para mapeamento: {e}")
+        
+        # Verificar cache local com tempo de vida estendido
         cached_data = self._get_from_cache(cache_key, use_mapping_expiry=True)
         if cached_data is not None:
-            print(f"Mapeamento de clientes carregado do cache: {len(cached_data)} clientes")
+            print(f"Mapeamento de clientes carregado do cache local: {len(cached_data)} clientes")
             return cached_data
         
         try:
+            print("Criando mapeamento de clientes da API...")
             # Buscar todos os clientes para mapeamento completo
             clients_summary = self.get_all_clients_summary()
             mapping = {}
@@ -263,8 +283,25 @@ class OmieService:
                 if client_code:
                     mapping[client_code] = client_name
             
-            # Armazenar no cache
+            # Armazenar no cache local
             self._set_cache(cache_key, mapping)
+            
+            # Salvar no cache inteligente se disponível
+            if self.intelligent_cache:
+                try:
+                    import asyncio
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    try:
+                        loop.run_until_complete(
+                            self._set_intelligent_cache(cache_key, mapping, "mappings")
+                        )
+                        print("Mapeamento de clientes salvo no cache inteligente")
+                    finally:
+                        loop.close()
+                except Exception as e:
+                    print(f"Erro ao salvar mapeamento no cache inteligente: {e}")
+            
             print(f"Mapeamento de clientes criado: {len(mapping)} clientes")
             return mapping
             
@@ -415,7 +452,35 @@ class OmieService:
     
     def get_clients_stats(self) -> dict:
         """Retorna estatísticas dos clientes"""
+        # Verificar cache inteligente primeiro
+        cache_key = self._get_cache_key("get_clients_stats")
+        
+        # Tentar cache inteligente se disponível
+        if self.intelligent_cache:
+            try:
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    cached_stats = loop.run_until_complete(
+                        self._get_from_intelligent_cache(cache_key, "stats")
+                    )
+                    if cached_stats is not None:
+                        print("Estatísticas de clientes carregadas do cache inteligente")
+                        return cached_stats
+                finally:
+                    loop.close()
+            except Exception as e:
+                print(f"Erro ao acessar cache inteligente para stats: {e}")
+        
+        # Verificar cache local
+        cached_data = self._get_from_cache(cache_key)
+        if cached_data is not None:
+            print("Estatísticas de clientes carregadas do cache local")
+            return cached_data
+        
         try:
+            print("Calculando estatísticas de clientes da API...")
             all_clients = self.get_all_clients()
             
             total_clients = len(all_clients)
@@ -434,7 +499,7 @@ class OmieService:
                     state = "Não informado"
                 states[state] = states.get(state, 0) + 1
             
-            return {
+            stats = {
                 "total_clients": total_clients,
                 "active_clients": active_clients,
                 "inactive_clients": inactive_clients,
@@ -442,6 +507,27 @@ class OmieService:
                 "pessoa_juridica": pessoa_juridica,
                 "by_state": states
             }
+            
+            # Salvar no cache local
+            self._set_cache(cache_key, stats)
+            
+            # Salvar no cache inteligente se disponível
+            if self.intelligent_cache:
+                try:
+                    import asyncio
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    try:
+                        loop.run_until_complete(
+                            self._set_intelligent_cache(cache_key, stats, "stats")
+                        )
+                        print("Estatísticas salvas no cache inteligente")
+                    finally:
+                        loop.close()
+                except Exception as e:
+                    print(f"Erro ao salvar no cache inteligente: {e}")
+            
+            return stats
             
         except Exception as e:
             print(f"Erro ao calcular estatísticas: {str(e)}")

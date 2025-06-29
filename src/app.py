@@ -157,11 +157,69 @@ def logout():
 @app.route('/')
 @login_required
 def index():
-    """Página inicial com dashboard"""
+    """Página inicial com dashboard otimizado"""
     try:
-        stats = omie_service.get_clients_stats()
+        # Carregar estatísticas básicas do cache primeiro
+        stats = None
+        
+        # Tentar carregar do cache inteligente se disponível
+        if cache_service:
+            try:
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    cache_key = "dashboard_basic_stats"
+                    stats = loop.run_until_complete(
+                        cache_service.get(cache_key, "dashboard")
+                    )
+                    if stats:
+                        print(f"Dashboard stats carregadas do cache inteligente")
+                finally:
+                    loop.close()
+            except Exception as cache_error:
+                print(f"Erro ao acessar cache para dashboard: {cache_error}")
+        
+        # Se não há cache, carregar estatísticas básicas rapidamente
+        if not stats:
+            print("Carregando estatísticas básicas para dashboard...")
+            try:
+                # Usar timeout menor para não travar o dashboard
+                stats = omie_service.get_clients_stats()
+                
+                # Salvar no cache inteligente para próximas consultas
+                if cache_service and stats:
+                    try:
+                        import asyncio
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        try:
+                            cache_key = "dashboard_basic_stats"
+                            loop.run_until_complete(
+                                cache_service.set(cache_key, stats, "dashboard", 0.5)  # 30 minutos
+                            )
+                            print("Dashboard stats salvas no cache inteligente")
+                        finally:
+                            loop.close()
+                    except Exception as cache_error:
+                        print(f"Erro ao salvar stats no cache: {cache_error}")
+                        
+            except Exception as stats_error:
+                print(f"Erro ao carregar estatísticas: {stats_error}")
+                # Usar estatísticas vazias para não quebrar o dashboard
+                stats = {
+                    "total_clients": 0,
+                    "active_clients": 0,
+                    "inactive_clients": 0,
+                    "pessoa_fisica": 0,
+                    "pessoa_juridica": 0,
+                    "by_state": {}
+                }
+        
         return render_template('index.html', stats=stats)
+        
     except Exception as e:
+        print(f"Erro crítico no dashboard: {str(e)}")
         return render_template('error.html', error=str(e))
 
 @app.route('/clients')
@@ -492,6 +550,112 @@ def api_stats():
         return jsonify(stats)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/dashboard/stats')
+@login_required
+def api_dashboard_stats():
+    """API endpoint otimizado para estatísticas do dashboard"""
+    try:
+        # Tentar carregar do cache inteligente primeiro
+        stats = None
+        
+        if cache_service:
+            try:
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    cache_key = "dashboard_basic_stats"
+                    stats = loop.run_until_complete(
+                        cache_service.get(cache_key, "dashboard")
+                    )
+                    if stats:
+                        return jsonify({
+                            'status': 'success',
+                            'data': stats,
+                            'from_cache': True,
+                            'timestamp': datetime.now().isoformat()
+                        })
+                finally:
+                    loop.close()
+            except Exception as cache_error:
+                print(f"Erro ao acessar cache: {cache_error}")
+        
+        # Se não há cache, carregar da API
+        print("Carregando estatísticas da API para dashboard...")
+        stats = omie_service.get_clients_stats()
+        
+        # Salvar no cache para próximas consultas
+        if cache_service and stats:
+            try:
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    cache_key = "dashboard_basic_stats"
+                    loop.run_until_complete(
+                        cache_service.set(cache_key, stats, "dashboard", 0.5)  # 30 minutos
+                    )
+                finally:
+                    loop.close()
+            except Exception as cache_error:
+                print(f"Erro ao salvar no cache: {cache_error}")
+        
+        return jsonify({
+            'status': 'success',
+            'data': stats,
+            'from_cache': False,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+@app.route('/api/dashboard/quick-stats')
+@login_required
+def api_dashboard_quick_stats():
+    """API endpoint para estatísticas rápidas do dashboard (apenas cache)"""
+    try:
+        if not cache_service:
+            return jsonify({
+                'status': 'unavailable',
+                'message': 'Cache não disponível'
+            }), 503
+        
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            cache_key = "dashboard_basic_stats"
+            stats = loop.run_until_complete(
+                cache_service.get(cache_key, "dashboard")
+            )
+            
+            if stats:
+                return jsonify({
+                    'status': 'success',
+                    'data': stats,
+                    'from_cache': True,
+                    'timestamp': datetime.now().isoformat()
+                })
+            else:
+                return jsonify({
+                    'status': 'no_cache',
+                    'message': 'Dados não disponíveis em cache'
+                })
+        finally:
+            loop.close()
+            
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
 
 
 @app.route('/api/services')
