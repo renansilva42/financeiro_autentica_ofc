@@ -4,9 +4,13 @@ from services.omie_service import OmieService
 from services.auth_service import AuthService
 from services.background_service import background_service
 from services.startup_service import initialize_startup_service
+from services.cache_service import SupabaseCacheService
+from services.progressive_loader import ProgressiveDataLoader
+from services.api_endpoints import optimized_api, initialize_services
 from utils.auth_decorators import login_required, logout_required
 import json
 import os
+import asyncio
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -21,8 +25,47 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = False
 Session(app)
 
-# Inicializar serviços
+# Inicializar serviços otimizados
+print("🚀 Inicializando serviços otimizados...")
+
+# Inicializar cache inteligente
+cache_service = None
+try:
+    cache_service = SupabaseCacheService()
+    print("✅ Cache inteligente inicializado com sucesso")
+except Exception as e:
+    print(f"⚠️  Aviso: Cache inteligente não disponível: {e}")
+    print("   A aplicação continuará funcionando com cache local apenas.")
+
+# Inicializar serviço Omie
 omie_service = OmieService()
+
+# Configurar cache inteligente no OmieService se disponível
+if cache_service:
+    try:
+        # Adicionar método para integração com cache inteligente
+        omie_service.intelligent_cache = cache_service
+        print("✅ Cache inteligente integrado ao OmieService")
+    except Exception as e:
+        print(f"⚠️  Erro ao integrar cache: {e}")
+
+# Inicializar carregador progressivo
+progressive_loader = None
+if cache_service:
+    try:
+        progressive_loader = ProgressiveDataLoader(omie_service, cache_service)
+        print("✅ Carregador progressivo inicializado")
+    except Exception as e:
+        print(f"⚠️  Erro ao inicializar carregador progressivo: {e}")
+
+# Inicializar endpoints otimizados
+if cache_service:
+    try:
+        initialize_services(omie_service, cache_service)
+        app.register_blueprint(optimized_api)
+        print("✅ Endpoints otimizados registrados")
+    except Exception as e:
+        print(f"⚠️  Erro ao registrar endpoints otimizados: {e}")
 
 # Inicializar serviço de startup para pré-carregamento
 startup_service = initialize_startup_service(omie_service)
@@ -700,6 +743,121 @@ def api_restart_preload():
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/progressive/dashboard', methods=['GET'])
+@login_required
+def api_progressive_dashboard():
+    """Endpoint para carregamento progressivo do dashboard"""
+    try:
+        if not progressive_loader:
+            # Fallback para carregamento tradicional
+            stats = omie_service.get_clients_stats()
+            return jsonify({
+                'status': 'success',
+                'data': {'stats': stats},
+                'from_cache': False,
+                'progressive': False,
+                'timestamp': datetime.now().isoformat()
+            })
+        
+        # Executar carregamento progressivo
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        try:
+            data = loop.run_until_complete(progressive_loader.load_dashboard_data())
+            return jsonify({
+                'status': 'success',
+                'data': data,
+                'progressive': True,
+                'timestamp': datetime.now().isoformat()
+            })
+        finally:
+            loop.close()
+            
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+@app.route('/api/progressive/status', methods=['GET'])
+@login_required
+def api_progressive_status():
+    """Endpoint para verificar status do carregamento progressivo"""
+    try:
+        if not progressive_loader:
+            return jsonify({
+                'status': 'unavailable',
+                'message': 'Carregamento progressivo não disponível'
+            })
+        
+        status = progressive_loader.get_current_status()
+        return jsonify(status)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/cache/intelligent/stats', methods=['GET'])
+@login_required
+def api_intelligent_cache_stats():
+    """Endpoint para estatísticas do cache inteligente"""
+    try:
+        if not cache_service:
+            return jsonify({
+                'status': 'unavailable',
+                'message': 'Cache inteligente não disponível'
+            })
+        
+        stats = cache_service.get_cache_stats()
+        sync_status = cache_service.get_sync_status()
+        
+        return jsonify({
+            'status': 'success',
+            'cache_stats': stats,
+            'sync_status': sync_status,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+@app.route('/api/cache/intelligent/clear', methods=['POST'])
+@login_required
+def api_intelligent_cache_clear():
+    """Endpoint para limpeza inteligente do cache"""
+    try:
+        if not cache_service:
+            return jsonify({
+                'status': 'unavailable',
+                'message': 'Cache inteligente não disponível'
+            }), 400
+        
+        data = request.get_json() or {}
+        pattern = data.get('pattern')
+        data_type = data.get('data_type')
+        
+        cache_service.clear_cache(pattern=pattern, data_type=data_type)
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Cache inteligente limpo com sucesso',
+            'pattern': pattern,
+            'data_type': data_type,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
 
 @app.template_filter('format_cpf_cnpj')
 def format_cpf_cnpj(value):

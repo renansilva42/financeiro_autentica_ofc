@@ -1,9 +1,10 @@
 import requests
 import json
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Callable
 import sys
 import os
 import time
+import asyncio
 from datetime import datetime, timedelta
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import Settings
@@ -16,11 +17,15 @@ class OmieService:
         self.app_secret = self.settings.OMIE_APP_SECRET
         self.headers = {"Content-Type": "application/json"}
         
-        # Cache simples com expiração configurável
+        # Cache simples com expiração configurável (fallback)
         self._cache = {}
         self._cache_expiry = 600  # 10 minutos em segundos (padrão)
         self._service_cache_expiry = 1800  # 30 minutos para ordens de serviço
         self._mapping_cache_expiry = 3600  # 1 hora para mapeamentos (mudam menos)
+        
+        # Sistema de cache inteligente (será inicializado externamente)
+        self.intelligent_cache = None
+        self.progress_callback: Optional[Callable] = None
     
     def _get_cache_key(self, method_name: str, **kwargs) -> str:
         """Gera uma chave de cache baseada no método e parâmetros"""
@@ -66,7 +71,36 @@ class OmieService:
     def clear_weeks_cache(self):
         """Limpa especificamente o cache de semanas disponíveis"""
         self.clear_cache_by_pattern("get_available_weeks_for_services")
+        if self.intelligent_cache:
+            asyncio.create_task(self.intelligent_cache.clear_cache(pattern="get_available_weeks_for_services"))
         print("Cache de semanas disponíveis limpo")
+    
+    def set_intelligent_cache(self, cache_service):
+        """Define o serviço de cache inteligente"""
+        self.intelligent_cache = cache_service
+        print("Cache inteligente configurado para OmieService")
+    
+    def set_progress_callback(self, callback: Callable):
+        """Define callback para progresso de carregamento"""
+        self.progress_callback = callback
+    
+    async def _get_from_intelligent_cache(self, cache_key: str, data_type: str) -> Optional[any]:
+        """Recupera dados do cache inteligente se disponível"""
+        if self.intelligent_cache:
+            try:
+                return await self.intelligent_cache.get(cache_key, data_type)
+            except Exception as e:
+                print(f"Erro ao acessar cache inteligente: {e}")
+        return None
+    
+    async def _set_intelligent_cache(self, cache_key: str, data: any, data_type: str) -> bool:
+        """Armazena dados no cache inteligente se disponível"""
+        if self.intelligent_cache:
+            try:
+                return await self.intelligent_cache.set(cache_key, data, data_type)
+            except Exception as e:
+                print(f"Erro ao salvar no cache inteligente: {e}")
+        return False
     
     def _make_request(self, resource: str, body: dict, timeout: int = 10) -> dict:
         """Faz uma requisição para a API do Omie com timeout configurável"""

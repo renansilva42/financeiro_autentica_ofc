@@ -128,14 +128,66 @@
 </div>
 {% endif %}
 
-<!-- Ações Rápidas -->
-<div class="row">
+<!-- Sistema de Carregamento Progressivo -->
+<div class="row mb-4" id="progressive-loading-section" style="display: none;">
     <div class="col-12">
         <div class="card border-0 shadow">
             <div class="card-header bg-white">
                 <h5 class="card-title mb-0">
+                    <i class="bi bi-arrow-clockwise"></i> Carregamento Inteligente
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="progressive-stages-container"></div>
+                <div id="progressive-info-container"></div>
+                <div class="progressive-controls">
+                    <button class="progressive-btn primary" onclick="startProgressiveLoad()">
+                        <i class="fas fa-rocket"></i>
+                        Carregar com Progresso
+                    </button>
+                    <button class="progressive-btn" onclick="showCacheStats()">
+                        <i class="fas fa-chart-bar"></i>
+                        Estatísticas de Cache
+                    </button>
+                    <button class="progressive-btn" onclick="clearIntelligentCache()">
+                        <i class="fas fa-trash"></i>
+                        Limpar Cache
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estatísticas de Cache -->
+<div class="row mb-4" id="cache-stats-section" style="display: none;">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-speedometer2"></i> Performance e Cache
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="cache-stats-container" class="cache-stats">
+                    <!-- Estatísticas serão carregadas aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ações Rápidas -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
                     <i class="bi bi-lightning"></i> Ações Rápidas
                 </h5>
+                <button class="btn btn-sm btn-outline-secondary" onclick="toggleProgressiveFeatures()">
+                    <i class="fas fa-cog"></i> Recursos Avançados
+                </button>
             </div>
             <div class="card-body">
                 <div class="row">
@@ -164,9 +216,19 @@
 
 {% block extra_scripts %}
 <script>
+// Variáveis globais para o dashboard
+let progressiveUI;
+let cacheStatsVisible = false;
+
 document.addEventListener('DOMContentLoaded', function() {
     // Garantir que o preloader apareça no dashboard inicial
     console.log('Dashboard carregado - verificando preloader');
+    
+    // Inicializar UI progressiva se disponível
+    if (typeof progressiveLoader !== 'undefined') {
+        progressiveUI = new ProgressiveUI(progressiveLoader);
+        console.log('✅ UI progressiva inicializada');
+    }
     
     // Se não há preloader ativo e é o carregamento inicial, mostrar
     if (typeof window.preloaderDebug !== 'undefined' && !window.preloaderDebug.isLoading) {
@@ -200,6 +262,228 @@ document.addEventListener('DOMContentLoaded', function() {
             card.style.transform = 'translateY(0)';
         }, 100 * index);
     });
+    
+    // Carregar estatísticas de cache automaticamente se disponível
+    loadCacheStatsIfAvailable();
 });
+
+/**
+ * Alterna visibilidade dos recursos progressivos
+ */
+function toggleProgressiveFeatures() {
+    const progressiveSection = document.getElementById('progressive-loading-section');
+    const cacheSection = document.getElementById('cache-stats-section');
+    
+    if (progressiveSection.style.display === 'none') {
+        progressiveSection.style.display = 'block';
+        progressiveSection.classList.add('progressive-fade-in');
+        
+        // Inicializar indicadores de estágio se disponível
+        if (progressiveUI) {
+            progressiveUI.createStageIndicators('progressive-stages-container');
+        }
+        
+        showNotification('Recursos avançados ativados', 'success');
+    } else {
+        progressiveSection.style.display = 'none';
+        cacheSection.style.display = 'none';
+        showNotification('Recursos avançados desativados', 'info');
+    }
+}
+
+/**
+ * Inicia carregamento progressivo
+ */
+async function startProgressiveLoad() {
+    if (!window.loadDashboardProgressively) {
+        showNotification('Carregamento progressivo não disponível', 'warning');
+        return;
+    }
+    
+    try {
+        const progressContainer = document.getElementById('progressive-stages-container');
+        const infoContainer = document.getElementById('progressive-info-container');
+        
+        // Configurar callbacks
+        const options = {
+            onProgress: (percentage, message) => {
+                console.log(`Progresso: ${percentage}% - ${message}`);
+                if (progressiveUI) {
+                    // Atualizar indicadores visuais
+                    const currentStage = Math.floor((percentage / 100) * progressiveLoader.stages.length);
+                    progressiveUI.updateStageIndicators(currentStage, progressiveLoader.stages);
+                }
+            },
+            onComplete: (data) => {
+                console.log('Carregamento progressivo concluído:', data);
+                
+                // Mostrar informações de progresso
+                if (progressiveUI && data) {
+                    progressiveUI.showProgressInfo('progressive-info-container', data);
+                }
+                
+                showNotification('Dados carregados com sucesso!', 'success');
+                
+                // Atualizar página se necessário
+                if (data.stats) {
+                    updateDashboardStats(data.stats);
+                }
+            },
+            onError: (error) => {
+                console.error('Erro no carregamento progressivo:', error);
+                showNotification(`Erro: ${error.message}`, 'error');
+            }
+        };
+        
+        // Iniciar carregamento
+        await window.loadDashboardProgressively(options);
+        
+    } catch (error) {
+        console.error('Erro ao iniciar carregamento progressivo:', error);
+        showNotification(`Erro: ${error.message}`, 'error');
+    }
+}
+
+/**
+ * Mostra estatísticas de cache
+ */
+async function showCacheStats() {
+    const cacheSection = document.getElementById('cache-stats-section');
+    const container = document.getElementById('cache-stats-container');
+    
+    try {
+        const stats = await window.getCacheStats();
+        
+        if (!stats || stats.status === 'unavailable') {
+            showNotification('Estatísticas de cache não disponíveis', 'warning');
+            return;
+        }
+        
+        // Mostrar seção
+        cacheSection.style.display = 'block';
+        cacheSection.classList.add('progressive-fade-in');
+        
+        // Renderizar estatísticas
+        renderCacheStats(container, stats);
+        
+        showNotification('Estatísticas de cache carregadas', 'success');
+        
+    } catch (error) {
+        console.error('Erro ao carregar estatísticas:', error);
+        showNotification(`Erro: ${error.message}`, 'error');
+    }
+}
+
+/**
+ * Renderiza estatísticas de cache
+ */
+function renderCacheStats(container, stats) {
+    const cacheStats = stats.cache_stats || {};
+    const syncStatus = stats.sync_status || [];
+    
+    container.innerHTML = `
+        <div class="cache-stat-card">
+            <div class="cache-stat-value">${cacheStats.local_cache_entries || 0}</div>
+            <div class="cache-stat-label">Cache Local</div>
+        </div>
+        <div class="cache-stat-card success">
+            <div class="cache-stat-value">${cacheStats.supabase_cache_entries || 0}</div>
+            <div class="cache-stat-label">Cache Persistente</div>
+        </div>
+        <div class="cache-stat-card warning">
+            <div class="cache-stat-value">${Object.keys(cacheStats.cache_by_type || {}).length}</div>
+            <div class="cache-stat-label">Tipos de Dados</div>
+        </div>
+        <div class="cache-stat-card">
+            <div class="cache-stat-value">${syncStatus.length}</div>
+            <div class="cache-stat-label">Sincronizações</div>
+        </div>
+    `;
+}
+
+/**
+ * Limpa cache inteligente
+ */
+async function clearIntelligentCache() {
+    if (!confirm('Tem certeza que deseja limpar o cache inteligente? Isso pode afetar a performance temporariamente.')) {
+        return;
+    }
+    
+    try {
+        const success = await window.clearIntelligentCache();
+        
+        if (success) {
+            showNotification('Cache inteligente limpo com sucesso', 'success');
+            
+            // Recarregar estatísticas se visíveis
+            if (document.getElementById('cache-stats-section').style.display !== 'none') {
+                setTimeout(() => showCacheStats(), 1000);
+            }
+        } else {
+            showNotification('Erro ao limpar cache', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Erro ao limpar cache:', error);
+        showNotification(`Erro: ${error.message}`, 'error');
+    }
+}
+
+/**
+ * Carrega estatísticas de cache automaticamente se disponível
+ */
+async function loadCacheStatsIfAvailable() {
+    try {
+        if (window.getCacheStats) {
+            const stats = await window.getCacheStats();
+            if (stats && stats.status === 'success') {
+                console.log('📊 Estatísticas de cache disponíveis:', stats);
+            }
+        }
+    } catch (error) {
+        console.log('Cache inteligente não disponível:', error.message);
+    }
+}
+
+/**
+ * Atualiza estatísticas do dashboard
+ */
+function updateDashboardStats(stats) {
+    // Implementar atualização das estatísticas na interface
+    console.log('Atualizando estatísticas do dashboard:', stats);
+}
+
+/**
+ * Mostra notificação
+ */
+function showNotification(message, type = 'info') {
+    // Criar elemento de notificação
+    const notification = document.createElement('div');
+    notification.className = `loading-feedback ${type} show`;
+    notification.innerHTML = `
+        <i class="feedback-icon fas ${getIconForType(type)}"></i>
+        <span class="feedback-text">${message}</span>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remover após 3 segundos
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+/**
+ * Retorna ícone baseado no tipo
+ */
+function getIconForType(type) {
+    switch (type) {
+        case 'success': return 'fa-check-circle';
+        case 'error': return 'fa-exclamation-circle';
+        case 'warning': return 'fa-exclamation-triangle';
+        default: return 'fa-info-circle';
+    }
+}
 </script>
 {% endblock %}
