@@ -233,12 +233,12 @@
     }
     
     /* Animações para mostrar/esconder filtros */
-    #week_filter_container, #month_filter_container {
+    #year_filter_container, #week_filter_container, #month_filter_container {
         transition: all 0.3s ease;
         opacity: 1;
     }
     
-    #week_filter_container[style*="none"], #month_filter_container[style*="none"] {
+    #year_filter_container[style*="none"], #week_filter_container[style*="none"], #month_filter_container[style*="none"] {
         opacity: 0;
         transform: translateY(-10px);
     }
@@ -705,9 +705,34 @@
                             </label>
                             <select class="form-select" id="period_type" onchange="togglePeriodFilters()">
                                 <option value="">Todos os períodos</option>
+                                <option value="year" {% if year_filter %}selected{% endif %}>📅 Por ano</option>
                                 <option value="week" {% if week_filter %}selected{% endif %}>📅 Por semana</option>
-                                <option value="month" {% if month_filter and not week_filter %}selected{% endif %}>📆 Por mês</option>
+                                <option value="month" {% if month_filter and not week_filter and not year_filter %}selected{% endif %}>📆 Por mês</option>
                             </select>
+                        </div>
+                        
+                        <!-- Filtro por Ano -->
+                        <div class="col-lg-3 col-md-6" id="year_filter_container" style="display: {% if year_filter %}block{% else %}none{% endif %};">
+                            <label for="year" class="form-label">
+                                <i class="bi bi-calendar-range me-1"></i>Ano
+                                <small class="text-muted">({{ available_years|length }} disponíveis)</small>
+                            </label>
+                            <select class="form-select" id="year" name="year">
+                                <option value="">Selecione um ano</option>
+                                {% for year in available_years %}
+                                <option value="{{ year.value }}" {% if year_filter == year.value %}selected{% endif %}>
+                                    {{ year.label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if available_years|length > 0 %}
+                            <div class="mt-1">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Anos ordenados do mais recente para o mais antigo
+                                </small>
+                            </div>
+                            {% endif %}
                         </div>
                         
                         <!-- Filtro por Semana -->
@@ -796,7 +821,7 @@
                     </div>
                     
                     <!-- Filtros Ativos -->
-                    {% if search or month_filter or week_filter %}
+                    {% if search or month_filter or week_filter or year_filter %}
                     <div class="mt-3 pt-3 border-top">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
@@ -812,7 +837,17 @@
                                         </a>
                                     </span>
                                     {% endif %}
-                                    {% if week_filter %}
+                                    {% if year_filter %}
+                                    <span class="badge bg-warning fs-6">
+                                        <i class="bi bi-calendar-range me-1"></i>Ano: 
+                                        {% for year in available_years %}
+                                            {% if year.value == year_filter %}{{ year.label }}{% endif %}
+                                        {% endfor %}
+                                        <a href="javascript:void(0)" onclick="removeFilterWithScroll('year', true, false, false)" class="text-white ms-1" title="Remover filtro de ano">
+                                            <i class="bi bi-x"></i>
+                                        </a>
+                                    </span>
+                                    {% elif week_filter %}
                                     <span class="badge bg-info fs-6">
                                         <i class="bi bi-calendar-week me-1"></i>Semana: 
                                         {% for week in available_weeks %}
@@ -845,6 +880,97 @@
             </div>
         </div>
     </div>
+
+    <!-- Yearly Statistics (shown when year filter is applied) -->
+    {% if yearly_stats %}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-calendar-range"></i> Estatísticas de {{ yearly_stats.formatted_year }}
+                    </h5>
+                    <small class="opacity-75">Ano selecionado: {{ yearly_stats.formatted_year }}</small>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="card stats-card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-warning bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                                <i class="bi bi-clipboard-check text-white fs-5"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted mb-1">Total de OS</h6>
+                                            <h4 class="mb-0 text-warning">{{ yearly_stats.total_orders }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="card stats-card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-success bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                                <i class="bi bi-currency-dollar text-white fs-5"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted mb-1">Valor Total</h6>
+                                            <h4 class="mb-0 text-success">{{ yearly_stats.total_value | format_currency }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="card stats-card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-primary bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                                <i class="bi bi-calculator text-white fs-5"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted mb-1">Ticket Médio</h6>
+                                            <h4 class="mb-0 text-primary">{{ yearly_stats.average_value | format_currency }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="card stats-card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-info bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                                <i class="bi bi-people text-white fs-5"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted mb-1">Clientes Únicos</h6>
+                                            <h4 class="mb-0 text-info">{{ yearly_stats.unique_clients }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Weekly Statistics (shown when week filter is applied) -->
     {% if weekly_stats %}
@@ -1035,12 +1161,16 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">
                             <i class="bi bi-table"></i> Ordens de Serviço
-                            {% if search or month_filter or week_filter %}
+                            {% if search or month_filter or week_filter or year_filter %}
                                 <small class="text-muted">
                                     (filtrado por: 
                                     {% if search %}"{{ search }}"{% endif %}
-                                    {% if search and (month_filter or week_filter) %} e {% endif %}
-                                    {% if week_filter %}
+                                    {% if search and (month_filter or week_filter or year_filter) %} e {% endif %}
+                                    {% if year_filter %}
+                                        {% for year in available_years %}
+                                            {% if year.value == year_filter %}{{ year.label }}{% endif %}
+                                        {% endfor %}
+                                    {% elif week_filter %}
                                         {% for week in available_weeks %}
                                             {% if week.value == week_filter %}{{ week.label }}{% endif %}
                                         {% endfor %}
@@ -1163,7 +1293,7 @@
                             <ul class="pagination justify-content-center mb-0">
                                 {% if pagination.has_prev %}
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('services', page=pagination.prev_num, search=search, month=month_filter, week=week_filter) }}">
+                                    <a class="page-link" href="{{ url_for('services', page=pagination.prev_num, search=search, year=year_filter, month=month_filter, week=week_filter) }}">
                                         <i class="bi bi-chevron-left"></i> Anterior
                                     </a>
                                 </li>
@@ -1176,7 +1306,7 @@
                                     </li>
                                     {% elif page_num <= 3 or page_num > pagination.total_pages - 3 or (page_num >= pagination.page - 1 and page_num <= pagination.page + 1) %}
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ url_for('services', page=page_num, search=search, month=month_filter, week=week_filter) }}">{{ page_num }}</a>
+                                        <a class="page-link" href="{{ url_for('services', page=page_num, search=search, year=year_filter, month=month_filter, week=week_filter) }}">{{ page_num }}</a>
                                     </li>
                                     {% elif page_num == 4 or page_num == pagination.total_pages - 3 %}
                                     <li class="page-item disabled">
@@ -1187,7 +1317,7 @@
 
                                 {% if pagination.has_next %}
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('services', page=pagination.next_num, search=search, month=month_filter, week=week_filter) }}">
+                                    <a class="page-link" href="{{ url_for('services', page=pagination.next_num, search=search, year=year_filter, month=month_filter, week=week_filter) }}">
                                         Próxima <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>
@@ -1202,7 +1332,7 @@
                         <div class="text-muted">
                             <i class="bi bi-tools fs-1"></i>
                             <h5 class="mt-2">Nenhuma ordem de serviço encontrada</h5>
-                            {% if search or month_filter %}
+                            {% if search or month_filter or week_filter or year_filter %}
                                 <p class="text-muted">Tente ajustar os filtros de busca.</p>
                                 <button type="button" onclick="clearFiltersWithScroll()" class="btn btn-outline-primary" title="Limpar todos os filtros">
                                     <i class="bi bi-x me-1"></i>Limpar Filtros
@@ -1347,21 +1477,27 @@ const statusChart = new Chart(statusCtx, {
 // Função para controlar exibição dos filtros de período
 function togglePeriodFilters() {
     const periodType = document.getElementById('period_type').value;
+    const yearContainer = document.getElementById('year_filter_container');
     const weekContainer = document.getElementById('week_filter_container');
     const monthContainer = document.getElementById('month_filter_container');
+    const yearSelect = document.getElementById('year');
     const weekSelect = document.getElementById('week');
     const monthSelect = document.getElementById('month');
     
-    // Esconder ambos os containers primeiro
+    // Esconder todos os containers primeiro
+    yearContainer.style.display = 'none';
     weekContainer.style.display = 'none';
     monthContainer.style.display = 'none';
     
     // Limpar valores dos selects
+    yearSelect.value = '';
     weekSelect.value = '';
     monthSelect.value = '';
     
     // Mostrar o container apropriado
-    if (periodType === 'week') {
+    if (periodType === 'year') {
+        yearContainer.style.display = 'block';
+    } else if (periodType === 'week') {
         weekContainer.style.display = 'block';
     } else if (periodType === 'month') {
         monthContainer.style.display = 'block';

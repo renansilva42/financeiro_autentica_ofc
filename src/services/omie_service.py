@@ -1158,6 +1158,67 @@ class OmieService:
                 "unregistered_services": {}
             }
     
+    def get_available_years_for_services(self) -> List[dict]:
+        """Retorna lista de anos disponíveis para filtro de ordens de serviço"""
+        try:
+            # Verificar cache primeiro
+            cache_key = self._get_cache_key("get_available_years_for_services")
+            cached_data = self._get_from_cache(cache_key, use_mapping_expiry=True)
+            if cached_data is not None:
+                print(f"Anos disponíveis carregados do cache: {len(cached_data)} anos")
+                return cached_data
+            
+            # Buscar todas as ordens para ter lista completa de anos
+            orders = self.get_all_service_orders()
+            years_set = set()
+            
+            for order in orders:
+                cabecalho = order.get("Cabecalho", {})
+                date_str = cabecalho.get("dDtPrevisao", "")
+                if date_str:
+                    try:
+                        # Extrair ano da data (formato dd/mm/yyyy)
+                        parts = date_str.split("/")
+                        if len(parts) >= 3:
+                            year = parts[2]  # yyyy
+                            years_set.add(year)
+                    except:
+                        pass
+            
+            # Converter para lista e ordenar cronologicamente (mais recentes primeiro)
+            sorted_years = sorted(list(years_set), key=lambda x: int(x), reverse=True)
+            
+            # Converter para formato mais amigável
+            result = []
+            current_year = datetime.now().year
+            
+            for year in sorted_years:
+                try:
+                    year_int = int(year)
+                    label = year
+                    if year_int == current_year:
+                        label += " (Atual)"
+                    
+                    result.append({
+                        'value': year,
+                        'label': label
+                    })
+                except:
+                    result.append({
+                        'value': year,
+                        'label': year
+                    })
+            
+            # Armazenar no cache
+            self._set_cache(cache_key, result)
+            print(f"Anos disponíveis processados: {len(result)} anos")
+            
+            return result
+            
+        except Exception as e:
+            print(f"Erro ao buscar anos disponíveis: {str(e)}")
+            return []
+    
     def get_available_months_for_services(self) -> List[dict]:
         """Retorna lista de meses disponíveis para filtro de ordens de serviço"""
         try:
@@ -1361,6 +1422,73 @@ class OmieService:
             import traceback
             traceback.print_exc()
             return []
+    
+    def get_yearly_service_stats(self, year_filter: str) -> dict:
+        """Retorna estatísticas das ordens de serviço para um ano específico"""
+        try:
+            # Buscar todas as ordens para estatísticas precisas
+            all_orders = self.get_all_service_orders()
+            
+            # Filtrar ordens pelo ano especificado
+            filtered_orders = []
+            for order in all_orders:
+                cabecalho = order.get("Cabecalho", {})
+                date_str = cabecalho.get("dDtPrevisao", "")
+                if date_str:
+                    try:
+                        # Extrair ano da data (formato dd/mm/yyyy)
+                        year = date_str.split("/")[2]  # yyyy
+                        if year == year_filter:
+                            filtered_orders.append(order)
+                    except:
+                        pass
+            
+            total_orders = len(filtered_orders)
+            
+            # Calcular valor total
+            total_value = 0
+            for order in filtered_orders:
+                cabecalho = order.get("Cabecalho", {})
+                total_value += float(cabecalho.get("nValorTotal", 0))
+            
+            # Calcular ticket médio
+            average_value = total_value / total_orders if total_orders > 0 else 0
+            
+            # Contar clientes únicos
+            unique_clients = set()
+            for order in filtered_orders:
+                cabecalho = order.get("Cabecalho", {})
+                client_code = cabecalho.get("nCodCli", "")
+                if client_code:
+                    unique_clients.add(client_code)
+            
+            unique_clients_count = len(unique_clients)
+            
+            # Formatar o nome do ano para exibição
+            current_year = datetime.now().year
+            formatted_year = year_filter
+            if int(year_filter) == current_year:
+                formatted_year += " (Atual)"
+            
+            return {
+                "year_filter": year_filter,
+                "formatted_year": formatted_year,
+                "total_orders": total_orders,
+                "total_value": total_value,
+                "average_value": average_value,
+                "unique_clients": unique_clients_count
+            }
+            
+        except Exception as e:
+            print(f"Erro ao calcular estatísticas anuais: {str(e)}")
+            return {
+                "year_filter": year_filter,
+                "formatted_year": year_filter,
+                "total_orders": 0,
+                "total_value": 0,
+                "average_value": 0,
+                "unique_clients": 0
+            }
     
     def get_monthly_service_stats(self, month_filter: str) -> dict:
         """Retorna estatísticas das ordens de serviço para um mês específico"""

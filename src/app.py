@@ -288,10 +288,17 @@ def services():
         search = request.args.get('search', '', type=str)
         month_filter = request.args.get('month', '', type=str)
         week_filter = request.args.get('week', '', type=str)
+        year_filter = request.args.get('year', '', type=str)
         per_page = 20
         
+        # Se não há nenhum filtro aplicado, usar o ano atual como padrão
+        current_year = str(datetime.now().year)
+        if not search and not month_filter and not week_filter and not year_filter:
+            year_filter = current_year
+            print(f"Aplicando filtro padrão para o ano atual: {year_filter}")
+        
         # Verificar se há dados em cache primeiro
-        print(f"Buscando ordens de serviço - página {page}, busca: '{search}', mês: '{month_filter}', semana: '{week_filter}'")
+        print(f"Buscando ordens de serviço - página {page}, busca: '{search}', ano: '{year_filter}', mês: '{month_filter}', semana: '{week_filter}'")
         
         # Tentar buscar do cache primeiro (com tempo de vida estendido para serviços)
         cache_key = omie_service._get_cache_key("get_all_service_orders", max_pages=None)
@@ -322,8 +329,23 @@ def services():
             print(f"Erro ao carregar mapeamento de vendedores: {str(e)}")
             seller_name_mapping = {}
         
-        # Filtrar por semana se especificado (tem prioridade sobre mês)
-        if week_filter:
+        # Filtrar por ano se especificado (tem prioridade sobre semana e mês)
+        if year_filter:
+            filtered_orders = []
+            for order in all_orders:
+                cabecalho = order.get('Cabecalho', {})
+                date_str = cabecalho.get('dDtPrevisao', '')
+                if date_str:
+                    try:
+                        # Extrair ano da data (formato dd/mm/yyyy)
+                        year = date_str.split("/")[2]  # yyyy
+                        if year == year_filter:
+                            filtered_orders.append(order)
+                    except:
+                        pass
+            all_orders = filtered_orders
+        # Filtrar por semana se especificado (tem prioridade sobre mês, mas não sobre ano)
+        elif week_filter:
             try:
                 # Extrair datas de início e fim da semana
                 start_date_str, end_date_str = week_filter.split("_")
@@ -348,7 +370,7 @@ def services():
                 all_orders = filtered_orders
             except Exception as e:
                 print(f"Erro ao filtrar por semana: {str(e)}")
-        # Filtrar por mês se especificado (apenas se não há filtro de semana)
+        # Filtrar por mês se especificado (apenas se não há filtro de ano ou semana)
         elif month_filter:
             filtered_orders = []
             for order in all_orders:
@@ -446,9 +468,19 @@ def services():
                 "monthly_values": {}
             }
         
-        # Se há filtro de semana, calcular estatísticas específicas da semana
+        # Se há filtro de ano, calcular estatísticas específicas do ano
+        yearly_stats = None
+        if year_filter:
+            print(f"Buscando estatísticas anuais para {year_filter}...")
+            try:
+                yearly_stats = omie_service.get_yearly_service_stats(year_filter)
+            except Exception as e:
+                print(f"Erro ao carregar estatísticas anuais: {str(e)}")
+                yearly_stats = None
+        
+        # Se há filtro de semana (e não de ano), calcular estatísticas específicas da semana
         weekly_stats = None
-        if week_filter:
+        if week_filter and not year_filter:
             print(f"Buscando estatísticas semanais para {week_filter}...")
             try:
                 weekly_stats = omie_service.get_weekly_service_stats(week_filter)
@@ -456,15 +488,23 @@ def services():
                 print(f"Erro ao carregar estatísticas semanais: {str(e)}")
                 weekly_stats = None
         
-        # Se há filtro de mês (e não de semana), calcular estatísticas específicas do mês
+        # Se há filtro de mês (e não de ano ou semana), calcular estatísticas específicas do mês
         monthly_stats = None
-        if month_filter and not week_filter:
+        if month_filter and not year_filter and not week_filter:
             print(f"Buscando estatísticas mensais para {month_filter}...")
             try:
                 monthly_stats = omie_service.get_monthly_service_stats(month_filter)
             except Exception as e:
                 print(f"Erro ao carregar estatísticas mensais: {str(e)}")
                 monthly_stats = None
+        
+        # Buscar lista de anos disponíveis para o filtro
+        print("Buscando anos disponíveis...")
+        try:
+            available_years = omie_service.get_available_years_for_services()
+        except Exception as e:
+            print(f"Erro ao carregar anos disponíveis: {str(e)}")
+            available_years = []
         
         # Buscar lista de meses disponíveis para o filtro
         print("Buscando meses disponíveis...")
@@ -486,11 +526,14 @@ def services():
                              orders=orders_page, 
                              pagination=pagination,
                              stats=stats,
+                             yearly_stats=yearly_stats,
                              monthly_stats=monthly_stats,
                              weekly_stats=weekly_stats,
                              search=search,
+                             year_filter=year_filter,
                              month_filter=month_filter,
                              week_filter=week_filter,
+                             available_years=available_years,
                              available_months=available_months,
                              available_weeks=available_weeks,
                              client_name_mapping=client_name_mapping,
@@ -666,8 +709,14 @@ def api_services():
         search = request.args.get('search', '', type=str)
         month_filter = request.args.get('month', '', type=str)
         week_filter = request.args.get('week', '', type=str)
+        year_filter = request.args.get('year', '', type=str)
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
+        
+        # Se não há nenhum filtro aplicado, usar o ano atual como padrão
+        current_year = str(datetime.now().year)
+        if not search and not month_filter and not week_filter and not year_filter:
+            year_filter = current_year
         
         # Buscar todas as ordens de serviço
         orders = omie_service.get_all_service_orders()
@@ -686,8 +735,23 @@ def api_services():
             print(f"Erro ao carregar mapeamento de vendedores na API: {str(e)}")
             seller_name_mapping = {}
         
-        # Filtrar por semana se especificado (tem prioridade sobre mês)
-        if week_filter:
+        # Filtrar por ano se especificado (tem prioridade sobre semana e mês)
+        if year_filter:
+            filtered_orders = []
+            for order in orders:
+                cabecalho = order.get('Cabecalho', {})
+                date_str = cabecalho.get('dDtPrevisao', '')
+                if date_str:
+                    try:
+                        # Extrair ano da data (formato dd/mm/yyyy)
+                        year = date_str.split("/")[2]  # yyyy
+                        if year == year_filter:
+                            filtered_orders.append(order)
+                    except:
+                        pass
+            orders = filtered_orders
+        # Filtrar por semana se especificado (tem prioridade sobre mês, mas não sobre ano)
+        elif week_filter:
             try:
                 # Extrair datas de início e fim da semana
                 start_date_str, end_date_str = week_filter.split("_")
@@ -712,7 +776,7 @@ def api_services():
                 orders = filtered_orders
             except Exception as e:
                 print(f"Erro ao filtrar por semana na API: {str(e)}")
-        # Filtrar por mês se especificado (apenas se não há filtro de semana)
+        # Filtrar por mês se especificado (apenas se não há filtro de ano ou semana)
         elif month_filter:
             filtered_orders = []
             for order in orders:
