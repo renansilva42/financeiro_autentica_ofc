@@ -697,6 +697,19 @@
                             <input type="text" class="form-control" id="search" name="search" 
                                    value="{{ search }}" placeholder="Cliente, vendedor, código ou número da OS...">
                         </div>
+
+                        <!-- Filtro por Serviço -->
+                        <div class="col-lg-3 col-md-6">
+                            <label for="service" class="form-label">
+                                <i class="bi bi-gear me-1"></i>Serviço
+                            </label>
+                            <select class="form-select" id="service" name="service">
+                                <option value="">Todos os serviços</option>
+                                {% for serv in available_services %}
+                                <option value="{{ serv }}" {% if service_filter == serv %}selected{% endif %}>{{ serv }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                         
                         <!-- Filtro por Período -->
                         <div class="col-lg-3 col-md-6">
@@ -1293,7 +1306,7 @@
                             <ul class="pagination justify-content-center mb-0">
                                 {% if pagination.has_prev %}
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('services', page=pagination.prev_num, search=search, year=year_filter, month=month_filter, week=week_filter) }}">
+                                    <a class="page-link" href="{{ url_for('services', page=pagination.prev_num, search=search, service=service_filter, year=year_filter, month=month_filter, week=week_filter) }}">
                                         <i class="bi bi-chevron-left"></i> Anterior
                                     </a>
                                 </li>
@@ -1306,7 +1319,7 @@
                                     </li>
                                     {% elif page_num <= 3 or page_num > pagination.total_pages - 3 or (page_num >= pagination.page - 1 and page_num <= pagination.page + 1) %}
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ url_for('services', page=page_num, search=search, year=year_filter, month=month_filter, week=week_filter) }}">{{ page_num }}</a>
+                                        <a class="page-link" href="{{ url_for('services', page=page_num, search=search, service=service_filter, year=year_filter, month=month_filter, week=week_filter) }}">{{ page_num }}</a>
                                     </li>
                                     {% elif page_num == 4 or page_num == pagination.total_pages - 3 %}
                                     <li class="page-item disabled">
@@ -1317,7 +1330,7 @@
 
                                 {% if pagination.has_next %}
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('services', page=pagination.next_num, search=search, year=year_filter, month=month_filter, week=week_filter) }}">
+                                    <a class="page-link" href="{{ url_for('services', page=pagination.next_num, search=search, service=service_filter, year=year_filter, month=month_filter, week=week_filter) }}">
                                         Próxima <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>

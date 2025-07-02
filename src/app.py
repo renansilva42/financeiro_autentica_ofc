@@ -286,6 +286,7 @@ def services():
     try:
         page = request.args.get('page', 1, type=int)
         search = request.args.get('search', '', type=str)
+        service_filter = request.args.get('service', '', type=str)
         month_filter = request.args.get('month', '', type=str)
         week_filter = request.args.get('week', '', type=str)
         year_filter = request.args.get('year', '', type=str)
@@ -328,6 +329,15 @@ def services():
         except Exception as e:
             print(f"Erro ao carregar mapeamento de vendedores: {str(e)}")
             seller_name_mapping = {}
+
+        # Lista dinâmica de serviços disponíveis
+        print("Buscando lista de serviços disponíveis...")
+        try:
+            service_name_mapping = omie_service.get_service_name_mapping()
+            available_services = sorted(service_name_mapping.values())
+        except Exception as e:
+            print(f"Erro ao carregar serviços disponíveis: {str(e)}")
+            available_services = []
         
         # Filtrar por ano se especificado (tem prioridade sobre semana e mês)
         if year_filter:
@@ -386,6 +396,15 @@ def services():
                         pass
             all_orders = filtered_orders
         
+        # Filtrar por tipo de serviço se necessário (antes de busca para reduzir dataset)
+        if service_filter:
+            filtered_orders = []
+            for order in all_orders:
+                servicos = order.get('ServicosPrestados', [])
+                if any(s.get('cDescServ', '').strip() == service_filter for s in servicos):
+                    filtered_orders.append(order)
+            all_orders = filtered_orders
+
         # Filtrar por busca se necessário
         if search:
             search_lower = search.lower()
@@ -530,12 +549,14 @@ def services():
                              monthly_stats=monthly_stats,
                              weekly_stats=weekly_stats,
                              search=search,
+                             service_filter=service_filter,
                              year_filter=year_filter,
                              month_filter=month_filter,
                              week_filter=week_filter,
                              available_years=available_years,
                              available_months=available_months,
                              available_weeks=available_weeks,
+                             available_services=available_services,
                              client_name_mapping=client_name_mapping,
                              seller_name_mapping=seller_name_mapping)
     except Exception as e:
