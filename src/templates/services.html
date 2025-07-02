@@ -564,7 +564,7 @@
 
     <!-- Charts Row -->
     <div class="row mb-4">
-        <div class="col-lg-8 mb-3">
+        <div class="col-12 mb-3">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-white">
                     <h5 class="card-title mb-0">
@@ -574,21 +574,6 @@
                 <div class="card-body">
                     <div class="chart-container">
                         <canvas id="monthlyChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-pie-chart"></i> Status das OS
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="statusChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -1368,7 +1353,6 @@
 // Dados para os gráficos
 const monthlyData = {{ stats.monthly_stats | tojson }};
 const monthlyValues = {{ stats.monthly_values | tojson }};
-const statusData = {{ stats.by_status | tojson }};
 
 // Função para ordenar cronologicamente as chaves mês/ano
 function sortMonthYearKeys(obj) {
@@ -1449,41 +1433,6 @@ const monthlyChart = new Chart(monthlyCtx, {
                 grid: {
                     drawOnChartArea: false,
                 },
-            }
-        }
-    }
-});
-
-// Gráfico de status das OS
-const statusCtx = document.getElementById('statusChart').getContext('2d');
-const statusChart = new Chart(statusCtx, {
-    type: 'doughnut',
-    data: {
-        labels: Object.keys(statusData),
-        datasets: [{
-            data: Object.values(statusData),
-            backgroundColor: [
-                'rgba(13, 110, 253, 0.8)',
-                'rgba(25, 135, 84, 0.8)',
-                'rgba(255, 193, 7, 0.8)',
-                'rgba(220, 53, 69, 0.8)',
-                'rgba(108, 117, 125, 0.8)',
-                'rgba(111, 66, 193, 0.8)'
-            ],
-            borderWidth: 2,
-            borderColor: '#fff'
-        }],
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    padding: 20,
-                    usePointStyle: true
-                }
             }
         }
     }
