@@ -1757,130 +1757,127 @@ function setupWeekNavigation() {
 
 // Funções para atalhos rápidos de período
 function setCurrentWeek() {
-    const periodSelect = document.getElementById('period_type');
-    const weekSelect = document.getElementById('week');
-    
-    if (periodSelect && weekSelect && weekSelect.options.length > 1) {
-        periodSelect.value = 'week';
-        togglePeriodFilters();
-        
-        // Abordagem mais simples: usar a primeira opção disponível
-        // As semanas estão ordenadas da mais recente para a mais antiga
-        // Então: options[1] = semana mais recente (atual ou mais próxima)
-        
-        console.log('Selecionando semana atual - índice: 1');
-        console.log('Opção selecionada:', weekSelect.options[1].text);
-        
-        weekSelect.value = weekSelect.options[1].value;
-        
-        // Submeter com hash para scroll automático
-        const form = weekSelect.closest('form');
-        const formData = new FormData(form);
-        const params = new URLSearchParams();
-        
-        for (let [key, value] of formData.entries()) {
-            if (value.trim() !== '') {
-                params.append(key, value);
-            }
-        }
-        
-        let url = window.location.pathname + '?' + params.toString() + '#filtros-section';
-        window.location.href = url;
-    }
+const periodSelect = document.getElementById('period_type');
+const weekSelect = document.getElementById('week');
+const yearSelect = document.getElementById('year');
+
+if (periodSelect && weekSelect && weekSelect.options.length > 1) {
+// Limpar filtro de ano para que o filtro de semana funcione
+if (yearSelect) {
+yearSelect.value = '';
+}
+
+periodSelect.value = 'week';
+togglePeriodFilters();
+
+// Abordagem mais simples: usar a primeira opção disponível
+// As semanas estão ordenadas da mais recente para a mais antiga
+// Então: options[1] = semana mais recente (atual ou mais próxima)
+
+console.log('Selecionando semana atual - índice: 1');
+console.log('Opção selecionada:', weekSelect.options[1].text);
+
+weekSelect.value = weekSelect.options[1].value;
+
+// Submeter formulário diretamente sem incluir o filtro de ano
+submitFormWithoutYear();
+}
 }
 
 function setLastWeek() {
-    const periodSelect = document.getElementById('period_type');
-    const weekSelect = document.getElementById('week');
-    
-    if (periodSelect && weekSelect && weekSelect.options.length > 1) {
-        periodSelect.value = 'week';
-        togglePeriodFilters();
-        
-        // Abordagem mais simples: usar a segunda opção disponível
-        // As semanas estão ordenadas da mais recente para a mais antiga
-        // Então: options[1] = semana mais recente, options[2] = semana anterior
-        
-        let targetIndex = 2; // Segunda semana (semana passada)
-        
-        // Se não há segunda opção, usar a primeira
-        if (weekSelect.options.length <= 2) {
-            targetIndex = 1;
-        }
-        
-        console.log('Selecionando semana passada - índice:', targetIndex);
-        console.log('Opção selecionada:', weekSelect.options[targetIndex].text);
-        
-        weekSelect.value = weekSelect.options[targetIndex].value;
-        
-        // Submeter com hash para scroll automático
-        const form = weekSelect.closest('form');
-        const formData = new FormData(form);
-        const params = new URLSearchParams();
-        
-        for (let [key, value] of formData.entries()) {
-            if (value.trim() !== '') {
-                params.append(key, value);
-            }
-        }
-        
-        let url = window.location.pathname + '?' + params.toString() + '#filtros-section';
-        window.location.href = url;
-    }
+const periodSelect = document.getElementById('period_type');
+const weekSelect = document.getElementById('week');
+const yearSelect = document.getElementById('year');
+
+if (periodSelect && weekSelect && weekSelect.options.length > 1) {
+// Limpar filtro de ano para que o filtro de semana funcione
+if (yearSelect) {
+yearSelect.value = '';
+}
+
+periodSelect.value = 'week';
+togglePeriodFilters();
+
+// Abordagem mais simples: usar a segunda opção disponível
+// As semanas estão ordenadas da mais recente para a mais antiga
+// Então: options[1] = semana mais recente, options[2] = semana anterior
+
+let targetIndex = 2; // Segunda semana (semana passada)
+
+// Se não há segunda opção, usar a primeira
+if (weekSelect.options.length <= 2) {
+targetIndex = 1;
+}
+
+console.log('Selecionando semana passada - índice:', targetIndex);
+console.log('Opção selecionada:', weekSelect.options[targetIndex].text);
+
+weekSelect.value = weekSelect.options[targetIndex].value;
+
+// Submeter formulário diretamente sem incluir o filtro de ano
+submitFormWithoutYear();
+}
 }
 
 function setCurrentMonth() {
-    const periodSelect = document.getElementById('period_type');
-    const monthSelect = document.getElementById('month');
-    
-    if (periodSelect && monthSelect && monthSelect.options.length > 1) {
-        periodSelect.value = 'month';
-        togglePeriodFilters();
-        
-        // Pegar o primeiro mês (mês atual)
-        monthSelect.value = monthSelect.options[1].value;
-        
-        // Submeter com hash para scroll automático
-        const form = monthSelect.closest('form');
-        const formData = new FormData(form);
-        const params = new URLSearchParams();
-        
-        for (let [key, value] of formData.entries()) {
-            if (value.trim() !== '') {
-                params.append(key, value);
-            }
-        }
-        
-        let url = window.location.pathname + '?' + params.toString() + '#filtros-section';
-        window.location.href = url;
-    }
+const periodSelect = document.getElementById('period_type');
+const monthSelect = document.getElementById('month');
+const yearSelect = document.getElementById('year');
+
+if (periodSelect && monthSelect && monthSelect.options.length > 1) {
+// Limpar filtro de ano para que o filtro de mês funcione
+if (yearSelect) {
+yearSelect.value = '';
+}
+
+periodSelect.value = 'month';
+togglePeriodFilters();
+
+// Pegar o primeiro mês (mês atual)
+monthSelect.value = monthSelect.options[1].value;
+
+// Submeter formulário diretamente sem incluir o filtro de ano
+submitFormWithoutYear();
+}
 }
 
 function setLastMonth() {
-    const periodSelect = document.getElementById('period_type');
-    const monthSelect = document.getElementById('month');
-    
-    if (periodSelect && monthSelect && monthSelect.options.length > 2) {
-        periodSelect.value = 'month';
-        togglePeriodFilters();
-        
-        // Pegar o segundo mês (mês passado)
-        monthSelect.value = monthSelect.options[2].value;
-        
-        // Submeter com hash para scroll automático
-        const form = monthSelect.closest('form');
-        const formData = new FormData(form);
-        const params = new URLSearchParams();
-        
-        for (let [key, value] of formData.entries()) {
-            if (value.trim() !== '') {
-                params.append(key, value);
-            }
-        }
-        
-        let url = window.location.pathname + '?' + params.toString() + '#filtros-section';
-        window.location.href = url;
-    }
+const periodSelect = document.getElementById('period_type');
+const monthSelect = document.getElementById('month');
+const yearSelect = document.getElementById('year');
+
+if (periodSelect && monthSelect && monthSelect.options.length > 2) {
+// Limpar filtro de ano para que o filtro de mês funcione
+if (yearSelect) {
+yearSelect.value = '';
+}
+
+periodSelect.value = 'month';
+togglePeriodFilters();
+
+// Pegar o segundo mês (mês passado)
+monthSelect.value = monthSelect.options[2].value;
+
+// Submeter formulário diretamente sem incluir o filtro de ano
+submitFormWithoutYear();
+}
+}
+
+// Função auxiliar para submeter o formulário sem o filtro de ano
+function submitFormWithoutYear() {
+const form = document.getElementById('filtros-form');
+const formData = new FormData(form);
+const params = new URLSearchParams();
+
+for (let [key, value] of formData.entries()) {
+// Excluir o filtro de ano e incluir apenas valores não vazios
+if (key !== 'year' && value.trim() !== '') {
+params.append(key, value);
+}
+}
+
+let url = window.location.pathname + '?' + params.toString() + '#filtros-section';
+window.location.href = url;
 }
 
 // Função para limpar filtros com scroll para a seção de filtros
