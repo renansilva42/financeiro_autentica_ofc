@@ -272,16 +272,36 @@ class OmieService:
             mapping = {}
             
             for client in clients_summary:
-                client_code = client.get("codigo_cliente")
+                # Campo de código pode variar: tentar várias chaves conhecidas
+                client_code_raw = (
+                    client.get("codigo_cliente_omie")
+                    or client.get("codigo_cliente")
+                    or client.get("codigo_cliente_integracao")
+                )
+                
+                if client_code_raw is None or client_code_raw == "":
+                    continue
+                
                 # Priorizar nome fantasia, depois razão social
                 client_name = client.get("nome_fantasia", "").strip()
                 if not client_name:
                     client_name = client.get("razao_social", "").strip()
                 if not client_name:
-                    client_name = f"Cliente {client_code}"
+                    client_name = f"Cliente {client_code_raw}"
                 
-                if client_code:
-                    mapping[client_code] = client_name
+                # Registrar múltiplas formas do código para garantir compatibilidade
+                # 1. Forma original (como vem da API)
+                mapping[client_code_raw] = client_name
+                
+                # 2. Como string (para garantir compatibilidade com templates)
+                mapping[str(client_code_raw)] = client_name
+                
+                # 3. Como inteiro se possível (para compatibilidade com códigos numéricos)
+                try:
+                    client_code_int = int(client_code_raw)
+                    mapping[client_code_int] = client_name
+                except (ValueError, TypeError):
+                    pass
             
             # Armazenar no cache local
             self._set_cache(cache_key, mapping)
@@ -394,14 +414,28 @@ class OmieService:
             mapping = {}
             
             for seller in sellers:
-                seller_code = seller.get("codigo")
+                seller_code_raw = seller.get("codigo")
                 seller_name = seller.get("nome", "").strip()
                 
-                if not seller_name:
-                    seller_name = f"Vendedor {seller_code}"
+                if seller_code_raw is None or seller_code_raw == "":
+                    continue
                 
-                if seller_code:
-                    mapping[seller_code] = seller_name
+                if not seller_name:
+                    seller_name = f"Vendedor {seller_code_raw}"
+                
+                # Registrar múltiplas formas do código para garantir compatibilidade
+                # 1. Forma original (como vem da API)
+                mapping[seller_code_raw] = seller_name
+                
+                # 2. Como string (para garantir compatibilidade com templates)
+                mapping[str(seller_code_raw)] = seller_name
+                
+                # 3. Como inteiro se possível (para compatibilidade com códigos numéricos)
+                try:
+                    seller_code_int = int(seller_code_raw)
+                    mapping[seller_code_int] = seller_name
+                except (ValueError, TypeError):
+                    pass
             
             # Armazenar no cache
             self._set_cache(cache_key, mapping)

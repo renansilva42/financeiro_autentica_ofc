@@ -1226,12 +1226,13 @@
                                     <td>{{ cabecalho.cNumOS }}</td>
                                     <td>
                                         <div>
-                                            {% set client_name = client_name_mapping.get(cabecalho.nCodCli) %}
+                                            {% set client_code = cabecalho.nCodCli %}
+                                            {% set client_name = client_name_mapping.get(client_code) or client_name_mapping.get(client_code|string) %}
                                             {% if client_name %}
                                                 <strong>{{ client_name }}</strong>
-                                                <br><small class="text-muted">Código: {{ cabecalho.nCodCli }}</small>
+                                                <br><small class="text-muted">Código: {{ client_code }}</small>
                                             {% else %}
-                                                <strong>Cliente {{ cabecalho.nCodCli }}</strong>
+                                                <strong>Cliente {{ client_code }}</strong>
                                             {% endif %}
                                         </div>
                                     </td>
@@ -1270,14 +1271,15 @@
                                     </td>
                                     <td>
                                         {% if cabecalho.nCodVend %}
-                                            {% set seller_name = seller_name_mapping.get(cabecalho.nCodVend) %}
+                                            {% set seller_code = cabecalho.nCodVend %}
+                                            {% set seller_name = seller_name_mapping.get(seller_code) or seller_name_mapping.get(seller_code|string) %}
                                             {% if seller_name %}
                                                 <div>
                                                     <strong>{{ seller_name }}</strong>
-                                                    <br><small class="text-muted">Código: {{ cabecalho.nCodVend }}</small>
+                                                    <br><small class="text-muted">Código: {{ seller_code }}</small>
                                                 </div>
                                             {% else %}
-                                                <span class="badge bg-light text-dark">Vendedor {{ cabecalho.nCodVend }}</span>
+                                                <span class="badge bg-light text-dark">Vendedor {{ seller_code }}</span>
                                             {% endif %}
                                         {% else %}
                                             <span class="text-muted">-</span>
