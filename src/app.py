@@ -314,6 +314,9 @@ def services():
             all_orders = omie_service.get_all_service_orders()
             print(f"Total de ordens carregadas da API: {len(all_orders)}")
         
+        # Manter apenas ordens de serviço faturadas
+        all_orders = [o for o in all_orders if o.get('Cabecalho', {}).get('cEtapa') == '60']
+
         # Buscar mapeamento de clientes (código -> nome)
         print("Buscando mapeamento de nomes de clientes...")
         try:
@@ -470,7 +473,8 @@ def services():
         # Buscar estatísticas (sem filtro para manter visão geral) com tratamento de erro
         print("Buscando estatísticas de ordens de serviço...")
         try:
-            stats = omie_service.get_service_orders_stats()
+            # Gerar estatísticas utilizando o mesmo conjunto filtrado de ordens para manter consistência
+            stats = omie_service.get_service_orders_stats(orders=all_orders)
         except Exception as e:
             print(f"Erro ao carregar estatísticas: {str(e)}")
             stats = {
@@ -741,6 +745,8 @@ def api_services():
         
         # Buscar todas as ordens de serviço
         orders = omie_service.get_all_service_orders()
+        # Manter apenas ordens de serviço faturadas
+        orders = [o for o in orders if o.get('Cabecalho', {}).get('cEtapa') == '60']
         
         # Buscar mapeamento de clientes
         try:

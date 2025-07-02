@@ -966,11 +966,15 @@ class OmieService:
         
         return all_orders
     
-    def get_service_orders_stats(self) -> dict:
+    def get_service_orders_stats(self, faturada_only: bool = False, orders: Optional[List[dict]] = None) -> dict:
         """Retorna estatísticas das ordens de serviço"""
         try:
             # Buscar todas as ordens com carregamento otimizado
-            orders = self.get_all_service_orders()
+            if orders is None:
+                orders = self.get_all_service_orders()
+            # Se solicitado, manter apenas ordens de serviço faturadas (etapa 60)
+            if faturada_only:
+                orders = [o for o in orders if o.get('Cabecalho', {}).get('cEtapa') == '60']
             
             total_orders = len(orders)
             
@@ -1030,7 +1034,10 @@ class OmieService:
                 
                 servicos = order.get("ServicosPrestados", [])
                 
-                for i, servico in enumerate(servicos):
+                # Conjunto auxiliar para evitar contagem duplicada da mesma OS para o mesmo tipo de serviço
+                counted_keys = set()
+                
+                for servico in servicos:
                     # Usar código do serviço (nCodServico) para buscar o nome real
                     service_code = servico.get("nCodServico", "")
                     service_desc = servico.get("cDescServ", "").strip()
@@ -1044,14 +1051,17 @@ class OmieService:
                     else:
                         service_type = "Não informado"
                     
-                    # Calcular valor específico do item de serviço
+                    # Identificador único para OS + tipo de serviço
+                    unique_key = f"{order_code}_{service_type}"
+                    
+                    # Calcular valor específico do item de serviço (sempre somado)
                     quantidade = float(servico.get("nQtde", 1))
                     valor_unitario = float(servico.get("nValUnit", 0))
                     valor_desconto = float(servico.get("nValorDesconto", 0))
                     valor_acrescimos = float(servico.get("nValorAcrescimos", 0))
                     service_value = (quantidade * valor_unitario) - valor_desconto + valor_acrescimos
                     
-                    # Contagem simples por tipo de serviço
+                    # Contagem simples por tipo de serviço (continua item-a-item)
                     service_types[service_type] = service_types.get(service_type, 0) + 1
                     
                     # Breakdown detalhado por serviço e status
@@ -1064,20 +1074,25 @@ class OmieService:
                             'etapa_00': {'count': 0, 'value': 0}
                         }
                     
-                    # Incrementar totais
-                    service_breakdown[service_type]['total_count'] += 1
+                    # Incrementar totais (apenas uma vez por OS/tipo para contagem de OS)
+                    if unique_key not in counted_keys:
+                        service_breakdown[service_type]['total_count'] += 1
+                        counted_keys.add(unique_key)
+                    
+                    # Valor total sempre acumulado (pode ter múltiplos itens)
                     service_breakdown[service_type]['total_value'] += service_value
                     
-                    # Classificar por status
-                    if order_status == "60":  # Faturada
-                        service_breakdown[service_type]['faturada']['count'] += 1
-                        service_breakdown[service_type]['faturada']['value'] += service_value
-                    elif order_status == "10":  # Pendente
-                        service_breakdown[service_type]['pendente']['count'] += 1
-                        service_breakdown[service_type]['pendente']['value'] += service_value
-                    elif order_status == "00":  # Etapa 00
-                        service_breakdown[service_type]['etapa_00']['count'] += 1
-                        service_breakdown[service_type]['etapa_00']['value'] += service_value
+                    # Classificar por status (apenas uma vez por OS/tipo)
+                    if unique_key not in counted_keys:  # já adicionado acima
+                        if order_status == "60":  # Faturada
+                            service_breakdown[service_type]['faturada']['count'] += 1
+                            service_breakdown[service_type]['faturada']['value'] += service_value
+                        elif order_status == "10":  # Pendente
+                            service_breakdown[service_type]['pendente']['count'] += 1
+                            service_breakdown[service_type]['pendente']['value'] += service_value
+                        elif order_status == "00":  # Etapa 00
+                            service_breakdown[service_type]['etapa_00']['count'] += 1
+                            service_breakdown[service_type]['etapa_00']['value'] += service_value
             
             # Adicionar serviços cadastrados que não têm ordens (para mostrar todos os 16 serviços)
             for service_code, service_name in service_name_mapping.items():
@@ -1472,7 +1487,7 @@ class OmieService:
                     try:
                         # Extrair ano da data (formato dd/mm/yyyy)
                         year = date_str.split("/")[2]  # yyyy
-                        if year == year_filter:
+                        if year == year_filter and cabecalho.get("cEtapa") == "60":
                             filtered_orders.append(order)
                     except:
                         pass
@@ -1539,7 +1554,7 @@ class OmieService:
                     try:
                         # Extrair mês/ano da data (formato dd/mm/yyyy)
                         month_year = "/".join(date_str.split("/")[1:])  # mm/yyyy
-                        if month_year == month_filter:
+                        if month_year == month_filter and cabecalho.get("cEtapa") == "60":
                             filtered_orders.append(order)
                     except:
                         pass
@@ -1622,7 +1637,7 @@ class OmieService:
                         order_date = datetime(int(year), int(month), int(day))
                         
                         # Verificar se a data está dentro da semana
-                        if start_date <= order_date <= end_date:
+                        if start_date <= order_date <= end_date and cabecalho.get("cEtapa") == "60":
                             filtered_orders.append(order)
                     except:
                         pass
