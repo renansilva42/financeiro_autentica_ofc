@@ -593,7 +593,24 @@
                     {% if stats.top_clients %}
                         {% for client, count in stats.top_clients %}
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-truncate">{{ client }}</span>
+                            {% if client_name_mapping %}
+                                {% if client.startswith('Cliente ') and client.replace('Cliente ', '').isdigit() %}
+                                    {% set client_code = client.replace('Cliente ', '') %}
+                                    {% set client_name = client_name_mapping.get(client_code|int) or client_name_mapping.get(client_code) %}
+                                    <span class="text-truncate" title="{{ client_name or client }}">
+                                        {{ client_name or client }}
+                                    </span>
+                                {% elif client.isdigit() %}
+                                    {% set client_name = client_name_mapping.get(client|int) or client_name_mapping.get(client) %}
+                                    <span class="text-truncate" title="{{ client_name or ('Cliente ' + client) }}">
+                                        {{ client_name or ('Cliente ' + client) }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-truncate" title="{{ client }}">{{ client }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-truncate" title="{{ client }}">{{ client }}</span>
+                            {% endif %}
                             <span class="badge bg-primary">{{ count }} OS</span>
                         </div>
                         {% endfor %}
