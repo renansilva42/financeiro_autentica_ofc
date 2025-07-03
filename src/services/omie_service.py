@@ -966,7 +966,7 @@ class OmieService:
         
         return all_orders
     
-    def get_service_orders_stats(self, faturada_only: bool = False, orders: Optional[List[dict]] = None) -> dict:
+    def get_service_orders_stats(self, faturada_only: bool = False, orders: Optional[List[dict]] = None, service_filter: Optional[str] = None) -> dict:
         """Retorna estatísticas das ordens de serviço"""
         try:
             # Buscar todas as ordens com carregamento otimizado
@@ -1094,16 +1094,18 @@ class OmieService:
                             service_breakdown[service_type]['etapa_00']['count'] += 1
                             service_breakdown[service_type]['etapa_00']['value'] += service_value
             
-            # Adicionar serviços cadastrados que não têm ordens (para mostrar todos os 16 serviços)
-            for service_code, service_name in service_name_mapping.items():
-                if service_name not in service_breakdown:
-                    service_breakdown[service_name] = {
-                        'total_count': 0,
-                        'total_value': 0,
-                        'faturada': {'count': 0, 'value': 0},
-                        'pendente': {'count': 0, 'value': 0},
-                        'etapa_00': {'count': 0, 'value': 0}
-                    }
+            # Adicionar serviços cadastrados que não têm ordens apenas se não há filtro específico aplicado
+            # Se há filtro de serviço específico, mostrar apenas os serviços que estão nos dados filtrados
+            if not service_filter:
+                for service_code, service_name in service_name_mapping.items():
+                    if service_name not in service_breakdown:
+                        service_breakdown[service_name] = {
+                            'total_count': 0,
+                            'total_value': 0,
+                            'faturada': {'count': 0, 'value': 0},
+                            'pendente': {'count': 0, 'value': 0},
+                            'etapa_00': {'count': 0, 'value': 0}
+                        }
             
             # Debug: mostrar resumo do breakdown
             print(f"\nService Breakdown processado: {len(service_breakdown)} tipos de serviço")

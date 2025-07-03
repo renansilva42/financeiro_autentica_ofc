@@ -543,6 +543,23 @@
         </div>
     </div>
 
+    <!-- Filter Update Notice -->
+    {% if search or month_filter or week_filter or year_filter or service_filter %}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="alert alert-info border-0 shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-funnel-fill me-2"></i>
+                    <div>
+                        <strong>Filtros Aplicados:</strong> As estatísticas abaixo refletem apenas os dados que atendem aos filtros selecionados.
+                        Se as estatísticas não atualizaram, use o botão <strong>"Atualizar"</strong> acima ou pressione <kbd>Ctrl+F5</kbd> para forçar a atualização.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Layout de Duas Colunas -->
     <div class="dashboard-layout">
         <!-- Coluna Esquerda - Filtros e Busca (Fixa) -->
@@ -761,6 +778,42 @@
         <!-- Coluna Direita - Conteúdo Principal -->
         <div class="main-content">
 
+    <!-- Indicador de Filtros Ativos nas Estatísticas -->
+    {% if stats.applied_filters and (stats.applied_filters.search or stats.applied_filters.service_filter or stats.applied_filters.year_filter or stats.applied_filters.month_filter or stats.applied_filters.week_filter) %}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="alert alert-info border-0 shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-funnel-fill me-2 text-info"></i>
+                    <div>
+                        <strong>Estatísticas Filtradas:</strong> 
+                        As seções abaixo mostram dados baseados em <strong>{{ stats.applied_filters.total_filtered_orders }} ordens</strong> que atendem aos filtros aplicados.
+                        <div class="mt-1">
+                            <small class="text-muted">
+                                Filtros ativos:
+                                {% if stats.applied_filters.service_filter %}
+                                    <span class="badge bg-primary me-1">{{ stats.applied_filters.service_filter }}</span>
+                                {% endif %}
+                                {% if stats.applied_filters.year_filter %}
+                                    <span class="badge bg-warning me-1">Ano {{ stats.applied_filters.year_filter }}</span>
+                                {% endif %}
+                                {% if stats.applied_filters.month_filter %}
+                                    <span class="badge bg-success me-1">Mês {{ stats.applied_filters.month_filter }}</span>
+                                {% endif %}
+                                {% if stats.applied_filters.week_filter %}
+                                    <span class="badge bg-info me-1">Semana específica</span>
+                                {% endif %}
+                                {% if stats.applied_filters.search %}
+                                    <span class="badge bg-secondary me-1">Busca: "{{ stats.applied_filters.search }}"</span>
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     
     <!-- Service Breakdown Section -->
     <div class="row mb-4">
@@ -769,8 +822,32 @@
                 <div class="card-header bg-white">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-pie-chart-fill text-primary"></i> Breakdown por Serviço
+                        {% if stats.applied_filters and (stats.applied_filters.search or stats.applied_filters.service_filter or stats.applied_filters.year_filter or stats.applied_filters.month_filter or stats.applied_filters.week_filter) %}
+                            <span class="badge bg-info ms-2">Filtrado</span>
+                        {% endif %}
                     </h5>
-                    <p class="text-muted mb-0 small">Valores discriminados por tipo de serviço e status</p>
+                    <p class="text-muted mb-0 small">
+                        {% if stats.applied_filters and (stats.applied_filters.search or stats.applied_filters.service_filter or stats.applied_filters.year_filter or stats.applied_filters.month_filter or stats.applied_filters.week_filter) %}
+                            Estatísticas baseadas em {{ stats.applied_filters.total_filtered_orders }} ordens filtradas
+                            {% if stats.applied_filters.service_filter %}
+                                - Serviço: {{ stats.applied_filters.service_filter }}
+                            {% endif %}
+                            {% if stats.applied_filters.year_filter %}
+                                - Ano: {{ stats.applied_filters.year_filter }}
+                            {% endif %}
+                            {% if stats.applied_filters.month_filter %}
+                                - Mês: {{ stats.applied_filters.month_filter }}
+                            {% endif %}
+                            {% if stats.applied_filters.week_filter %}
+                                - Semana selecionada
+                            {% endif %}
+                            {% if stats.applied_filters.search %}
+                                - Busca: "{{ stats.applied_filters.search }}"
+                            {% endif %}
+                        {% else %}
+                            Valores discriminados por tipo de serviço e status - Todas as ordens
+                        {% endif %}
+                    </p>
                 </div>
                 <div class="card-body">
                     {% if stats.service_breakdown %}
@@ -895,6 +972,9 @@
                 <div class="card-header bg-white">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-bar-chart"></i> Ordens de Serviço por Mês
+                        {% if stats.applied_filters and (stats.applied_filters.search or stats.applied_filters.service_filter or stats.applied_filters.year_filter or stats.applied_filters.month_filter or stats.applied_filters.week_filter) %}
+                            <span class="badge bg-info ms-2">Filtrado</span>
+                        {% endif %}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -913,6 +993,9 @@
                 <div class="card-header bg-white">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-trophy"></i> Top 5 Clientes
+                        {% if stats.applied_filters and (stats.applied_filters.search or stats.applied_filters.service_filter or stats.applied_filters.year_filter or stats.applied_filters.month_filter or stats.applied_filters.week_filter) %}
+                            <span class="badge bg-info ms-1" style="font-size: 0.7em;">Filtrado</span>
+                        {% endif %}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -952,6 +1035,9 @@
                 <div class="card-header bg-white">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-gear"></i> Top 5 Serviços
+                        {% if stats.applied_filters and (stats.applied_filters.search or stats.applied_filters.service_filter or stats.applied_filters.year_filter or stats.applied_filters.month_filter or stats.applied_filters.week_filter) %}
+                            <span class="badge bg-info ms-1" style="font-size: 0.7em;">Filtrado</span>
+                        {% endif %}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -974,6 +1060,9 @@
                 <div class="card-header bg-white">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-person-gear"></i> Vendedores
+                        {% if stats.applied_filters and (stats.applied_filters.search or stats.applied_filters.service_filter or stats.applied_filters.year_filter or stats.applied_filters.month_filter or stats.applied_filters.week_filter) %}
+                            <span class="badge bg-info ms-1" style="font-size: 0.7em;">Filtrado</span>
+                        {% endif %}
                         <small class="text-muted ms-2">({{ stats.by_technician|length if stats.by_technician else 0 }} vendedores)</small>
                     </h5>
                 </div>
@@ -1623,7 +1712,8 @@ function togglePeriodFilters() {
 // Função para atualizar dados
 function refreshData() {
     showLoading();
-    location.reload();
+    // Forçar atualização completa sem cache
+    location.reload(true);
 }
 
 // Função para limpar cache de serviços
@@ -2142,15 +2232,20 @@ function setupFormSubmitInterception() {
             
             // Adicionar todos os parâmetros do formulário
             for (let [key, value] of formData.entries()) {
-                if (value.trim() !== '') {
-                    params.append(key, value);
-                }
+            if (value.trim() !== '') {
+            params.append(key, value);
+            }
+            }
+            
+            // Adicionar timestamp para evitar cache quando há filtros
+            if (params.toString()) {
+            params.append('_t', Date.now());
             }
             
             // Construir a URL com os parâmetros e o hash
             let url = window.location.pathname;
             if (params.toString()) {
-                url += '?' + params.toString();
+            url += '?' + params.toString();
             }
             url += '#filtros-section';
             

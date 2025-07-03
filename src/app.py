@@ -470,11 +470,25 @@ def services():
             'next_num': page + 1 if has_next else None
         }
         
-        # Buscar estatísticas (sem filtro para manter visão geral) com tratamento de erro
+        # Buscar estatísticas adaptáveis aos filtros aplicados
         print("Buscando estatísticas de ordens de serviço...")
         try:
             # Gerar estatísticas utilizando o mesmo conjunto filtrado de ordens para manter consistência
-            stats = omie_service.get_service_orders_stats(orders=all_orders)
+            # Isso garante que as estatísticas reflitam exatamente os dados filtrados
+            stats = omie_service.get_service_orders_stats(orders=all_orders, service_filter=service_filter)
+            
+            # Adicionar informações sobre os filtros aplicados para contexto
+            stats['applied_filters'] = {
+                'search': search,
+                'service_filter': service_filter,
+                'year_filter': year_filter,
+                'month_filter': month_filter,
+                'week_filter': week_filter,
+                'total_filtered_orders': len(all_orders)
+            }
+            
+            print(f"Estatísticas calculadas para {len(all_orders)} ordens filtradas")
+            
         except Exception as e:
             print(f"Erro ao carregar estatísticas: {str(e)}")
             stats = {
@@ -488,7 +502,15 @@ def services():
                 "top_services": [],
                 "by_technician": {},
                 "monthly_stats": {},
-                "monthly_values": {}
+                "monthly_values": {},
+                "applied_filters": {
+                    'search': search,
+                    'service_filter': service_filter,
+                    'year_filter': year_filter,
+                    'month_filter': month_filter,
+                    'week_filter': week_filter,
+                    'total_filtered_orders': len(all_orders)
+                }
             }
         
         # Se há filtro de ano, calcular estatísticas específicas do ano
