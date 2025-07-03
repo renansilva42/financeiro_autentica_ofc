@@ -821,6 +821,97 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white">
                     <h5 class="card-title mb-0">
+                        <i class="bi bi-graph-up"></i> Estatísticas - {{ service_filter }}
+                        <span class="badge bg-info ms-2">Filtrado</span>
+                    </h5>
+                    <p class="text-muted mb-0 small">
+                        Dados referentes a {{ stats.total_orders }} ordens faturadas do serviço "{{ service_filter }}"
+                    </p>
+                </div>
+                <div class="card-body">
+                    {% set unique_clients = stats.by_client|length if stats.by_client else 0 %}
+                    <div class="row">
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="card stats-card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-warning bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                                <i class="bi bi-clipboard-check text-white fs-5"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted mb-1">Total de OS Faturadas</h6>
+                                            <h4 class="mb-0 text-warning">{{ stats.total_orders }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="card stats-card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-success bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                                <i class="bi bi-currency-dollar text-white fs-5"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted mb-1">Valor Total Faturado</h6>
+                                            <h4 class="mb-0 text-success">{{ stats.total_value | format_currency }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="card stats-card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-primary bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                                <i class="bi bi-calculator text-white fs-5"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted mb-1">Ticket Médio</h6>
+                                            <h4 class="mb-0 text-primary">{{ stats.average_value | format_currency }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="card stats-card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-info bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                                <i class="bi bi-people text-white fs-5"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted mb-1">Clientes Únicos</h6>
+                                            <h4 class="mb-0 text-info">{{ unique_clients }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Service Breakdown Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
                         <i class="bi bi-pie-chart-fill text-primary"></i> Breakdown por Serviço
                         {% if stats.applied_filters and (stats.applied_filters.search or stats.applied_filters.service_filter or stats.applied_filters.year_filter or stats.applied_filters.month_filter or stats.applied_filters.week_filter) %}
                             <span class="badge bg-info ms-2">Filtrado</span>

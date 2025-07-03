@@ -1474,7 +1474,7 @@ class OmieService:
             traceback.print_exc()
             return []
     
-    def get_yearly_service_stats(self, year_filter: str) -> dict:
+    def get_yearly_service_stats(self, year_filter: str, service_filter: Optional[str] = None) -> dict:
         """Retorna estatísticas das ordens de serviço para um ano específico"""
         try:
             # Buscar todas as ordens para estatísticas precisas
