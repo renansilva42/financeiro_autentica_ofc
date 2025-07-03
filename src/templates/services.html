@@ -974,28 +974,14 @@
                                     </div>
                                     <div class="card-body p-3">
                                         <div class="row g-2">
-                                            <div class="col-4">
-                                                <div class="text-center p-2 rounded" style="background-color: rgba(25, 135, 84, 0.1);">
-                                                    <div class="text-success fw-bold">{{ service_data.faturada.count }}</div>
-                                                    <small class="text-muted">Faturadas</small>
-                                                    <div class="text-success small fw-semibold">{{ service_data.faturada.value | format_currency }}</div>
+                                                <div class="col-12">
+                                                    <div class="text-center p-2 rounded" style="background-color: rgba(25, 135, 84, 0.1);">
+                                                        <div class="text-success fw-bold">{{ service_data.faturada.count }}</div>
+                                                        <small class="text-muted">Faturadas</small>
+                                                        <div class="text-success small fw-semibold">{{ service_data.faturada.value | format_currency }}</div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div class="col-4">
-                                                <div class="text-center p-2 rounded" style="background-color: rgba(255, 193, 7, 0.1);">
-                                                    <div class="text-warning fw-bold">{{ service_data.pendente.count }}</div>
-                                                    <small class="text-muted">Pendentes</small>
-                                                    <div class="text-warning small fw-semibold">{{ service_data.pendente.value | format_currency }}</div>
-                                                </div>
-                                            </div>
-                                            <div class="col-4">
-                                                <div class="text-center p-2 rounded" style="background-color: rgba(108, 117, 125, 0.1);">
-                                                    <div class="text-secondary fw-bold">{{ service_data.etapa_00.count }}</div>
-                                                    <small class="text-muted">Etapa 00</small>
-                                                    <div class="text-secondary small fw-semibold">{{ service_data.etapa_00.value | format_currency }}</div>
-                                                </div>
-                                            </div>
-                                        </div>
                                         
                                         <!-- Progress bar showing distribution -->
                                         <div class="mt-3">
@@ -1187,187 +1173,8 @@
 
             
     
-    <!-- Weekly Statistics (shown when week filter is applied) -->
-    {% if weekly_stats %}
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-info text-white">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-calendar-week"></i> Estatísticas da Semana {{ weekly_stats.formatted_week }}
-                    </h5>
-                    <small class="opacity-75">Período selecionado: {{ weekly_stats.formatted_week }}</small>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-xl-3 col-md-6 mb-3">
-                            <div class="card stats-card border-0 bg-light h-100">
-                                <div class="card-body text-center">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <div class="flex-shrink-0">
-                                            <div class="bg-info bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <i class="bi bi-clipboard-check text-white fs-5"></i>
-                                            </div>
-                                        </div>
-                                        <div class="flex-grow-1 ms-3">
-                                            <h6 class="text-muted mb-1">Total de OS Faturadas</h6>
-                                            <h4 class="mb-0 text-info">{{ weekly_stats.total_orders }}</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-xl-3 col-md-6 mb-3">
-                            <div class="card stats-card border-0 bg-light h-100">
-                                <div class="card-body text-center">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <div class="flex-shrink-0">
-                                            <div class="bg-success bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <i class="bi bi-currency-dollar text-white fs-5"></i>
-                                            </div>
-                                        </div>
-                                        <div class="flex-grow-1 ms-3">
-                                            <h6 class="text-muted mb-1">Valor Total Faturado</h6>
-                                            <h4 class="mb-0 text-success">{{ weekly_stats.total_value | format_currency }}</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-xl-3 col-md-6 mb-3">
-                            <div class="card stats-card border-0 bg-light h-100">
-                                <div class="card-body text-center">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <div class="flex-shrink-0">
-                                            <div class="bg-primary bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <i class="bi bi-calculator text-white fs-5"></i>
-                                            </div>
-                                        </div>
-                                        <div class="flex-grow-1 ms-3">
-                                            <h6 class="text-muted mb-1">Ticket Médio</h6>
-                                            <h4 class="mb-0 text-primary">{{ weekly_stats.average_value | format_currency }}</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-xl-3 col-md-6 mb-3">
-                            <div class="card stats-card border-0 bg-light h-100">
-                                <div class="card-body text-center">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <div class="flex-shrink-0">
-                                            <div class="bg-warning bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <i class="bi bi-people text-white fs-5"></i>
-                                            </div>
-                                        </div>
-                                        <div class="flex-grow-1 ms-3">
-                                            <h6 class="text-muted mb-1">Clientes Únicos</h6>
-                                            <h4 class="mb-0 text-warning">{{ weekly_stats.unique_clients }}</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Monthly Statistics (shown when month filter is applied) -->
-    {% if monthly_stats %}
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-calendar-month"></i> Estatísticas de {{ monthly_stats.formatted_month }}
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-xl-3 col-md-6 mb-3">
-                            <div class="card stats-card border-0 bg-light h-100">
-                                <div class="card-body text-center">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <div class="flex-shrink-0">
-                                            <div class="bg-primary bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <i class="bi bi-clipboard-check text-white fs-5"></i>
-                                            </div>
-                                        </div>
-                                        <div class="flex-grow-1 ms-3">
-                                            <h6 class="text-muted mb-1">Total de OS Faturadas</h6>
-                                            <h4 class="mb-0 text-primary">{{ monthly_stats.total_orders }}</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-xl-3 col-md-6 mb-3">
-                            <div class="card stats-card border-0 bg-light h-100">
-                                <div class="card-body text-center">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <div class="flex-shrink-0">
-                                            <div class="bg-success bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <i class="bi bi-currency-dollar text-white fs-5"></i>
-                                            </div>
-                                        </div>
-                                        <div class="flex-grow-1 ms-3">
-                                            <h6 class="text-muted mb-1">Valor Total Faturado</h6>
-                                            <h4 class="mb-0 text-success">{{ monthly_stats.total_value | format_currency }}</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-xl-3 col-md-6 mb-3">
-                            <div class="card stats-card border-0 bg-light h-100">
-                                <div class="card-body text-center">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <div class="flex-shrink-0">
-                                            <div class="bg-info bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <i class="bi bi-calculator text-white fs-5"></i>
-                                            </div>
-                                        </div>
-                                        <div class="flex-grow-1 ms-3">
-                                            <h6 class="text-muted mb-1">Ticket Médio</h6>
-                                            <h4 class="mb-0 text-info">{{ monthly_stats.average_value | format_currency }}</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-xl-3 col-md-6 mb-3">
-                            <div class="card stats-card border-0 bg-light h-100">
-                                <div class="card-body text-center">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <div class="flex-shrink-0">
-                                            <div class="bg-warning bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <i class="bi bi-people text-white fs-5"></i>
-                                            </div>
-                                        </div>
-                                        <div class="flex-grow-1 ms-3">
-                                            <h6 class="text-muted mb-1">Clientes Únicos</h6>
-                                            <h4 class="mb-0 text-warning">{{ monthly_stats.unique_clients }}</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
+    
+                                
     <!-- Service Orders Table -->
     <div class="row">
         <div class="col-12">
@@ -1685,29 +1492,6 @@ function togglePeriodFilters() {
     }
 }
 
-// Função para controlar exibição dos filtros de período
-function togglePeriodFilters() {
-    const periodType = document.getElementById('period_type').value;
-    const weekContainer = document.getElementById('week_filter_container');
-    const monthContainer = document.getElementById('month_filter_container');
-    const weekSelect = document.getElementById('week');
-    const monthSelect = document.getElementById('month');
-    
-    // Esconder ambos os containers primeiro
-    weekContainer.style.display = 'none';
-    monthContainer.style.display = 'none';
-    
-    // Limpar valores dos selects
-    weekSelect.value = '';
-    monthSelect.value = '';
-    
-    // Mostrar o container apropriado
-    if (periodType === 'week') {
-        weekContainer.style.display = 'block';
-    } else if (periodType === 'month') {
-        monthContainer.style.display = 'block';
-    }
-}
 
 // Função para atualizar dados
 function refreshData() {
