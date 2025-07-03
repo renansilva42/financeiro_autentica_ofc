@@ -290,8 +290,204 @@
             padding: 0.375rem 0.5rem;
         }
     }
+    
+    /* Layout de duas colunas - Dashboard de Serviços */
+    .dashboard-layout {
+        display: flex;
+        gap: 1.5rem;
+        min-height: calc(100vh - 200px);
+    }
+    
+    /* Coluna esquerda - Filtros fixos */
+    .filters-sidebar {
+        width: 350px;
+        min-width: 350px;
+        position: sticky;
+        top: 20px;
+        height: fit-content;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
+        z-index: 100;
+    }
+    
+    /* Coluna direita - Conteúdo principal */
+    .main-content {
+        flex: 1;
+        min-width: 0; /* Permite que o flex item encolha */
+    }
+    
+    /* Melhorias para a sidebar de filtros */
+    .filters-sidebar .card {
+        border: 2px solid #e9ecef;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+    
+    .filters-sidebar .card-header {
+        background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+        color: white;
+        border-bottom: none;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .filters-sidebar .card-header h5 {
+        margin-bottom: 0;
+        font-weight: 600;
+    }
+    
+    .filters-sidebar .card-header small {
+        opacity: 0.9;
+    }
+    
+    /* Indicador visual de filtros ativos na sidebar */
+    .filters-sidebar .card-header::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(to bottom, #28a745, #20c997);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .filters-sidebar.has-active-filters .card-header::after {
+        opacity: 1;
+    }
+    
+    /* Scroll suave para a sidebar */
+    .filters-sidebar {
+        scrollbar-width: thin;
+        scrollbar-color: #dee2e6 transparent;
+    }
+    
+    .filters-sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .filters-sidebar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .filters-sidebar::-webkit-scrollbar-thumb {
+        background-color: #dee2e6;
+        border-radius: 3px;
+    }
+    
+    .filters-sidebar::-webkit-scrollbar-thumb:hover {
+        background-color: #adb5bd;
+    }
+    
+    /* Responsividade para tablets e mobile */
+    @media (max-width: 1200px) {
+        .filters-sidebar {
+            width: 320px;
+            min-width: 320px;
+        }
+    }
+    
+    @media (max-width: 992px) {
+        .dashboard-layout {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .filters-sidebar {
+            width: 100%;
+            min-width: auto;
+            position: relative;
+            top: auto;
+            height: auto;
+            max-height: none;
+            order: -1; /* Filtros aparecem primeiro no mobile */
+        }
+        
+        .main-content {
+            width: 100%;
+        }
+        
+        /* Filtros colapsáveis no mobile */
+        .filters-sidebar .card-body {
+            padding: 1rem;
+        }
+        
+        .filters-sidebar .card-header {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .filters-sidebar .card-header::before {
+            content: '▼';
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: transform 0.3s ease;
+            font-size: 0.875rem;
+        }
+        
+        .filters-sidebar.collapsed .card-header::before {
+            transform: translateY(-50%) rotate(-90deg);
+        }
+        
+        .filters-sidebar.collapsed .card-body {
+            display: none;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .dashboard-layout {
+            gap: 0.75rem;
+        }
+        
+        .filters-sidebar .card-body {
+            padding: 0.75rem;
+        }
+        
+        .filters-sidebar .row.g-3 {
+            --bs-gutter-x: 0.75rem;
+            --bs-gutter-y: 0.75rem;
+        }
+    }
+    
+    /* Animações suaves para transições */
+    .dashboard-layout,
+    .filters-sidebar,
+    .main-content {
+        transition: all 0.3s ease;
+    }
+    
+    /* Melhorias visuais para indicar área de scroll */
+    .main-content {
+        scroll-behavior: smooth;
+    }
+    
+    /* Indicador de posição fixa para desktop */
+    @media (min-width: 993px) {
+        .filters-sidebar::before {
+            content: '📌';
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            background: white;
+            border: 2px solid #0d6efd;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            z-index: 20;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    }
 </style>
 {% endblock %}    
+
 
 {% block content %}
 <!-- Loading Overlay -->
@@ -346,6 +542,224 @@
             </div>
         </div>
     </div>
+
+    <!-- Layout de Duas Colunas -->
+    <div class="dashboard-layout">
+        <!-- Coluna Esquerda - Filtros e Busca (Fixa) -->
+        <div class="filters-sidebar" id="filtersSidebar">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-funnel"></i> Filtros e Busca
+                    </h5>
+                    <small>Filtre por período específico ou busque por cliente/vendedor</small>
+                </div>
+                <div class="card-body">
+                    <form method="GET" class="row g-3" id="filtros-form">
+                        <div class="col-12">
+                            <label for="search" class="form-label">
+                                <i class="bi bi-search me-1"></i>Buscar
+                            </label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ search }}" placeholder="Cliente, vendedor, código ou número da OS...">
+                        </div>
+
+                        <!-- Filtro por Serviço -->
+                        <div class="col-12">
+                            <label for="service" class="form-label">
+                                <i class="bi bi-gear me-1"></i>Serviço
+                            </label>
+                            <select class="form-select" id="service" name="service">
+                                <option value="">Todos os serviços</option>
+                                {% for serv in available_services %}
+                                <option value="{{ serv }}" {% if service_filter == serv %}selected{% endif %}>{{ serv }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Filtro por Período -->
+                        <div class="col-12">
+                            <label for="period_type" class="form-label">
+                                <i class="bi bi-calendar3 me-1"></i>Período
+                            </label>
+                            <select class="form-select" id="period_type" onchange="togglePeriodFilters()">
+                                <option value="">Todos os períodos</option>
+                                <option value="year" {% if year_filter %}selected{% endif %}>📅 Por ano</option>
+                                <option value="week" {% if week_filter %}selected{% endif %}>📅 Por semana</option>
+                                <option value="month" {% if month_filter and not week_filter and not year_filter %}selected{% endif %}>📆 Por mês</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Filtro por Ano -->
+                        <div class="col-12" id="year_filter_container" style="display: {% if year_filter %}block{% else %}none{% endif %};">
+                            <label for="year" class="form-label">
+                                <i class="bi bi-calendar-range me-1"></i>Ano
+                                <small class="text-muted">({{ available_years|length }} disponíveis)</small>
+                            </label>
+                            <select class="form-select" id="year" name="year">
+                                <option value="">Selecione um ano</option>
+                                {% for year in available_years %}
+                                <option value="{{ year.value }}" {% if year_filter == year.value %}selected{% endif %}>
+                                    {{ year.label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if available_years|length > 0 %}
+                            <div class="mt-1">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Anos ordenados do mais recente para o mais antigo
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Filtro por Semana -->
+                        <div class="col-12" id="week_filter_container" style="display: {% if week_filter %}block{% else %}none{% endif %};">
+                            <label for="week" class="form-label">
+                                <i class="bi bi-calendar-week me-1"></i>Semana
+                                <small class="text-muted">({{ available_weeks|length }} disponíveis)</small>
+                            </label>
+                            <select class="form-select" id="week" name="week">
+                                <option value="">Selecione uma semana</option>
+                                {% for week in available_weeks %}
+                                <option value="{{ week.value }}" {% if week_filter == week.value %}selected{% endif %}>
+                                    {% if week.has_orders is defined and not week.has_orders %}📅{% else %}✓{% endif %} {{ week.label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if available_weeks|length > 0 %}
+                            <div class="mt-1">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Semanas ordenadas da mais recente para a mais antiga
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Filtro por Mês -->
+                        <div class="col-12" id="month_filter_container" style="display: {% if month_filter and not week_filter %}block{% else %}none{% endif %};">
+                            <label for="month" class="form-label">
+                                <i class="bi bi-calendar-month me-1"></i>Mês
+                                <small class="text-muted">({{ available_months|length }} disponíveis)</small>
+                            </label>
+                            <select class="form-select" id="month" name="month">
+                                <option value="">Selecione um mês</option>
+                                {% for month in available_months %}
+                                <option value="{{ month.value }}" {% if month_filter == month.value %}selected{% endif %}>
+                                    {{ month.label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if available_months|length > 0 %}
+                            <div class="mt-1">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Meses ordenados do mais recente para o mais antigo
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Botões de Ação -->
+                        <div class="col-12">
+                            <div class="d-flex gap-2 w-100 filter-action-buttons">
+                                <button type="submit" class="btn btn-primary d-flex align-items-center justify-content-center" style="flex: 2; min-height: 38px;">
+                                    <i class="bi bi-search me-1"></i>
+                                    <span>Filtrar</span>
+                                </button>
+                                <button type="button" onclick="clearFiltersWithScroll()" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" title="Limpar todos os filtros aplicados" style="flex: 1; min-width: 85px; min-height: 38px;">
+                                    <i class="bi bi-x-circle me-1"></i>
+                                    <span>Limpar</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- Atalhos Rápidos de Período -->
+                    <div class="mt-3 pt-3 border-top">
+                        <h6 class="text-muted mb-2">
+                            <i class="bi bi-lightning-fill me-1"></i>Atalhos rápidos:
+                        </h6>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <button type="button" class="btn btn-outline-info btn-sm" onclick="setCurrentWeek()">
+                                <i class="bi bi-calendar-week me-1"></i>Esta semana
+                            </button>
+                            <button type="button" class="btn btn-outline-info btn-sm" onclick="setLastWeek()">
+                                <i class="bi bi-calendar-week me-1"></i>Semana passada
+                            </button>
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="setCurrentMonth()">
+                                <i class="bi bi-calendar-month me-1"></i>Este mês
+                            </button>
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="setLastMonth()">
+                                <i class="bi bi-calendar-month me-1"></i>Mês passado
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Filtros Ativos -->
+                    {% if search or month_filter or week_filter or year_filter %}
+                    <div class="mt-3 pt-3 border-top">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="text-muted mb-2">
+                                    <i class="bi bi-funnel-fill me-1"></i>Filtros ativos:
+                                </h6>
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% if search %}
+                                    <span class="badge bg-primary fs-6">
+                                        <i class="bi bi-search me-1"></i>Busca: "{{ search }}"
+                                        <a href="javascript:void(0)" onclick="removeFilterWithScroll('search', false, true, true)" class="text-white ms-1" title="Remover filtro de busca">
+                                            <i class="bi bi-x"></i>
+                                        </a>
+                                    </span>
+                                    {% endif %}
+                                    {% if year_filter %}
+                                    <span class="badge bg-warning fs-6">
+                                        <i class="bi bi-calendar-range me-1"></i>Ano: 
+                                        {% for year in available_years %}
+                                            {% if year.value == year_filter %}{{ year.label }}{% endif %}
+                                        {% endfor %}
+                                        <a href="javascript:void(0)" onclick="removeFilterWithScroll('year', true, false, false)" class="text-white ms-1" title="Remover filtro de ano">
+                                            <i class="bi bi-x"></i>
+                                        </a>
+                                    </span>
+                                    {% elif week_filter %}
+                                    <span class="badge bg-info fs-6">
+                                        <i class="bi bi-calendar-week me-1"></i>Semana: 
+                                        {% for week in available_weeks %}
+                                            {% if week.value == week_filter %}{{ week.label }}{% endif %}
+                                        {% endfor %}
+                                        <a href="javascript:void(0)" onclick="removeFilterWithScroll('week', true, false, false)" class="text-white ms-1" title="Remover filtro de semana">
+                                            <i class="bi bi-x"></i>
+                                        </a>
+                                    </span>
+                                    {% elif month_filter %}
+                                    <span class="badge bg-success fs-6">
+                                        <i class="bi bi-calendar-month me-1"></i>Mês: 
+                                        {% for month in available_months %}
+                                            {% if month.value == month_filter %}{{ month.label }}{% endif %}
+                                        {% endfor %}
+                                        <a href="javascript:void(0)" onclick="removeFilterWithScroll('month', true, false, false)" class="text-white ms-1" title="Remover filtro de mês">
+                                            <i class="bi bi-x"></i>
+                                        </a>
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">{{ pagination.total }} resultado(s) encontrado(s)</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Coluna Direita - Conteúdo Principal -->
+        <div class="main-content">
 
     
     <!-- Service Breakdown Section -->
@@ -592,222 +1006,7 @@
         </div>
     </div>
 
-    <!-- Search and Filters -->
-    <div class="row mb-3" id="filtros-section">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-funnel"></i> Filtros e Busca
-                    </h5>
-                    <small class="text-muted">Filtre por período específico ou busque por cliente/vendedor</small>
-                </div>
-                <div class="card-body">
-                    <form method="GET" class="row g-3" id="filtros-form">
-                        <div class="col-lg-4 col-md-6">
-                            <label for="search" class="form-label">
-                                <i class="bi bi-search me-1"></i>Buscar
-                            </label>
-                            <input type="text" class="form-control" id="search" name="search" 
-                                   value="{{ search }}" placeholder="Cliente, vendedor, código ou número da OS...">
-                        </div>
-
-                        <!-- Filtro por Serviço -->
-                        <div class="col-lg-3 col-md-6">
-                            <label for="service" class="form-label">
-                                <i class="bi bi-gear me-1"></i>Serviço
-                            </label>
-                            <select class="form-select" id="service" name="service">
-                                <option value="">Todos os serviços</option>
-                                {% for serv in available_services %}
-                                <option value="{{ serv }}" {% if service_filter == serv %}selected{% endif %}>{{ serv }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        
-                        <!-- Filtro por Período -->
-                        <div class="col-lg-3 col-md-6">
-                            <label for="period_type" class="form-label">
-                                <i class="bi bi-calendar3 me-1"></i>Período
-                            </label>
-                            <select class="form-select" id="period_type" onchange="togglePeriodFilters()">
-                                <option value="">Todos os períodos</option>
-                                <option value="year" {% if year_filter %}selected{% endif %}>📅 Por ano</option>
-                                <option value="week" {% if week_filter %}selected{% endif %}>📅 Por semana</option>
-                                <option value="month" {% if month_filter and not week_filter and not year_filter %}selected{% endif %}>📆 Por mês</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Filtro por Ano -->
-                        <div class="col-lg-3 col-md-6" id="year_filter_container" style="display: {% if year_filter %}block{% else %}none{% endif %};">
-                            <label for="year" class="form-label">
-                                <i class="bi bi-calendar-range me-1"></i>Ano
-                                <small class="text-muted">({{ available_years|length }} disponíveis)</small>
-                            </label>
-                            <select class="form-select" id="year" name="year">
-                                <option value="">Selecione um ano</option>
-                                {% for year in available_years %}
-                                <option value="{{ year.value }}" {% if year_filter == year.value %}selected{% endif %}>
-                                    {{ year.label }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                            {% if available_years|length > 0 %}
-                            <div class="mt-1">
-                                <small class="text-muted">
-                                    <i class="bi bi-info-circle me-1"></i>
-                                    Anos ordenados do mais recente para o mais antigo
-                                </small>
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Filtro por Semana -->
-                        <div class="col-lg-3 col-md-6" id="week_filter_container" style="display: {% if week_filter %}block{% else %}none{% endif %};">
-                            <label for="week" class="form-label">
-                                <i class="bi bi-calendar-week me-1"></i>Semana
-                                <small class="text-muted">({{ available_weeks|length }} disponíveis)</small>
-                            </label>
-                            <select class="form-select" id="week" name="week">
-                                <option value="">Selecione uma semana</option>
-                                {% for week in available_weeks %}
-                                <option value="{{ week.value }}" {% if week_filter == week.value %}selected{% endif %}>
-                                    {% if week.has_orders is defined and not week.has_orders %}📅{% else %}✓{% endif %} {{ week.label }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                            {% if available_weeks|length > 0 %}
-                            <div class="mt-1">
-                                <small class="text-muted">
-                                    <i class="bi bi-info-circle me-1"></i>
-                                    Semanas ordenadas da mais recente para a mais antiga
-                                </small>
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Filtro por Mês -->
-                        <div class="col-lg-3 col-md-6" id="month_filter_container" style="display: {% if month_filter and not week_filter %}block{% else %}none{% endif %};">
-                            <label for="month" class="form-label">
-                                <i class="bi bi-calendar-month me-1"></i>Mês
-                                <small class="text-muted">({{ available_months|length }} disponíveis)</small>
-                            </label>
-                            <select class="form-select" id="month" name="month">
-                                <option value="">Selecione um mês</option>
-                                {% for month in available_months %}
-                                <option value="{{ month.value }}" {% if month_filter == month.value %}selected{% endif %}>
-                                    {{ month.label }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                            {% if available_months|length > 0 %}
-                            <div class="mt-1">
-                                <small class="text-muted">
-                                    <i class="bi bi-info-circle me-1"></i>
-                                    Meses ordenados do mais recente para o mais antigo
-                                </small>
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Botões de Ação -->
-                        <div class="col-lg-2 col-md-12 d-flex align-items-end">
-                            <div class="d-flex gap-2 w-100 filter-action-buttons">
-                                <button type="submit" class="btn btn-primary d-flex align-items-center justify-content-center" style="flex: 2; min-height: 38px;">
-                                    <i class="bi bi-search me-1"></i>
-                                    <span>Filtrar</span>
-                                </button>
-                                <button type="button" onclick="clearFiltersWithScroll()" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" title="Limpar todos os filtros aplicados" style="flex: 1; min-width: 85px; min-height: 38px;">
-                                    <i class="bi bi-x-circle me-1"></i>
-                                    <span class="d-none d-lg-inline">Limpar</span>
-                                    <span class="d-lg-none">X</span>
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                    
-                    <!-- Atalhos Rápidos de Período -->
-                    <div class="mt-3 pt-3 border-top">
-                        <h6 class="text-muted mb-2">
-                            <i class="bi bi-lightning-fill me-1"></i>Atalhos rápidos:
-                        </h6>
-                        <div class="d-flex flex-wrap gap-2 mb-3">
-                            <button type="button" class="btn btn-outline-info btn-sm" onclick="setCurrentWeek()">
-                                <i class="bi bi-calendar-week me-1"></i>Esta semana
-                            </button>
-                            <button type="button" class="btn btn-outline-info btn-sm" onclick="setLastWeek()">
-                                <i class="bi bi-calendar-week me-1"></i>Semana passada
-                            </button>
-                            <button type="button" class="btn btn-outline-success btn-sm" onclick="setCurrentMonth()">
-                                <i class="bi bi-calendar-month me-1"></i>Este mês
-                            </button>
-                            <button type="button" class="btn btn-outline-success btn-sm" onclick="setLastMonth()">
-                                <i class="bi bi-calendar-month me-1"></i>Mês passado
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Filtros Ativos -->
-                    {% if search or month_filter or week_filter or year_filter %}
-                    <div class="mt-3 pt-3 border-top">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="text-muted mb-2">
-                                    <i class="bi bi-funnel-fill me-1"></i>Filtros ativos:
-                                </h6>
-                                <div class="d-flex flex-wrap gap-2">
-                                    {% if search %}
-                                    <span class="badge bg-primary fs-6">
-                                        <i class="bi bi-search me-1"></i>Busca: "{{ search }}"
-                                        <a href="javascript:void(0)" onclick="removeFilterWithScroll('search', false, true, true)" class="text-white ms-1" title="Remover filtro de busca">
-                                            <i class="bi bi-x"></i>
-                                        </a>
-                                    </span>
-                                    {% endif %}
-                                    {% if year_filter %}
-                                    <span class="badge bg-warning fs-6">
-                                        <i class="bi bi-calendar-range me-1"></i>Ano: 
-                                        {% for year in available_years %}
-                                            {% if year.value == year_filter %}{{ year.label }}{% endif %}
-                                        {% endfor %}
-                                        <a href="javascript:void(0)" onclick="removeFilterWithScroll('year', true, false, false)" class="text-white ms-1" title="Remover filtro de ano">
-                                            <i class="bi bi-x"></i>
-                                        </a>
-                                    </span>
-                                    {% elif week_filter %}
-                                    <span class="badge bg-info fs-6">
-                                        <i class="bi bi-calendar-week me-1"></i>Semana: 
-                                        {% for week in available_weeks %}
-                                            {% if week.value == week_filter %}{{ week.label }}{% endif %}
-                                        {% endfor %}
-                                        <a href="javascript:void(0)" onclick="removeFilterWithScroll('week', true, false, false)" class="text-white ms-1" title="Remover filtro de semana">
-                                            <i class="bi bi-x"></i>
-                                        </a>
-                                    </span>
-                                    {% elif month_filter %}
-                                    <span class="badge bg-success fs-6">
-                                        <i class="bi bi-calendar-month me-1"></i>Mês: 
-                                        {% for month in available_months %}
-                                            {% if month.value == month_filter %}{{ month.label }}{% endif %}
-                                        {% endfor %}
-                                        <a href="javascript:void(0)" onclick="removeFilterWithScroll('month', true, false, false)" class="text-white ms-1" title="Remover filtro de mês">
-                                            <i class="bi bi-x"></i>
-                                        </a>
-                                    </span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="text-end">
-                                <small class="text-muted">{{ pagination.total }} resultado(s) encontrado(s)</small>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
+            
     <!-- Yearly Statistics (shown when year filter is applied) -->
     {% if yearly_stats %}
     <div class="row mb-3">
