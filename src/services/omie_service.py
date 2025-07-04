@@ -966,8 +966,10 @@ class OmieService:
         
         return all_orders
     
-    def get_service_orders_stats(self, faturada_only: bool = True, orders: Optional[List[dict]] = None, service_filter: Optional[str] = None) -> dict:
-        """Retorna estatísticas das ordens de serviço"""
+    def get_service_orders_stats(self, faturada_only: bool = True, orders: Optional[List[dict]] = None, 
+                               service_filter: Optional[str] = None, year_filter: Optional[str] = None,
+                               month_filter: Optional[str] = None, week_filter: Optional[str] = None) -> dict:
+        """Retorna estatísticas das ordens de serviço com dados adaptativos para gráficos"""
         try:
             # Buscar todas as ordens com carregamento otimizado
             if orders is None:
@@ -1120,32 +1122,10 @@ class OmieService:
             for service_name, data in service_breakdown.items():
                 print(f"  {service_name}: Total={data['total_count']}, Faturada={data['faturada']['count']}, Pendente={data['pendente']['count']}, Etapa00={data['etapa_00']['count']}")
             
-            # Contagem por mês
-            monthly_stats = {}
-            monthly_values = {}
-            for order in orders:
-                cabecalho = order.get("Cabecalho", {})
-                date_str = cabecalho.get("dDtPrevisao", "")
-                if date_str:
-                    try:
-                        # Assumindo formato dd/mm/yyyy
-                        month_year = "/".join(date_str.split("/")[1:])  # mm/yyyy
-                        monthly_stats[month_year] = monthly_stats.get(month_year, 0) + 1
-                        monthly_values[month_year] = monthly_values.get(month_year, 0) + float(cabecalho.get("nValorTotal", 0))
-                    except:
-                        pass
-            
-            # Ordenar os dados mensais cronologicamente
-            def sort_month_year(month_year):
-                try:
-                    month, year = month_year.split('/')
-                    return (int(year), int(month))
-                except:
-                    return (0, 0)
-            
-            sorted_months = sorted(monthly_stats.keys(), key=sort_month_year)
-            monthly_stats = {month: monthly_stats[month] for month in sorted_months}
-            monthly_values = {month: monthly_values[month] for month in sorted_months}
+            # Gerar dados adaptativos para gráfico baseado nos filtros
+            chart_data = self._generate_adaptive_chart_data(orders, year_filter, month_filter, week_filter)
+            monthly_stats = chart_data['data']
+            monthly_values = chart_data['values']
             
             # Top 5 clientes
             top_clients = sorted(clients.items(), key=lambda x: x[1], reverse=True)[:5]
@@ -1217,6 +1197,184 @@ class OmieService:
                 "unregistered_services": {}
             }
     
+    def _generate_adaptive_chart_data(self, orders: List[dict], year_filter: Optional[str] = None,
+                                    month_filter: Optional[str] = None, week_filter: Optional[str] = None) -> dict:
+        """Gera dados adaptativos para gráfico baseado nos filtros aplicados"""
+        try:
+            chart_data = {}
+            chart_values = {}
+            
+            if week_filter:
+                # Filtro por semana: mostrar dados por dia da semana
+                print(f"Gerando dados por dia para semana: {week_filter}")
+                
+                # Extrair datas de início e fim da semana
+                start_date_str, end_date_str = week_filter.split("_")
+                start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+                end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+                
+                # Inicializar todos os dias da semana
+                current_date = start_date
+                while current_date <= end_date:
+                    day_key = current_date.strftime('%d/%m')  # Formato: "02/12"
+                    chart_data[day_key] = 0
+                    chart_values[day_key] = 0
+                    current_date += timedelta(days=1)
+                
+                # Contar ordens por dia
+                for order in orders:
+                    cabecalho = order.get("Cabecalho", {})
+                    date_str = cabecalho.get("dDtPrevisao", "")
+                    if date_str:
+                        try:
+                            day, month, year = date_str.split("/")
+                            order_date = datetime(int(year), int(month), int(day))
+                            
+                            if start_date <= order_date <= end_date:
+                                day_key = order_date.strftime('%d/%m')
+                                chart_data[day_key] = chart_data.get(day_key, 0) + 1
+                                chart_values[day_key] = chart_values.get(day_key, 0) + float(cabecalho.get("nValorTotal", 0))
+                        except:
+                            pass
+                            
+            elif month_filter:
+                # Filtro por mês: mostrar dados por semana do mês
+                print(f"Gerando dados por semana para mês: {month_filter}")
+                
+                try:
+                    month, year = month_filter.split('/')
+                    month_int, year_int = int(month), int(year)
+                    
+                    # Primeiro dia do mês
+                    first_day = datetime(year_int, month_int, 1)
+                    
+                    # Último dia do mês
+                    if month_int == 12:
+                        last_day = datetime(year_int + 1, 1, 1) - timedelta(days=1)
+                    else:
+                        last_day = datetime(year_int, month_int + 1, 1) - timedelta(days=1)
+                    
+                    # Gerar semanas do mês
+                    current_date = first_day
+                    week_number = 1
+                    
+                    while current_date <= last_day:
+                        # Calcular início e fim da semana
+                        week_start = current_date - timedelta(days=current_date.weekday())
+                        week_end = week_start + timedelta(days=6)
+                        
+                        # Ajustar para não sair do mês
+                        if week_start < first_day:
+                            week_start = first_day
+                        if week_end > last_day:
+                            week_end = last_day
+                        
+                        week_key = f"Semana {week_number}"
+                        chart_data[week_key] = 0
+                        chart_values[week_key] = 0
+                        
+                        # Contar ordens nesta semana
+                        for order in orders:
+                            cabecalho = order.get("Cabecalho", {})
+                            date_str = cabecalho.get("dDtPrevisao", "")
+                            if date_str:
+                                try:
+                                    day, order_month, order_year = date_str.split("/")
+                                    order_date = datetime(int(order_year), int(order_month), int(day))
+                                    
+                                    if week_start <= order_date <= week_end:
+                                        chart_data[week_key] += 1
+                                        chart_values[week_key] += float(cabecalho.get("nValorTotal", 0))
+                                except:
+                                    pass
+                        
+                        # Próxima semana
+                        current_date = week_end + timedelta(days=1)
+                        week_number += 1
+                        
+                        # Evitar loop infinito
+                        if week_number > 6:
+                            break
+                            
+                except Exception as e:
+                    print(f"Erro ao processar mês {month_filter}: {e}")
+                    # Fallback para dados mensais padrão
+                    return self._generate_default_monthly_data(orders)
+                    
+            elif year_filter:
+                # Filtro por ano: mostrar dados por mês do ano
+                print(f"Gerando dados por mês para ano: {year_filter}")
+                
+                # Inicializar todos os meses do ano
+                month_names = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+                for month in month_names:
+                    month_key = f"{month}/{year_filter}"
+                    chart_data[month_key] = 0
+                    chart_values[month_key] = 0
+                
+                # Contar ordens por mês
+                for order in orders:
+                    cabecalho = order.get("Cabecalho", {})
+                    date_str = cabecalho.get("dDtPrevisao", "")
+                    if date_str:
+                        try:
+                            day, month, year = date_str.split("/")
+                            if year == year_filter:
+                                month_key = f"{month}/{year}"
+                                chart_data[month_key] = chart_data.get(month_key, 0) + 1
+                                chart_values[month_key] = chart_values.get(month_key, 0) + float(cabecalho.get("nValorTotal", 0))
+                        except:
+                            pass
+            else:
+                # Sem filtro específico: dados mensais padrão
+                return self._generate_default_monthly_data(orders)
+            
+            return {
+                'data': chart_data,
+                'values': chart_values,
+                'chart_type': 'weekly' if week_filter else 'monthly' if month_filter else 'yearly'
+            }
+            
+        except Exception as e:
+            print(f"Erro ao gerar dados adaptativos do gráfico: {str(e)}")
+            # Fallback para dados mensais padrão
+            return self._generate_default_monthly_data(orders)
+    
+    def _generate_default_monthly_data(self, orders: List[dict]) -> dict:
+        """Gera dados mensais padrão quando não há filtros específicos"""
+        monthly_stats = {}
+        monthly_values = {}
+        
+        for order in orders:
+            cabecalho = order.get("Cabecalho", {})
+            date_str = cabecalho.get("dDtPrevisao", "")
+            if date_str:
+                try:
+                    # Assumindo formato dd/mm/yyyy
+                    month_year = "/".join(date_str.split("/")[1:])  # mm/yyyy
+                    monthly_stats[month_year] = monthly_stats.get(month_year, 0) + 1
+                    monthly_values[month_year] = monthly_values.get(month_year, 0) + float(cabecalho.get("nValorTotal", 0))
+                except:
+                    pass
+        
+        # Ordenar os dados mensais cronologicamente
+        def sort_month_year(month_year):
+            try:
+                month, year = month_year.split('/')
+                return (int(year), int(month))
+            except:
+                return (0, 0)
+        
+        sorted_months = sorted(monthly_stats.keys(), key=sort_month_year)
+        sorted_monthly_stats = {month: monthly_stats[month] for month in sorted_months}
+        sorted_monthly_values = {month: monthly_values[month] for month in sorted_months}
+        
+        return {
+            'data': sorted_monthly_stats,
+            'values': sorted_monthly_values,
+            'chart_type': 'monthly'
+        }
+
     def get_available_years_for_services(self) -> List[dict]:
         """Retorna lista de anos disponíveis para filtro de ordens de serviço"""
         try:

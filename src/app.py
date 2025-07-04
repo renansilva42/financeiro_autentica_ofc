@@ -475,7 +475,14 @@ def services():
         try:
             # Gerar estatísticas utilizando o mesmo conjunto filtrado de ordens para manter consistência
             # Isso garante que as estatísticas reflitam exatamente os dados filtrados
-            stats = omie_service.get_service_orders_stats(faturada_only=False, orders=all_orders, service_filter=service_filter)
+            stats = omie_service.get_service_orders_stats(
+                faturada_only=False, 
+                orders=all_orders, 
+                service_filter=service_filter,
+                year_filter=year_filter,
+                month_filter=month_filter,
+                week_filter=week_filter
+            )
             
             # Adicionar informações sobre os filtros aplicados para contexto
             stats['applied_filters'] = {

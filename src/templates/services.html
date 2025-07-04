@@ -1046,8 +1046,8 @@
         <div class="col-12 mb-3">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-white">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-bar-chart"></i> Ordens de Serviço por Mês
+                    <h5 class="card-title mb-0" id="chartTitle">
+                        <i class="bi bi-bar-chart"></i> <span id="chartTitleText">Ordens de Serviço por Mês</span>
                         {% if stats.applied_filters and (stats.applied_filters.search or stats.applied_filters.service_filter or stats.applied_filters.year_filter or stats.applied_filters.month_filter or stats.applied_filters.week_filter) %}
                             <span class="badge bg-info ms-2">Filtrado</span>
                         {% endif %}
@@ -1378,6 +1378,35 @@
 const monthlyData = {{ stats.monthly_stats | tojson }};
 const monthlyValues = {{ stats.monthly_values | tojson }};
 
+// Detectar filtros ativos
+const hasWeekFilter = {{ 'true' if week_filter else 'false' }};
+const hasMonthFilter = {{ 'true' if month_filter else 'false' }};
+const hasYearFilter = {{ 'true' if year_filter else 'false' }};
+const weekFilter = {{ week_filter | tojson if week_filter else 'null' }};
+const monthFilter = {{ month_filter | tojson if month_filter else 'null' }};
+const yearFilter = {{ year_filter | tojson if year_filter else 'null' }};
+
+// Função para atualizar o título do gráfico baseado nos filtros
+function updateChartTitle() {
+    const chartTitleElement = document.getElementById('chartTitleText');
+    let chartTitle = 'Ordens de Serviço por Mês';
+    
+    if (hasWeekFilter) {
+        chartTitle = 'Ordens de Serviço por Dia';
+    } else if (hasMonthFilter) {
+        chartTitle = 'Ordens de Serviço por Semana';
+    } else if (hasYearFilter) {
+        chartTitle = `Ordens de Serviço por Mês (${yearFilter})`;
+    }
+    
+    if (chartTitleElement) {
+        chartTitleElement.textContent = chartTitle;
+    }
+    
+    console.log('Título do gráfico atualizado:', chartTitle);
+    return chartTitle;
+}
+
 // Função para ordenar cronologicamente as chaves mês/ano
 function sortMonthYearKeys(obj) {
     const keys = Object.keys(obj);
@@ -1399,8 +1428,22 @@ const sortedMonthlyValues = sortedMonthKeys.map(key => monthlyValues[key]);
 
 console.log('Dados originais:', Object.keys(monthlyData));
 console.log('Dados ordenados:', sortedMonthKeys);
+console.log('Filtros detectados:', { hasWeekFilter, hasMonthFilter, hasYearFilter });
 
-// Gráfico de ordens mensais
+// Atualizar título do gráfico
+const currentChartTitle = updateChartTitle();
+
+// Determinar rótulo do eixo X baseado no filtro
+let xAxisLabel = 'Mês/Ano';
+if (hasWeekFilter) {
+    xAxisLabel = 'Dia da Semana';
+} else if (hasMonthFilter) {
+    xAxisLabel = 'Semana do Mês';
+} else if (hasYearFilter) {
+    xAxisLabel = `Meses de ${yearFilter}`;
+}
+
+// Gráfico de ordens mensais (adaptativo)
 const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
 const monthlyChart = new Chart(monthlyCtx, {
     type: 'line',
@@ -1429,12 +1472,26 @@ const monthlyChart = new Chart(monthlyCtx, {
             mode: 'index',
             intersect: false,
         },
+        plugins: {
+            title: {
+                display: true,
+                text: currentChartTitle,
+                font: {
+                    size: 16,
+                    weight: 'bold'
+                },
+                padding: {
+                    top: 10,
+                    bottom: 20
+                }
+            }
+        },
         scales: {
             x: {
                 display: true,
                 title: {
                     display: true,
-                    text: 'Mês/Ano'
+                    text: xAxisLabel
                 }
             },
             y: {
