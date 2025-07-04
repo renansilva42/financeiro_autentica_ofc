@@ -475,7 +475,7 @@ def services():
         try:
             # Gerar estatísticas utilizando o mesmo conjunto filtrado de ordens para manter consistência
             # Isso garante que as estatísticas reflitam exatamente os dados filtrados
-            stats = omie_service.get_service_orders_stats(orders=all_orders, service_filter=service_filter)
+            stats = omie_service.get_service_orders_stats(faturada_only=False, orders=all_orders, service_filter=service_filter)
             
             # Adicionar informações sobre os filtros aplicados para contexto
             stats['applied_filters'] = {
@@ -904,7 +904,8 @@ def api_services():
 def api_services_stats():
     """API endpoint para estatísticas de serviços"""
     try:
-        stats = omie_service.get_service_orders_stats()
+        # Garantir que apenas ordens faturadas sejam consideradas nas estatísticas
+        stats = omie_service.get_service_orders_stats(faturada_only=True)
         return jsonify(stats)
     except Exception as e:
         return jsonify({'error': str(e)}), 500

@@ -966,13 +966,17 @@ class OmieService:
         
         return all_orders
     
-    def get_service_orders_stats(self, faturada_only: bool = False, orders: Optional[List[dict]] = None, service_filter: Optional[str] = None) -> dict:
+    def get_service_orders_stats(self, faturada_only: bool = True, orders: Optional[List[dict]] = None, service_filter: Optional[str] = None) -> dict:
         """Retorna estatísticas das ordens de serviço"""
         try:
             # Buscar todas as ordens com carregamento otimizado
             if orders is None:
                 orders = self.get_all_service_orders()
+                # Por padrão, considerar apenas ordens faturadas para estatísticas do dashboard
+                faturada_only = True
+            
             # Se solicitado, manter apenas ordens de serviço faturadas (etapa 60)
+            # Excluir também ordens pendentes (etapa 10) e Etapa 00 conforme solicitado
             if faturada_only:
                 orders = [o for o in orders if o.get('Cabecalho', {}).get('cEtapa') == '60']
             
@@ -1078,21 +1082,25 @@ class OmieService:
                     if unique_key not in counted_keys:
                         service_breakdown[service_type]['total_count'] += 1
                         counted_keys.add(unique_key)
-                    
-                    # Valor total sempre acumulado (pode ter múltiplos itens)
-                    service_breakdown[service_type]['total_value'] += service_value
-                    
-                    # Classificar por status (apenas uma vez por OS/tipo)
-                    if unique_key not in counted_keys:  # já adicionado acima
+                        
+                        # Classificar por status (apenas uma vez por OS/tipo)
                         if order_status == "60":  # Faturada
                             service_breakdown[service_type]['faturada']['count'] += 1
-                            service_breakdown[service_type]['faturada']['value'] += service_value
                         elif order_status == "10":  # Pendente
                             service_breakdown[service_type]['pendente']['count'] += 1
-                            service_breakdown[service_type]['pendente']['value'] += service_value
                         elif order_status == "00":  # Etapa 00
                             service_breakdown[service_type]['etapa_00']['count'] += 1
-                            service_breakdown[service_type]['etapa_00']['value'] += service_value
+                    
+                    # Valor sempre acumulado (pode ter múltiplos itens do mesmo serviço)
+                    service_breakdown[service_type]['total_value'] += service_value
+                    
+                    # Valor por status sempre acumulado
+                    if order_status == "60":  # Faturada
+                        service_breakdown[service_type]['faturada']['value'] += service_value
+                    elif order_status == "10":  # Pendente
+                        service_breakdown[service_type]['pendente']['value'] += service_value
+                    elif order_status == "00":  # Etapa 00
+                        service_breakdown[service_type]['etapa_00']['value'] += service_value
             
             # Adicionar serviços cadastrados que não têm ordens apenas se não há filtro específico aplicado
             # Se há filtro de serviço específico, mostrar apenas os serviços que estão nos dados filtrados
