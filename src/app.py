@@ -279,6 +279,12 @@ def client_detail(client_id):
         return render_template('error.html', error=str(e))
 
 
+@app.route('/notaz')
+@login_required
+def notaz():
+    """Página Notaz em construção"""
+    return render_template('notaz.html')
+
 @app.route('/services')
 @login_required
 def services():
