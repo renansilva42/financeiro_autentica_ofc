@@ -1152,9 +1152,10 @@ class OmieService:
             
             # Serviços cadastrados ordenados por faturamento
             registered_services = {k: v for k, v in service_breakdown.items() if k in registered_service_names}
+            # Ordenar exclusivamente pelo valor Faturado, conforme requisito de negócios
             service_breakdown_sorted = sorted(
-                registered_services.items(), 
-                key=lambda x: x[1]['total_value'], 
+                registered_services.items(),
+                key=lambda x: x[1]['faturada']['value'],
                 reverse=True
             )
             
